@@ -136,7 +136,7 @@ export default function LoginPage() {
         </form>
 
         {/* Footer */}
-        <p className="login-footer">
+        <p className="login-footer" suppressHydrationWarning>
           © {new Date().getFullYear()} Bệnh viện đa khoa NHẬT TÂN <br/> Quản lý Sự cố Y khoa
         </p>
       </div>
