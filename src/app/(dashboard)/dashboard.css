@@ -1,0 +1,695 @@
+/* ============================================================
+   App Layout Shell (Modern Medical Aesthetic)
+   ============================================================ */
+.ql-app-shell {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  width: 100vw;
+  background-color: #f8fafc;
+  font-family:
+    var(--font-geist-sans),
+    "Inter",
+    system-ui,
+    -apple-system,
+    sans-serif;
+  overflow: hidden;
+}
+
+/* Tab bar at top */
+.ql-tab-bar {
+  display: flex;
+  background-color: var(--color-primary-dark);
+  border-bottom: 2px solid rgba(0, 0, 0, 0.15);
+  padding-left: 12px;
+  align-items: flex-end;
+  height: 44px;
+  flex-shrink: 0;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+}
+
+.ql-tab {
+  display: flex;
+  align-items: center;
+  padding: 8px 20px;
+  font-size: 13px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.897);
+  background-color: rgba(255, 255, 255, 0.274);
+  border: none;
+  border-radius: 8px 8px 0 0;
+  margin-right: 6px;
+  cursor: pointer;
+  height: 36px;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  text-decoration: none;
+  user-select: none;
+}
+
+.ql-tab:hover {
+  background-color: rgba(255, 255, 255, 0.15);
+  color: #ffffff;
+}
+
+.ql-tab.active {
+  background-color: #ffffff;
+  color: var(--color-primary-dark);
+  font-weight: 700;
+  z-index: 2;
+  position: relative;
+  height: 38px;
+  box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.08);
+}
+
+.ql-tab-close {
+  margin-left: 10px;
+  font-size: 14px;
+  font-weight: 400;
+  color: rgba(255, 255, 255, 0.4);
+  border-radius: 50%;
+  width: 16px;
+  height: 16px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s;
+}
+
+.ql-tab:hover .ql-tab-close {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.ql-tab.active .ql-tab-close {
+  color: #94a3b8;
+}
+
+.ql-tab.active .ql-tab-close:hover {
+  background-color: #f1f5f9;
+  color: #ef4444;
+}
+
+/* Workspace wrapper */
+.ql-workspace {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+  min-height: 0;
+}
+
+/* Sidebar on the left */
+.ql-sidebar {
+  width: 500px;
+  background-color: #ffffff;
+  border-right: 1px solid var(--color-border-light);
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  padding: 16px;
+  box-shadow: 2px 0 10px rgba(0, 0, 0, 0.01);
+  overflow: hidden;
+}
+
+.ql-sidebar-filters {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  border-bottom: 1px solid var(--color-border-light);
+  padding-bottom: 16px;
+}
+
+.ql-sidebar-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ql-sidebar-label {
+  font-size: 12.5px;
+  font-weight: 600;
+  width: 70px;
+  flex-shrink: 0;
+  color: var(--color-text-secondary);
+}
+
+.ql-sidebar-control {
+  flex: 1;
+}
+
+.ql-sidebar-control select,
+.ql-sidebar-control input {
+  width: 100%;
+  font-size: 13px;
+  height: 34px;
+  padding: 6px 12px;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  background-color: #ffffff;
+  box-sizing: border-box;
+  color: #000000 !important;
+  transition: all 0.2s ease;
+}
+
+.ql-sidebar-control select:focus,
+.ql-sidebar-control input:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.12);
+  outline: none;
+}
+
+.ql-sidebar-date-range {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.ql-sidebar-date-range input {
+  flex: 1;
+  min-width: 0;
+  font-size: 11px;
+  padding: 4px 6px;
+}
+
+.ql-sidebar-date-range span {
+  font-size: 12px;
+  color: var(--color-text-muted);
+}
+
+/* Date/time inputs directly inside sidebar rows (not in ql-sidebar-control) */
+.ql-sidebar-row input[type="date"],
+.ql-sidebar-row input[type="time"] {
+  font-size: 12px;
+  height: 34px;
+  padding: 4px 8px;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  background-color: #ffffff;
+  box-sizing: border-box;
+  color: #000000 !important;
+  transition: all 0.2s ease;
+}
+
+.ql-sidebar-row input[type="date"]:focus,
+.ql-sidebar-row input[type="time"]:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 2px rgba(220, 38, 38, 0.12);
+  outline: none;
+}
+
+.ql-sidebar-btn-row {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 4px;
+}
+
+.ql-sidebar-btn {
+  font-size: 13px;
+  font-weight: 600;
+  background-color: var(--color-primary-light);
+  color: var(--color-primary-dark);
+  border: 1px solid rgba(220, 38, 38, 0.15);
+  border-radius: 8px;
+  padding: 6px 16px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s;
+}
+
+.ql-sidebar-btn:hover {
+  background-color: var(--color-primary);
+  color: #ffffff;
+  border-color: var(--color-primary);
+  box-shadow: 0 4px 10px rgba(220, 38, 38, 0.15);
+}
+
+.ql-sidebar-btn:active {
+  transform: scale(0.98);
+}
+
+.ql-sidebar-list-container {
+  flex: 1;
+  overflow-y: auto;
+  margin-top: 16px;
+  background-color: #ffffff;
+  border: 1px solid var(--color-border-light);
+  border-radius: 8px;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.02);
+}
+
+.ql-sidebar-list-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.ql-sidebar-list-table th {
+  background-color: var(--color-primary-light);
+  color: var(--color-primary-dark);
+  font-size: 11.5px;
+  font-weight: 700;
+  text-align: left;
+  padding: 10px 12px;
+  border-bottom: 1px solid rgba(220, 38, 38, 0.1);
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
+.ql-sidebar-list-table td {
+  font-size: 12.5px;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--color-border-light);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--color-text-secondary);
+  transition: all 0.15s;
+}
+
+.ql-sidebar-list-table tr:hover {
+  background-color: var(--color-primary-light);
+  cursor: pointer;
+}
+
+.ql-sidebar-list-table tr.active {
+  background-color: var(--color-primary-light);
+  border-left: 3px solid var(--color-primary);
+  font-weight: 700;
+}
+
+.ql-sidebar-list-table tr.active td {
+  color: var(--color-primary-dark);
+  font-weight: 600;
+}
+
+/* Main form content area */
+.ql-main-content {
+  flex: 1;
+  overflow-y: auto;
+  background-color: #f1f5f9;
+  padding: 24px;
+  min-height: 0;
+}
+
+.ql-form-container {
+  background-color: #ffffff;
+  border: 1px solid var(--color-border-light);
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+  padding: 24px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+/* Section style */
+.ql-form-section {
+  border: 1px solid var(--color-border-light);
+  background-color: #ffffff;
+  margin-bottom: 24px;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.01);
+}
+
+.ql-form-section-header {
+  background-color: var(--color-primary-light);
+  border-bottom: 1px solid rgba(220, 38, 38, 0.08);
+  padding: 12px 18px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--color-primary-dark);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.ql-form-section-body {
+  padding: 20px;
+}
+
+/* Inputs & Form labels */
+.ql-field {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+}
+
+.ql-field-label {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  white-space: nowrap;
+  flex-shrink: 0;
+  text-align: left;
+}
+
+.ql-field-control {
+  flex: 1;
+  display: flex;
+  align-items: center;
+}
+
+.ql-field-control input[type="text"],
+.ql-field-control input[type="date"],
+.ql-field-control input[type="time"],
+.ql-field-control select,
+.ql-field-control textarea {
+  width: 100%;
+  font-size: 13px;
+  height: 36px;
+  padding: 8px 12px;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  background-color: #ffffff;
+  box-sizing: border-box;
+  color: #000000 !important;
+  transition: all 0.2s ease;
+}
+
+.ql-field-control select:disabled,
+.ql-field-control input:disabled,
+.ql-field-control textarea:disabled {
+  background-color: rgb(207, 207, 207);
+  color: var(--color-text-muted);
+}
+
+.ql-field-control input[type="date"]:focus,
+.ql-field-control input[type="time"]:focus,
+.ql-field-control input[type="text"]:focus,
+.ql-field-control select:focus,
+.ql-field-control textarea:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.12);
+  outline: none;
+}
+
+.ql-field-control textarea {
+  height: auto;
+  min-height: 56px;
+  resize: vertical;
+  line-height: 1.5;
+}
+
+/* .ql-field-control input[type="text"]:focus,
+.ql-field-control select:focus,
+.ql-field-control textarea:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.12);
+  outline: none;
+}
+
+.ql-field-control input[readonly] {
+  background-color: var(--color-primary-light);
+  color: var(--color-primary-dark) !important;
+  font-weight: 700;
+  border-color: rgba(220, 38, 38, 0.15);
+} */
+
+/* Date + Time row — overrides width:100% so flex sizing works */
+.ql-datetime-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ql-datetime-row input[type="date"] {
+  flex: 1;
+  min-width: 0;
+  width: auto !important; /* override the width:100% from .ql-field-control rule */
+  font-size: 13px;
+  height: 36px;
+  padding: 8px 10px;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  background-color: #ffffff;
+  box-sizing: border-box;
+  color: #000000 !important;
+  transition: all 0.2s ease;
+}
+
+.ql-datetime-row input[type="date"]:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.12);
+  outline: none;
+}
+
+/* ============================================================
+   TimePicker — 24h format (00:00 – 23:59)
+   ============================================================ */
+.ql-timepicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 1px;
+  height: 36px;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  background: #ffffff;
+  overflow: hidden;
+  padding: 0 8px;
+  box-sizing: border-box;
+  flex-shrink: 0;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.ql-timepicker:focus-within {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.12);
+}
+
+.ql-timepicker select {
+  border: none !important;
+  box-shadow: none !important;
+  outline: none !important;
+  height: 100% !important;
+  padding: 0 2px !important;
+  margin: 0 !important;
+  background: transparent !important;
+  font-size: 13px !important;
+  color: #000000 !important;
+  width: auto !important;
+  cursor: pointer;
+  font-weight: 600;
+  text-align: center;
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+.ql-timepicker-sep {
+  color: var(--color-text-muted);
+  font-weight: 700;
+  /* font-size: 15px; */
+  line-height: 1;
+  user-select: none;
+  padding: 0 1px;
+}
+
+/* Size variants */
+.ql-timepicker--sm {
+  height: 32px;
+  padding: 0 6px;
+}
+
+.ql-timepicker--sm select {
+  font-size: 12px !important;
+}
+
+.ql-timepicker--sm .ql-timepicker-sep {
+  font-size: 13px;
+}
+
+/* Double arrow select button in screenshot */
+.ql-field-control-wrapper {
+  display: flex;
+  width: 100%;
+}
+
+.ql-input-addon-btn {
+  background-color: #f1f5f9;
+  border: 1px solid var(--color-border);
+  border-left: none;
+  border-radius: 0 8px 8px 0;
+  padding: 0 10px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-primary-dark);
+  font-size: 10px;
+  transition: all 0.15s;
+}
+
+.ql-input-addon-btn:hover {
+  background-color: #e2e8f0;
+}
+
+.ql-input-with-addon {
+  border-top-right-radius: 0 !important;
+  border-bottom-right-radius: 0 !important;
+}
+
+/* Header line styles of the form */
+.ql-form-header-line {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  padding: 12px 16px;
+  background-color: #f8fafc;
+  border-bottom: 1px solid var(--color-border-light);
+  align-items: center;
+  border-radius: 12px 12px 0 0;
+  margin-bottom: 20px;
+}
+
+.ql-form-header-field {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+}
+
+.ql-form-header-field input[type="text"],
+.ql-form-header-field input[type="date"],
+.ql-form-header-field input[type="time"],
+.ql-form-header-field select {
+  font-size: 12.5px;
+  height: 32px;
+  padding: 4px 10px;
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  background-color: #ffffff;
+  color: #000000 !important;
+  box-sizing: border-box;
+}
+
+.ql-form-header-field input[type="date"]:focus,
+.ql-form-header-field input[type="time"]:focus,
+.ql-form-header-field input[type="text"]:focus,
+.ql-form-header-field select:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 2px rgba(220, 38, 38, 0.12);
+  outline: none;
+}
+
+/* Bottom Status Bar */
+.ql-status-bar {
+  height: 56px;
+  background-color: #ffffff;
+  border-top: 1px solid var(--color-border-light);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 24px;
+  flex-shrink: 0;
+  z-index: 10;
+  box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.02);
+}
+
+.ql-status-info {
+  font-size: 12px;
+  color: var(--color-text-muted);
+  font-weight: 500;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  flex: 1;
+  padding-right: 16px;
+}
+
+.ql-status-actions {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+  margin-left: auto;
+}
+
+.ql-btn-action {
+  font-size: 13px;
+  background-color: #ffffff;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  padding: 8px 16px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--color-text-secondary);
+  font-weight: 600;
+  line-height: 1.2;
+  transition: all 0.2s ease;
+}
+
+.ql-btn-action:hover {
+  background-color: #f8fafc;
+  border-color: var(--color-text-muted);
+  color: var(--color-text-primary);
+}
+
+.ql-btn-action:active {
+  transform: scale(0.98);
+}
+
+/* Action button variations for modern look */
+.ql-btn-action:has(.ql-btn-icon-green):hover {
+  background-color: #f0fdf4;
+  border-color: #22c55e;
+  color: #15803d;
+}
+
+.ql-btn-action:has(.ql-btn-icon-yellow):hover {
+  background-color: #fffbeb;
+  border-color: #f59e0b;
+  color: #b45309;
+}
+
+.ql-btn-action:has(.ql-btn-icon-blue):hover {
+  background-color: #eff6ff;
+  border-color: #3b82f6;
+  color: #1d4ed8;
+}
+
+.ql-btn-action:has(.ql-btn-icon-red):hover {
+  background-color: #fef2f2;
+  border-color: #ef4444;
+  color: #b91c1c;
+}
+
+.ql-btn-icon-green {
+  color: #22c55e;
+  font-size: 14px;
+}
+
+.ql-btn-icon-blue {
+  color: #3b82f6;
+  font-size: 14px;
+}
+
+.ql-btn-icon-yellow {
+  color: #f59e0b;
+  font-size: 14px;
+}
+
+.ql-btn-icon-red {
+  color: #ef4444;
+  font-size: 14px;
+}
+
+/* Thin Scrollbars for beautiful look */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-border);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-text-muted);
+}

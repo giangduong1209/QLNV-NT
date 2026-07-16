@@ -1,0 +1,111 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlserver"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================================
+// Bảng Người dùng hệ thống
+// ============================================================
+model User {
+  id         String   @id @default(uuid())
+  username   String   @unique @db.NVarChar(50)
+  password   String   @db.NVarChar(255) // bcrypt hash
+  fullName   String   @db.NVarChar(100)
+  email      String?  @db.NVarChar(100)
+  phone      String?  @db.NVarChar(20)
+  role       String   @default("user") @db.NVarChar(20) // admin | manager | user
+  department String?  @db.NVarChar(100) // Khoa/phòng
+  active     Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  // Relations
+  incidents  Incident[]  @relation("ReportedBy")
+  sessions   Session[]
+
+  @@map("users")
+}
+
+// ============================================================
+// Bảng Session (cho database-backed session nếu cần)
+// ============================================================
+model Session {
+  id        String   @id @default(uuid())
+  userId    String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("sessions")
+}
+
+// ============================================================
+// Bảng Sự cố Y khoa (Incident)
+// ============================================================
+model Incident {
+  id        String   @id @default(uuid())
+  code      String   @unique @db.NVarChar(20) // Mã sự cố: SC26000001
+
+  // --- Thông tin chung ---
+  analysisStatus String  @default("chua_phan_tich") @db.NVarChar(30) // chua_phan_tich | da_phan_tich
+  reportDate     DateTime @default(now()) // Ngày lập
+  reportType     String   @default("tu_nguyen") @db.NVarChar(20) // tu_nguyen | bat_buoc
+  incidentType   String?  @db.NVarChar(100) // Loại sự cố
+
+  // --- Thông tin người bệnh ---
+  patientCode    String?  @db.NVarChar(20)  // Mã KCB
+  patientName    String?  @db.NVarChar(100) // Họ và tên
+  patientDept    String?  @db.NVarChar(100) // Khoa/phòng
+  patientDob     DateTime? // Ngày sinh
+  medicalRecord  String?  @db.NVarChar(20)  // Số bệnh án
+  patientGender  String?  @db.NVarChar(10)  // Nam | Nữ
+  patientType    String?  @db.NVarChar(50)  // Đối tượng
+
+  // --- Nơi xảy ra sự cố ---
+  incidentName   String?  @db.NVarChar(200) // Tên sự cố
+  incidentDate   DateTime? // Ngày sự cố
+  incidentDept   String?  @db.NVarChar(100) // Khoa/phòng xảy ra
+  incidentLocation String? @db.NVarChar(200) // Vị trí cụ thể
+  description    String?  @db.NVarChar(Max) // Mô tả
+  suggestion     String?  @db.NVarChar(Max) // Đề xuất giải pháp
+
+  // --- Xử lý & Nguyên nhân ---
+  initialHandling String? @db.NVarChar(Max) // Xử lý ban đầu
+  rootCause       String? @db.NVarChar(Max) // Nguyên nhân gốc
+  preventionPlan  String? @db.NVarChar(Max) // Giải pháp tránh lặp lại
+
+  // --- Thông báo & Xác nhận ---
+  notifyDoctor      String? @db.NVarChar(10) // Có | Không
+  reporterType      String? @db.NVarChar(50) // Người báo cáo (loại)
+  notifyFamily      String? @db.NVarChar(10) // Có | Không
+  reporterName      String? @db.NVarChar(100) // Họ tên người báo cáo
+  reporterPhone     String? @db.NVarChar(20) // SĐT
+  recordInMedical   String? @db.NVarChar(10) // Có | Không
+  reporterEmail     String? @db.NVarChar(100) // Email
+  notifyPatient     String? @db.NVarChar(200) // Thông báo cho người bệnh
+  witness1          String? @db.NVarChar(100) // Chứng kiến 1
+  initialClassification String? @db.NVarChar(100) // Phân loại ban đầu
+  witness2          String? @db.NVarChar(100) // Chứng kiến 2
+  impactAssessment  String? @db.NVarChar(100) // Đánh giá mức độ ảnh hưởng
+
+  // --- Metadata ---
+  reportedById String?
+  reportedBy   User?    @relation("ReportedBy", fields: [reportedById], references: [id])
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([code])
+  @@index([reportedById])
+  @@index([incidentDate])
+  @@index([patientDept])
+  @@map("incidents")
+}
