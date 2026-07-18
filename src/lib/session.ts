@@ -21,7 +21,7 @@ export async function encrypt(payload: SessionPayload) {
 // Decrypt: Verify & giải mã JWT token
 // ============================================================
 export async function decrypt(
-  session: string | undefined = ""
+  session: string | undefined = "",
 ): Promise<SessionPayload | undefined> {
   try {
     const { payload } = await jwtVerify(session, encodedKey, {

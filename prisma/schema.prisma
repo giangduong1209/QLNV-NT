@@ -178,3 +178,15 @@ model dmyeutobenngoai_scyk {
   mayeutobenngoai  Int     @id(map: "PK_dmyeutobenngoai_scyk")
   tenyeutobenngoai String? @db.NVarChar(50)
 }
+
+model users {
+  id            String  @id(map: "PK_users") @db.NVarChar(10)
+  hovaten       String  @db.NVarChar(500)
+  sdt           String  @db.NChar(10)
+  email         String  @db.NVarChar(500)
+  khoahoacphong String  @db.NVarChar(500)
+  username      String  @db.NVarChar(50)
+  password      String  @db.NVarChar(50)
+  quyen         String  @db.NVarChar(50)
+  active        Boolean
+}

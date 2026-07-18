@@ -242,7 +242,7 @@ export function IncidentForm() {
           <div className="grid grid-cols-12 gap-4 mb-4">
             <div className="col-span-8">
               <div className="ql-field">
-                <span className="ql-field-label w-[70px]">Tên sự cố:</span>
+                <span className="ql-field-label">Tên sự cố:</span>
                 <div className="ql-field-control">
                   <div className="ql-field-control-wrapper">
                     <input
@@ -258,7 +258,7 @@ export function IncidentForm() {
             </div>
             <div className="col-span-4">
               <div className="ql-field">
-                <span className="ql-field-label w-[80px]">Ngày sự cố:</span>
+                <span className="ql-field-label">Ngày sự cố:</span>
                 <div className="ql-field-control ql-datetime-row">
                   <input
                     type="date"
@@ -274,7 +274,7 @@ export function IncidentForm() {
           <div className="grid grid-cols-12 gap-4 mb-4">
             <div className="col-span-8">
               <div className="ql-field">
-                <span className="ql-field-label w-[70px]">Khoa/phòng:</span>
+                <span className="ql-field-label">Khoa/phòng:</span>
                 <div className="ql-field-control">
                   <select
                     value={khoaPhongSC}
@@ -292,7 +292,7 @@ export function IncidentForm() {
             </div>
             <div className="col-span-4">
               <div className="ql-field">
-                <span className="ql-field-label w-[80px]">Vị trí cụ thể:</span>
+                <span className="ql-field-label">Vị trí cụ thể:</span>
                 <div className="ql-field-control">
                   <input
                     type="text"

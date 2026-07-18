@@ -19,17 +19,12 @@ export interface SessionPayload {
 // Login Form Schema
 // ============================================================
 export const LoginFormSchema = z.object({
-  username: z
-    .string()
-    .min(1, { error: "Vui lòng nhập tên đăng nhập" })
-    .trim(),
-  password: z
-    .string()
-    .min(1, { error: "Vui lòng nhập mật khẩu" })
-    .trim(),
+  username: z.string().min(1, { error: "Vui lòng nhập tên đăng nhập" }).trim(),
+  password: z.string().min(1, { error: "Vui lòng nhập mật khẩu" }).trim(),
 });
 
-export type LoginFormState = {
+export type LoginFormState =
+  | {
       errors?: {
         username?: string[];
         password?: string[];

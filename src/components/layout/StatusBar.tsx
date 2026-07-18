@@ -5,8 +5,6 @@ import { usePathname } from "next/navigation";
 export function StatusBar() {
   const pathname = usePathname();
 
-  console.log(pathname);
-
   return (
     <div className="ql-status-bar">
       <div className="ql-status-actions">
