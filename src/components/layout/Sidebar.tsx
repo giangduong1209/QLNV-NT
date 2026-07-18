@@ -1,43 +1,98 @@
-"use client";
+﻿"use client";
 
-import { useState, useEffect } from "react";
+import { useState, useTransition } from "react";
+import { useForm } from "react-hook-form";
+import { useRouter } from "next/navigation";
 import { TimePicker } from "@/components/ui/TimePicker";
+import { getSuCoList } from "@/actions/incidents";
+import { KHOA_PHONG_MAP } from "@/lib/definitions";
+import type { AnalysisStatus, SuCoListItem } from "@/lib/definitions";
+
+type FilterForm = {
+  trangThai: AnalysisStatus;
+  tuNgayDate: string;
+  tuNgayTime: string;
+  denNgayDate: string;
+  denNgayTime: string;
+  maphong: string;
+};
+
+function formatDate(date: Date | null): string {
+  if (!date) return "";
+  const d = new Date(date);
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${pad(d.getDate())}/${pad(d.getMonth() + 1)}/${d.getFullYear()}`;
+}
+
+function todayStr(): string {
+  const now = new Date();
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
+}
 
 export function Sidebar() {
-  const [phanTich, setPhanTich] = useState("Chưa phân tích");
-  const [tuNgayDate, setTuNgayDate] = useState("");
-  const [tuNgayTime, setTuNgayTime] = useState("");
-  const [denNgayDate, setDenNgayDate] = useState("");
-  const [denNgayTime, setDenNgayTime] = useState("");
-  const [khoaPhong, setKhoaPhong] = useState("");
+  const router = useRouter();
+  const [isPending, startTransition] = useTransition();
+  const [suCoList, setSuCoList] = useState<SuCoListItem[]>([]);
+  const [selectedMaSuCo, setSelectedMaSuCo] = useState<number | null>(null);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
-  useEffect(() => {
-    const now = new Date();
-    const pad = (n: number) => String(n).padStart(2, "0");
-    const today = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
-    setTuNgayDate(today);
-    setTuNgayTime("00:00");
-    setDenNgayDate(today);
-    setDenNgayTime("23:59");
-  }, []);
+  const { register, handleSubmit, watch, setValue } = useForm<FilterForm>({
+    defaultValues: {
+      trangThai: "CHUA_PHAN_TICH",
+      tuNgayDate: todayStr(),
+      tuNgayTime: "00:00",
+      denNgayDate: todayStr(),
+      denNgayTime: "23:59",
+      maphong: "",
+    },
+  });
 
-  const mockIncidents = [
-    { code: "SC26000001", name: "Nguyễn Văn A", date: "14/07/2026" },
-    { code: "SC26000002", name: "Trần Thị B", date: "13/07/2026" },
-    { code: "SC26000003", name: "Lê Văn C", date: "12/07/2026" },
-  ];
+  const tuNgayTime = watch("tuNgayTime");
+  const denNgayTime = watch("denNgayTime");
+
+  const onSubmit = (values: FilterForm) => {
+    setErrorMsg(null);
+    startTransition(async () => {
+      const result = await getSuCoList({
+        trangThai: values.trangThai,
+        tuNgay: values.tuNgayDate,
+        tuNgayTime: values.tuNgayTime,
+        denNgay: values.denNgayDate,
+        denNgayTime: values.denNgayTime,
+        maphong: values.maphong ? parseInt(values.maphong) : undefined,
+      });
+      if (result.error) {
+        setErrorMsg(result.error);
+      } else {
+        setSuCoList(result.data);
+        if (
+          selectedMaSuCo &&
+          !result.data.find((r) => r.masuco === selectedMaSuCo)
+        ) {
+          setSelectedMaSuCo(null);
+        }
+      }
+    });
+  };
+
+  console.log({ suCoList });
+
+  const handleRowClick = (masuco: number) => {
+    setSelectedMaSuCo(masuco);
+    router.push(`/incidents?masuco=${masuco}`);
+  };
 
   return (
     <div className="ql-sidebar">
-      {/* Filters block */}
-      <div className="ql-sidebar-filters">
+      <form onSubmit={handleSubmit(onSubmit)} className="ql-sidebar-filters">
         <div className="ql-sidebar-row">
           <div className="ql-sidebar-label">Phân tích</div>
           <div className="ql-sidebar-control">
-            <select value={phanTich} onChange={(e) => setPhanTich(e.target.value)}>
-              <option value="Chưa phân tích">Chưa phân tích</option>
-              <option value="Đã phân tích">Đã phân tích</option>
-              <option value="Tất cả">Tất cả</option>
+            <select {...register("trangThai")}>
+              <option value="CHUA_PHAN_TICH">Chưa phân tích</option>
+              <option value="DA_PHAN_TICH">Đã phân tích</option>
+              <option value="TAT_CA">Tất cả</option>
             </select>
           </div>
         </div>
@@ -45,39 +100,58 @@ export function Sidebar() {
         <div className="ql-sidebar-row flex-col !items-start gap-2">
           <div className="ql-sidebar-label">Từ ngày</div>
           <div className="flex gap-2 w-full items-center">
-            <span className="text-xs w-[30px] text-slate-400 font-semibold">Từ</span>
-            <input type="date" value={tuNgayDate} onChange={(e) => setTuNgayDate(e.target.value)} className="flex-1" />
-            <TimePicker value={tuNgayTime} onChange={setTuNgayTime} size="sm" />
+            <span className="text-xs w-[30px] text-slate-400 font-semibold">
+              Từ
+            </span>
+            <input type="date" {...register("tuNgayDate")} className="flex-1" />
+            <TimePicker
+              value={tuNgayTime}
+              onChange={(v) => setValue("tuNgayTime", v)}
+              size="sm"
+            />
           </div>
           <div className="flex gap-2 w-full items-center">
-            <span className="text-xs w-[30px] text-slate-400 font-semibold">Đến</span>
-            <input type="date" value={denNgayDate} onChange={(e) => setDenNgayDate(e.target.value)} className="flex-1" />
-            <TimePicker value={denNgayTime} onChange={setDenNgayTime} size="sm" />
+            <span className="text-xs w-[30px] text-slate-400 font-semibold">
+              Đến
+            </span>
+            <input
+              type="date"
+              {...register("denNgayDate")}
+              className="flex-1"
+            />
+            <TimePicker
+              value={denNgayTime}
+              onChange={(v) => setValue("denNgayTime", v)}
+              size="sm"
+            />
           </div>
         </div>
 
         <div className="ql-sidebar-row">
           <div className="ql-sidebar-label">K.phòng</div>
           <div className="ql-sidebar-control">
-            <select value={khoaPhong} onChange={(e) => setKhoaPhong(e.target.value)}>
-              <option value="">-- Chọn khoa/phòng --</option>
-              <option value="Cấp cứu">Khoa Cấp cứu</option>
-              <option value="Nội tổng hợp">Khoa Nội tổng hợp</option>
-              <option value="Ngoại tổng hợp">Khoa Ngoại tổng hợp</option>
-              <option value="Sản">Khoa Sản</option>
-              <option value="Nhi">Khoa Nhi</option>
+            <select {...register("maphong")}>
+              <option value="">-- Tất cả --</option>
+              {Object.entries(KHOA_PHONG_MAP).map(([ma, ten]) => (
+                <option key={ma} value={ma}>
+                  {ten}
+                </option>
+              ))}
             </select>
           </div>
         </div>
 
         <div className="ql-sidebar-btn-row">
-          <button className="ql-sidebar-btn">
-            <span>⇄</span> Nạp
+          <button type="submit" className="ql-sidebar-btn" disabled={isPending}>
+            {isPending ? "Đang tải..." : "Nạp"}
           </button>
         </div>
-      </div>
 
-      {/* Incident List Table */}
+        {errorMsg && (
+          <div className="text-red-500 text-xs px-1 -mt-2">{errorMsg}</div>
+        )}
+      </form>
+
       <div className="ql-sidebar-list-container">
         <table className="ql-sidebar-list-table">
           <thead>
@@ -88,13 +162,30 @@ export function Sidebar() {
             </tr>
           </thead>
           <tbody>
-            {mockIncidents.map((inc) => (
-              <tr key={inc.code}>
-                <td>{inc.code}</td>
-                <td>{inc.name}</td>
-                <td>{inc.date}</td>
+            {suCoList.length === 0 ? (
+              <tr>
+                <td
+                  colSpan={3}
+                  className="text-center text-slate-400 italic py-6"
+                >
+                  {isPending ? "Đang tải..." : "Nhấn Nạp để tìm kiếm"}
+                </td>
               </tr>
-            ))}
+            ) : (
+              suCoList.map((inc) => (
+                <tr
+                  key={inc.masuco}
+                  className={selectedMaSuCo === inc.masuco ? "active" : ""}
+                  onClick={() => handleRowClick(inc.masuco)}
+                  title={inc.daPhanTich ? "Đã phân tích" : "Chưa phân tích"}
+                  style={{ cursor: "pointer" }}
+                >
+                  <td>{inc.sosuco ?? String(inc.masuco)}</td>
+                  <td>{inc.hoten ?? "—"}</td>
+                  <td>{formatDate(inc.ngaysuco)}</td>
+                </tr>
+              ))
+            )}
           </tbody>
         </table>
       </div>
