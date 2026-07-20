@@ -149,6 +149,10 @@
   transition: all 0.2s ease;
 }
 
+.ql-sidebar-control .ql-timepicker {
+  height: 34px !important;
+}
+
 .ql-sidebar-control select:focus,
 .ql-sidebar-control input:focus {
   border-color: var(--color-primary);
@@ -479,6 +483,33 @@
   -webkit-appearance: none;
 }
 
+.ql-timepicker input {
+  border: none !important;
+  box-shadow: none !important;
+  outline: none !important;
+  height: 100% !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  background: transparent !important;
+  font-size: 13px !important;
+  color: #000000 !important;
+  width: 24px !important;
+  text-align: center;
+  font-weight: 600;
+  box-sizing: border-box;
+}
+
+.ql-timepicker input:focus {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+.ql-timepicker input::placeholder {
+  color: var(--color-text-muted);
+  opacity: 0.5;
+  font-weight: 400;
+}
+
 .ql-timepicker-sep {
   color: var(--color-text-muted);
   font-weight: 700;
@@ -494,8 +525,13 @@
   padding: 0 6px;
 }
 
-.ql-timepicker--sm select {
+.ql-timepicker--sm select,
+.ql-timepicker--sm input {
   font-size: 12px !important;
+}
+
+.ql-timepicker--sm input {
+  width: 20px !important;
 }
 
 .ql-timepicker--sm .ql-timepicker-sep {

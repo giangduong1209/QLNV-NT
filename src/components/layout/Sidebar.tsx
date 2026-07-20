@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState, useTransition } from "react";
 import { useForm } from "react-hook-form";
@@ -39,7 +39,7 @@ export function Sidebar() {
 
   const { register, handleSubmit, watch, setValue } = useForm<FilterForm>({
     defaultValues: {
-      trangThai: "CHUA_PHAN_TICH",
+      trangThai: "TAT_CA",
       tuNgayDate: todayStr(),
       tuNgayTime: "00:00",
       denNgayDate: todayStr(),
@@ -90,30 +90,32 @@ export function Sidebar() {
           <div className="ql-sidebar-label">Phân tích</div>
           <div className="ql-sidebar-control">
             <select {...register("trangThai")}>
+              <option value="TAT_CA">Tất cả</option>
               <option value="CHUA_PHAN_TICH">Chưa phân tích</option>
               <option value="DA_PHAN_TICH">Đã phân tích</option>
-              <option value="TAT_CA">Tất cả</option>
             </select>
           </div>
         </div>
 
-        <div className="ql-sidebar-row flex-col !items-start gap-2">
+        <div className="ql-sidebar-row">
           <div className="ql-sidebar-label">Từ ngày</div>
-          <div className="flex gap-2 w-full items-center">
-            <span className="text-xs w-[30px] text-slate-400 font-semibold">
-              Từ
-            </span>
-            <input type="date" {...register("tuNgayDate")} className="flex-1" />
+          <div className="ql-sidebar-control flex gap-2 items-center">
+            <input
+              type="date"
+              {...register("tuNgayDate")}
+              className="flex-1"
+            />
             <TimePicker
               value={tuNgayTime}
               onChange={(v) => setValue("tuNgayTime", v)}
               size="sm"
             />
           </div>
-          <div className="flex gap-2 w-full items-center">
-            <span className="text-xs w-[30px] text-slate-400 font-semibold">
-              Đến
-            </span>
+        </div>
+
+        <div className="ql-sidebar-row">
+          <div className="ql-sidebar-label">Đến ngày</div>
+          <div className="ql-sidebar-control flex gap-2 items-center">
             <input
               type="date"
               {...register("denNgayDate")}

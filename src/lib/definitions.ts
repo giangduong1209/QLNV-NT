@@ -72,7 +72,7 @@ export type SuCoListItem = {
   hoten: string | null;
   ngaysuco: Date | null;
   maphong: number | null;
-  daPhanTich: boolean; // computed: có bản ghi phantichsuco với duyet=true
+  daPhanTich?: boolean; // computed: có bản ghi phantichsuco với duyet=true
 };
 
 // ============================================================
