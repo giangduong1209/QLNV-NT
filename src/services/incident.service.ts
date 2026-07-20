@@ -6,15 +6,19 @@ export async function getIncidentList(
 ) {
   return prisma.dangky_sucoykhoa.findMany({
     where,
-    // include: {
-    //   phantichsuco: {
-    //     select: {
-    //       masuco: true,
-    //     },
-    //   },
-    // },
     orderBy: {
       ngaysuco: "desc",
+    },
+  });
+}
+
+export async function getIncidentDetail(masuco: number) {
+  return prisma.dangky_sucoykhoa.findUnique({
+    where: {
+      masuco,
+    },
+    include: {
+      phantichsuco: true,
     },
   });
 }

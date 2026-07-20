@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { useForm } from "react-hook-form";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { TimePicker } from "@/components/ui/TimePicker";
 import { getSuCoList } from "@/actions/incidents";
 import { KHOA_PHONG_MAP } from "@/lib/definitions";
@@ -51,8 +51,6 @@ export function Sidebar() {
         maphong: values.maphong ? parseInt(values.maphong) : undefined,
       });
 
-      console.log({ result });
-
       if (result.error) {
         setErrorMsg(result.error);
       } else {
@@ -69,10 +67,8 @@ export function Sidebar() {
 
   const handleRowClick = (masuco: number) => {
     setSelectedMaSuCo(masuco);
-    router.push(`/incidents?masuco=${masuco}`);
+    router.push(`/dashboard?masuco=${masuco}`);
   };
-
-  console.log({ suCoList });
 
   return (
     <div className="ql-sidebar">
