@@ -7,6 +7,7 @@ import { TimePicker } from "@/components/ui/TimePicker";
 import { getSuCoList } from "@/actions/incidents";
 import { KHOA_PHONG_MAP } from "@/lib/definitions";
 import type { AnalysisStatus, SuCoListItem } from "@/lib/definitions";
+import { formatDate, todayStr } from "@/utils";
 
 type FilterForm = {
   trangThai: AnalysisStatus;
@@ -16,19 +17,6 @@ type FilterForm = {
   denNgayTime: string;
   maphong: string;
 };
-
-function formatDate(date: Date | null): string {
-  if (!date) return "";
-  const d = new Date(date);
-  const pad = (n: number) => String(n).padStart(2, "0");
-  return `${pad(d.getDate())}/${pad(d.getMonth() + 1)}/${d.getFullYear()}`;
-}
-
-function todayStr(): string {
-  const now = new Date();
-  const pad = (n: number) => String(n).padStart(2, "0");
-  return `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
-}
 
 export function Sidebar() {
   const router = useRouter();
@@ -62,6 +50,9 @@ export function Sidebar() {
         denNgayTime: values.denNgayTime,
         maphong: values.maphong ? parseInt(values.maphong) : undefined,
       });
+
+      console.log({ result });
+
       if (result.error) {
         setErrorMsg(result.error);
       } else {
@@ -76,12 +67,12 @@ export function Sidebar() {
     });
   };
 
-  console.log({ suCoList });
-
   const handleRowClick = (masuco: number) => {
     setSelectedMaSuCo(masuco);
     router.push(`/incidents?masuco=${masuco}`);
   };
+
+  console.log({ suCoList });
 
   return (
     <div className="ql-sidebar">
@@ -100,11 +91,7 @@ export function Sidebar() {
         <div className="ql-sidebar-row">
           <div className="ql-sidebar-label">Từ ngày</div>
           <div className="ql-sidebar-control flex gap-2 items-center">
-            <input
-              type="date"
-              {...register("tuNgayDate")}
-              className="flex-1"
-            />
+            <input type="date" {...register("tuNgayDate")} className="flex-1" />
             <TimePicker
               value={tuNgayTime}
               onChange={(v) => setValue("tuNgayTime", v)}

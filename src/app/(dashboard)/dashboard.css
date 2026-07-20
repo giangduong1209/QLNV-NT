@@ -277,13 +277,13 @@
 
 .ql-sidebar-list-table tr.active {
   background-color: var(--color-primary-light);
-  border-left: 3px solid var(--color-primary);
-  font-weight: 700;
+  /* border-left: 3px solid var(--color-primary); */
+  /* font-weight: 700; */
 }
 
 .ql-sidebar-list-table tr.active td {
   color: var(--color-primary-dark);
-  font-weight: 600;
+  /* font-weight: 600; */
 }
 
 /* Main form content area */

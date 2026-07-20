@@ -86,6 +86,7 @@ model dangky_sucoykhoa {
   nguyennhangoc        String?   @db.NVarChar(Max)
   giaiphaptranhlaplai  String?   @db.NVarChar(Max)
   maloaiscyk           Int?
+  daphantich           Boolean?
 
   // Relation 1-1 ngược lại từ dangky_phantichsuco
   phantichsuco dangky_phantichsuco?

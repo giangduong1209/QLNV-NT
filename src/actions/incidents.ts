@@ -1,7 +1,7 @@
 "use server";
 
 import { Prisma } from "@prisma/client";
-import { prisma } from "@/lib/prisma";
+import { getIncidentList } from "@/services/incident.service";
 import type { FilterParams, SuCoListItem, SuCoDetail } from "@/lib/definitions";
 
 // ============================================================
@@ -63,24 +63,11 @@ export async function getSuCoList(
       whereCondition = baseWhere;
     }
 
-    const rows = await prisma.dangky_sucoykhoa.findMany({
-      where: whereCondition,
-      select: {
-        masuco: true,
-        sosuco: true,
-        hoten: true,
-        ngaysuco: true,
-        maphong: true,
-      },
-      orderBy: { ngaysuco: "desc" },
-    });
+    const rows = await getIncidentList(whereCondition);
 
     const data: SuCoListItem[] = rows.map((row) => ({
-      masuco: row.masuco,
-      sosuco: row.sosuco,
-      hoten: row.hoten,
-      ngaysuco: row.ngaysuco,
-      maphong: row.maphong,
+      ...row,
+      // daphantich: row.phantichsuco !== null,
     }));
 
     return { data };
