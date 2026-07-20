@@ -1,13 +1,10 @@
 import { z } from "zod/v4";
 
 // ============================================================
-// User Roles
+// Auth & User Types
 // ============================================================
 export type UserRole = "admin" | "manager" | "user";
 
-// ============================================================
-// Session Payload (JWT)
-// ============================================================
 export interface SessionPayload {
   userId: string;
   role: UserRole;
@@ -15,9 +12,6 @@ export interface SessionPayload {
   [key: string]: unknown;
 }
 
-// ============================================================
-// Login Form Schema
-// ============================================================
 export const LoginFormSchema = z.object({
   username: z.string().min(1, { error: "Vui lòng nhập tên đăng nhập" }).trim(),
   password: z.string().min(1, { error: "Vui lòng nhập mật khẩu" }).trim(),
@@ -34,63 +28,34 @@ export type LoginFormState =
   | undefined;
 
 // ============================================================
-// Incident Form Schemas (will expand in Phase 5)
+// Incident Types & Enums
 // ============================================================
+export type AnalysisStatus = "CHUA_PHAN_TICH" | "DA_PHAN_TICH" | "TAT_CA";
+export type ReportType = "TU_NGUYEN" | "BAT_BUOC";
+
 export const IncidentCodeSchema = z
   .string()
   .regex(/^SC\d{8}$/, { error: "Mã sự cố không hợp lệ (VD: SC26000001)" });
 
-export type AnalysisStatus = "CHUA_PHAN_TICH" | "DA_PHAN_TICH" | "TAT_CA";
-export type ReportType = "TU_NGUYEN" | "BAT_BUOC";
-
-// ============================================================
-// Khoa/Phòng mapping (maphong Int → tên hiển thị)
-// ============================================================
-export const KHOA_PHONG_MAP: Record<number, string> = {
-  1: "Khoa Cấp cứu",
-  2: "Khoa Nội tổng hợp",
-  3: "Khoa Ngoại tổng hợp",
-  4: "Khoa Sản",
-  5: "Khoa Nhi",
-  6: "Khoa Tim mạch",
-  7: "Khoa Hô hấp",
-  8: "Khoa Thận - Tiết niệu",
-  9: "Khoa Ung bướu",
-  10: "Khoa Xét nghiệm",
-  11: "Khoa Chẩn đoán hình ảnh",
-  12: "Khoa Dược",
-  13: "Phòng Kế hoạch tổng hợp",
-  14: "Phòng Điều dưỡng",
-};
-
-// ============================================================
-// Incident List Item (dùng trong Sidebar DataTable)
-// ============================================================
-export type SuCoListItem = {
+export interface SuCoListItem {
   masuco: number;
   sosuco: string | null;
   hoten: string | null;
   ngaysuco: Date | null;
   maphong: number | null;
-  daPhanTich?: boolean; // computed: có bản ghi phantichsuco với duyet=true
-};
+  daPhanTich?: boolean;
+}
 
-// ============================================================
-// Filter Params (Sidebar → Server Action)
-// ============================================================
-export type FilterParams = {
+export interface FilterParams {
   trangThai: AnalysisStatus;
   tuNgay: string; // "YYYY-MM-DD"
   tuNgayTime: string;
   denNgay: string; // "YYYY-MM-DD"
   denNgayTime: string;
   maphong?: number;
-};
+}
 
-// ============================================================
-// Sự cố Detail (click row → load form)
-// ============================================================
-export type SuCoDetail = {
+export interface SuCoDetail {
   sucoykhoa: {
     masuco: number;
     sosuco: string | null;
@@ -160,5 +125,23 @@ export type SuCoDetail = {
     tttochuc: string | null;
     malanhdao: number | null;
     duyet: boolean | null;
-  } | null; // null nếu chưa phân tích
+  } | null;
+}
+
+// Map Khoa Phong
+export const KHOA_PHONG_MAP: Record<number, string> = {
+  1: "Khoa Cấp cứu",
+  2: "Khoa Nội tổng hợp",
+  3: "Khoa Ngoại tổng hợp",
+  4: "Khoa Sản",
+  5: "Khoa Nhi",
+  6: "Khoa Tim mạch",
+  7: "Khoa Hô hấp",
+  8: "Khoa Thận - Tiết niệu",
+  9: "Khoa Ung bướu",
+  10: "Khoa Xét nghiệm",
+  11: "Khoa Chẩn đoán hình ảnh",
+  12: "Khoa Dược",
+  13: "Phòng Kế hoạch tổng hợp",
+  14: "Phòng Điều dưỡng",
 };

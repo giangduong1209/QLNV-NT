@@ -1,28 +1,31 @@
-import { getCurrentUser } from "@/lib/dal";
+"use client";
+
+import { useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { IncidentForm } from "@/components/incidents/IncidentForm";
-import { getIncidentDetail } from "@/services/incident.service";
+import { getIncidentDetail } from "@/app/services/incident/incident.service";
 
-interface DashboardPageProps {
-  searchParams: Promise<{ masuco?: string }>;
-}
+export default function DashboardPage() {
+  const searchParams = useSearchParams();
+  const masuco = searchParams.get("masuco");
+  const [loading, setLoading] = useState(true);
+  const [detail, setDetail] = useState(null);
 
-export default async function DashboardPage({
-  searchParams,
-}: DashboardPageProps) {
-  // Validate authentication
-  await getCurrentUser();
+  useEffect(() => {
+    if (masuco) {
+      const id = parseInt(masuco);
+      if (!isNaN(id)) {
+        getIncidentDetail(id)
+          .then((data) => setDetail(data))
+          .finally(() => setLoading(false));
+        return;
+      }
+    }
+    setLoading(false);
+  }, [masuco]);
 
-  const params = await searchParams;
-  const masucoRaw = params?.masuco;
-  const masuco = masucoRaw ? parseInt(masucoRaw) : undefined;
+  if (loading) return <p>Loading...</p>;
 
-  let initialData = null;
-
-  if (masuco && !isNaN(masuco)) {
-    const result = await getIncidentDetail(masuco);
-
-    // console.log({ result });
-  }
-
-  return <IncidentForm />;
+  // Pass data to IncidentForm if it accepts a prop; otherwise just render.
+  return <IncidentForm initialData={detail} />;
 }

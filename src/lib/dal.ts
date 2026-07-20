@@ -3,7 +3,7 @@ import { cache } from "react";
 import { redirect } from "next/navigation";
 import { verifySession } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
-import type { UserRole } from "@/lib/definitions";
+import type { UserRole } from "@/types";
 
 // ============================================================
 // Verify & Get Session (cached per request)

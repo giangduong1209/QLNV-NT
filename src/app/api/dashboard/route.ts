@@ -1,5 +1,6 @@
-import { getIncidentDetail } from "@/services/incident.service";
+import { getIncidentDetail } from "@/app/services/incident/incident.service";
 import { NextResponse } from "next/server";
+import { handleError } from "@/utils";
 
 export const dynamic = "force-dynamic";
 
@@ -12,20 +13,13 @@ export async function GET(request: Request) {
   const masuco = searchParams.get("masuco");
 
   if (!masuco) {
-    return NextResponse.json(
-      { error: "Missing 'masuco' query parameter" },
-      { status: 400 }
-    );
+    return handleError("Missing 'masuco' query parameter", 400);
   }
 
   try {
     const detail = await getIncidentDetail(parseInt(masuco, 10));
     return NextResponse.json(detail);
   } catch (error) {
-    console.error("GET /api/dashboard error:", error);
-    return NextResponse.json(
-      { error: "Internal Server Error" },
-      { status: 500 }
-    );
+    return handleError("Internal Server Error", 500);
   }
 }

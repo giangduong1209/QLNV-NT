@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
-import { getIncidentList } from "@/services/incident.service";
+import { getIncidentList } from "@/app/services/incident/incident.service";
+import { handleError } from "@/utils";
 
 export const dynamic = "force-dynamic";
 
@@ -8,10 +9,6 @@ export async function GET() {
     const list = await getIncidentList();
     return NextResponse.json(list);
   } catch (error) {
-    console.error("GET /api/incidents error:", error);
-    return NextResponse.json(
-      { error: "Internal Server Error" },
-      { status: 500 }
-    );
+    return handleError("Internal Server Error", 500);
   }
 }

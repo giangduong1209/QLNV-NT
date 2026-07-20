@@ -5,8 +5,8 @@ import { useForm } from "react-hook-form";
 import { usePathname, useRouter } from "next/navigation";
 import { TimePicker } from "@/components/ui/TimePicker";
 import { getSuCoList } from "@/actions/incidents";
-import { KHOA_PHONG_MAP } from "@/lib/definitions";
-import type { AnalysisStatus, SuCoListItem } from "@/lib/definitions";
+import { KHOA_PHONG_MAP } from "@/types";
+import type { AnalysisStatus, SuCoListItem } from "@/types";
 import { formatDate, todayStr } from "@/utils";
 
 type FilterForm = {

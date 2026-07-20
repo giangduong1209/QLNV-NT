@@ -2,8 +2,8 @@
 import { useEffect } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { TimePicker } from "../ui/TimePicker";
-import type { SuCoDetail } from "@/lib/definitions";
-import { KHOA_PHONG_MAP } from "@/lib/definitions";
+import type { SuCoDetail } from "@/types";
+import { KHOA_PHONG_MAP } from "@/types";
 
 // ─── Options danh mục (static mapping từ DB dm* tables) ─────────────────────
 

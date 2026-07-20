@@ -8,7 +8,7 @@ import {
   LoginFormSchema,
   type LoginFormState,
   type UserRole,
-} from "@/lib/definitions";
+} from "@/types";
 
 // ============================================================
 // Login Action

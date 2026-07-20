@@ -4,8 +4,8 @@ import { Prisma } from "@prisma/client";
 import {
   getIncidentDetail,
   getIncidentList,
-} from "@/services/incident.service";
-import type { FilterParams, SuCoListItem, SuCoDetail } from "@/lib/definitions";
+} from "@/app/services/incident/incident.service";
+import type { FilterParams, SuCoListItem, SuCoDetail } from "@/types";
 
 // ============================================================
 // Lấy danh sách sự cố theo bộ lọc
