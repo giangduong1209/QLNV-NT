@@ -1,6 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -10,102 +7,202 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// ============================================================
-// Bảng Người dùng hệ thống
-// ============================================================
-model User {
-  id         String   @id @default(uuid())
-  username   String   @unique @db.NVarChar(50)
-  password   String   @db.NVarChar(255) // bcrypt hash
-  fullName   String   @db.NVarChar(100)
-  email      String?  @db.NVarChar(100)
-  phone      String?  @db.NVarChar(20)
-  role       String   @default("user") @db.NVarChar(20) // admin | manager | user
-  department String?  @db.NVarChar(100) // Khoa/phòng
-  active     Boolean  @default(true)
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
-
-  // Relations
-  incidents  Incident[]  @relation("ReportedBy")
-  sessions   Session[]
-
-  @@map("users")
+model dangky_phantichsuco {
+  masuco           Int       @id(map: "PK_dangky_phantichsuco")
+  ngay             DateTime? @db.DateTime
+  mota             String?   @db.NVarChar(500)
+  kythuat          String?   @db.NVarChar(50)
+  nhiemkhuan       String?   @db.NVarChar(50)
+  thuoc            String?   @db.NVarChar(50)
+  mau              String?   @db.NVarChar(50)
+  thietbiyte       String?   @db.NVarChar(50)
+  hanhvi           String?   @db.NVarChar(50)
+  tainan           String?   @db.NVarChar(50)
+  hatang           String?   @db.NVarChar(50)
+  nguonluc         String?   @db.NVarChar(50)
+  tailieu          String?   @db.NVarChar(50)
+  ptkhac           String?   @db.NVarChar(50)
+  machuyenvien     Int?
+  ylenh            String?   @db.NVarChar(500)
+  nnnnhanvien      String?   @db.NVarChar(50)
+  nnnnguoibenh     String?   @db.NVarChar(50)
+  nnnmoitruong     String?   @db.NVarChar(50)
+  nnntochuc        String?   @db.NVarChar(50)
+  nnnbenngoai      String?   @db.NVarChar(50)
+  nnnkhac          String?   @db.NVarChar(50)
+  khacphucsuco     String?   @db.NVarChar(500)
+  dexuat           String?   @db.NVarChar(500)
+  chuyengiadanhgia String?   @db.NVarChar(500)
+  cgthaoluan       String?   @db.NVarChar(50)
+  phuhop           String?   @db.NVarChar(50)
+  khuyencao        String?   @db.NVarChar(500)
+  tt_NC0           Boolean?
+  tt_NC1           String?   @db.NVarChar(50)
+  tt_NC2           String?   @db.NVarChar(50)
+  tt_NC3           String?   @db.NVarChar(50)
+  tttochuc         String?   @db.NVarChar(50)
+  malanhdao        Int?
+  duyet            Boolean?
 }
 
-// ============================================================
-// Bảng Session (cho database-backed session nếu cần)
-// ============================================================
-model Session {
-  id        String   @id @default(uuid())
-  userId    String
-  expiresAt DateTime
-  createdAt DateTime @default(now())
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index([userId])
-  @@map("sessions")
+model dangky_sucoykhoa {
+  masuco               Int       @id(map: "PK_dangky_sucoykhoa")
+  sosuco               String?   @db.NVarChar(15)
+  ngay                 DateTime? @db.SmallDateTime
+  mahinhthuc           Int?
+  makcb                String?   @db.NVarChar(15)
+  hoten                String?   @db.NVarChar(250)
+  maphong              Int?
+  madoituongsc         Int?
+  ngaysinh             DateTime? @db.SmallDateTime
+  sobenhan             String?   @db.NVarChar(50)
+  maphai               Int?
+  madonnguyen          Int?
+  tensuco              String?   @db.NVarChar(250)
+  ngaysuco             DateTime? @db.SmallDateTime
+  maphongnoi           Int?
+  vitricuthe           String?   @db.NVarChar(250)
+  mota                 String?   @db.NVarChar(Max)
+  giaiphapdexuat       String?   @db.NVarChar(500)
+  xulybandau           String?   @db.NVarChar(500)
+  thongbaobacsy        String?   @db.NVarChar(10)
+  thongbaonguoinha     String?   @db.NVarChar(10)
+  ghinhan              String?   @db.NVarChar(10)
+  thongbaonguoibenh    String?   @db.NVarChar(10)
+  phanloaibandau       String?   @db.NVarChar(10)
+  danhgiabandau        String?   @db.NVarChar(10)
+  manguoibaocao        Int?
+  hotennguoibaocao     String?   @db.NVarChar(150)
+  dienthoainguoibaocao String?   @db.NVarChar(150)
+  emailnguoibaocao     String?   @db.NVarChar(150)
+  chungkien1           String?   @db.NVarChar(150)
+  chungkien2           String?   @db.NVarChar(150)
+  nguoibckhac          String?   @db.NVarChar(Max)
+  txtmakkbaocao        Int?
+  makkbaocao           Int?
+  nguyennhangoc        String?   @db.NVarChar(Max)
+  giaiphaptranhlaplai  String?   @db.NVarChar(Max)
+  maloaiscyk           Int?
+  daphantich           Boolean?
 }
 
-// ============================================================
-// Bảng Sự cố Y khoa (Incident)
-// ============================================================
-model Incident {
-  id        String   @id @default(uuid())
-  code      String   @unique @db.NVarChar(20) // Mã sự cố: SC26000001
+model dmhanhvi_scyk {
+  mahanhvi  Int     @id(map: "PK_dmhanhvi_scyk")
+  tenhanhvi String? @db.NVarChar(50)
+}
 
-  // --- Thông tin chung ---
-  analysisStatus String  @default("chua_phan_tich") @db.NVarChar(30) // chua_phan_tich | da_phan_tich
-  reportDate     DateTime @default(now()) // Ngày lập
-  reportType     String   @default("tu_nguyen") @db.NVarChar(20) // tu_nguyen | bat_buoc
-  incidentType   String?  @db.NVarChar(100) // Loại sự cố
+model dmhatang_scyk {
+  mahatang  Int     @id(map: "PK_dmhatang_scyk")
+  tenhatang String? @db.NVarChar(50)
+}
 
-  // --- Thông tin người bệnh ---
-  patientCode    String?  @db.NVarChar(20)  // Mã KCB
-  patientName    String?  @db.NVarChar(100) // Họ và tên
-  patientDept    String?  @db.NVarChar(100) // Khoa/phòng
-  patientDob     DateTime? // Ngày sinh
-  medicalRecord  String?  @db.NVarChar(20)  // Số bệnh án
-  patientGender  String?  @db.NVarChar(10)  // Nam | Nữ
-  patientType    String?  @db.NVarChar(50)  // Đối tượng
+model dmkythuat_scyk {
+  makythuat  Int     @id(map: "PK_dmkythuat_scyk")
+  tenkythuat String? @db.NVarChar(200)
+}
 
-  // --- Nơi xảy ra sự cố ---
-  incidentName   String?  @db.NVarChar(200) // Tên sự cố
-  incidentDate   DateTime? // Ngày sự cố
-  incidentDept   String?  @db.NVarChar(100) // Khoa/phòng xảy ra
-  incidentLocation String? @db.NVarChar(200) // Vị trí cụ thể
-  description    String?  @db.NVarChar(Max) // Mô tả
-  suggestion     String?  @db.NVarChar(Max) // Đề xuất giải pháp
+model dmloaisuco {
+  maloaiscyk  Int      @id(map: "PK_dmloaisuco")
+  tenloaiscyk String?  @db.NVarChar(Max)
+  sapxep      Int?
+  ksd         Boolean?
+}
 
-  // --- Xử lý & Nguyên nhân ---
-  initialHandling String? @db.NVarChar(Max) // Xử lý ban đầu
-  rootCause       String? @db.NVarChar(Max) // Nguyên nhân gốc
-  preventionPlan  String? @db.NVarChar(Max) // Giải pháp tránh lặp lại
+model dmmau_scyk {
+  mamau  Int     @id(map: "PK_dmmau_scyk")
+  tenmau String? @db.NVarChar(50)
+}
 
-  // --- Thông báo & Xác nhận ---
-  notifyDoctor      String? @db.NVarChar(10) // Có | Không
-  reporterType      String? @db.NVarChar(50) // Người báo cáo (loại)
-  notifyFamily      String? @db.NVarChar(10) // Có | Không
-  reporterName      String? @db.NVarChar(100) // Họ tên người báo cáo
-  reporterPhone     String? @db.NVarChar(20) // SĐT
-  recordInMedical   String? @db.NVarChar(10) // Có | Không
-  reporterEmail     String? @db.NVarChar(100) // Email
-  notifyPatient     String? @db.NVarChar(200) // Thông báo cho người bệnh
-  witness1          String? @db.NVarChar(100) // Chứng kiến 1
-  initialClassification String? @db.NVarChar(100) // Phân loại ban đầu
-  witness2          String? @db.NVarChar(100) // Chứng kiến 2
-  impactAssessment  String? @db.NVarChar(100) // Đánh giá mức độ ảnh hưởng
+model dmmoitruong_scyk {
+  mamoitruong  Int     @id(map: "PK_dmmoitruong_scyk")
+  tenmoitruong String? @db.NVarChar(200)
+}
 
-  // --- Metadata ---
-  reportedById String?
-  reportedBy   User?    @relation("ReportedBy", fields: [reportedById], references: [id])
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+model dmnguoibenh_scyk {
+  manguoibenh  Int     @id(map: "PK_dmnguoibenh_scyk")
+  tennguoibenh String? @db.NVarChar(50)
+}
 
-  @@index([code])
-  @@index([reportedById])
-  @@index([incidentDate])
-  @@index([patientDept])
-  @@map("incidents")
+model dmnguonluc_scyk {
+  manguonluc  Int     @id(map: "PK_dmnguonluc_scyk")
+  tennguonluc String? @db.NVarChar(200)
+}
+
+model dmnhanvien_scyk {
+  manhanvien  Int     @id(map: "PK_dmnhanvien_scyk")
+  tennhanvien String? @db.NVarChar(200)
+}
+
+model dmnhiemkhuan_scyk {
+  manhiemkhuan  Int     @id(map: "PK_dmnhiemkhuan_scyk")
+  tennhiemkhuan String? @db.NVarChar(50)
+}
+
+model dmtailieu_scyk {
+  matailieu  Int     @id(map: "PK_dmtailieu_scyk")
+  tentailieu String? @db.NVarChar(50)
+}
+
+model dmtainan_scyk {
+  matainan  Int     @id(map: "PK_dmtainan_scyk")
+  tentainan String? @db.NVarChar(50)
+}
+
+model dmtensucoyk {
+  idscyk    Int      @id(map: "PK_dmtensucoyk")
+  tensucoyk String?  @db.NVarChar(500)
+  ksd       Boolean?
+  sapxep    Int?
+}
+
+model dmthietbiyte_scyk {
+  mathietbiyte  Int     @id(map: "PK_dmthietbiyte_scyk")
+  tenthietbiyte String? @db.NVarChar(50)
+}
+
+model dmthuoc_scyk {
+  mathuoc  Int     @id(map: "PK_dmthuoc_scyk")
+  tenthuoc String? @db.NVarChar(50)
+}
+
+model dmtochuc_scyk {
+  matochuc  Int     @id(map: "PK_dmtochuc_scyk")
+  tentochuc String? @db.NVarChar(200)
+}
+
+model dmvitrisuco {
+  mavt  Int     @id(map: "PK_dmvitrisuco")
+  tenvt String? @db.NVarChar(250)
+}
+
+model dmyeutobenngoai_scyk {
+  mayeutobenngoai  Int     @id(map: "PK_dmyeutobenngoai_scyk")
+  tenyeutobenngoai String? @db.NVarChar(50)
+}
+
+model users {
+  id            String  @id(map: "PK_users") @db.NVarChar(10)
+  hovaten       String  @db.NVarChar(500)
+  sdt           String  @db.NChar(10)
+  email         String  @db.NVarChar(500)
+  khoahoacphong String  @db.NVarChar(500)
+  username      String  @db.NVarChar(50)
+  password      String  @db.NVarChar(50)
+  quyen         String  @db.NVarChar(50)
+  active        Boolean
+}
+
+model dmdoituongsc_scyk {
+  madoituongsc Int     @id(map: "PK_dmdoituongsc_scyk")
+  doituongsc   String? @db.NVarChar(150)
+}
+
+model dmhinhthuc_scyk {
+  mahinhthuc  Int     @id(map: "PK_dmhinhthuc_scyk")
+  tenhinhthuc String? @db.NVarChar(150)
+}
+
+model dmphai_scyk {
+  maphai Int     @id(map: "PK_dmphai_scyk")
+  phai   String? @db.NVarChar(50)
 }

@@ -2,24 +2,23 @@
 
 import { login } from "@/actions/auth";
 import { useActionState } from "react";
-import NhatTanLogo from "../../../static/nhat_tan_logo.png"
+import NhatTanLogo from "../../../static/nhat_tan_logo.png";
 import Image from "next/image";
-import "./styles.css"
+import "./styles.css";
 
 export default function LoginPage() {
   const [state, action, pending] = useActionState(login, undefined);
 
-
   return (
     <div className="login-container" suppressHydrationWarning>
-
       <div className="login-card">
         {/* Logo / Header */}
         <div className="login-header">
           <div className="login-icon">
             <Image src={NhatTanLogo} alt="Logo" width={500} height={500} />
           </div>
-          <h1 className="login-title">Bệnh viện đa khoa <br /> NHẬT TÂN
+          <h1 className="login-title">
+            Bệnh viện đa khoa <br /> NHẬT TÂN
           </h1>
           <p className="login-subtitle">Hệ thống Quản lý Sự cố Y khoa</p>
         </div>
@@ -136,8 +135,9 @@ export default function LoginPage() {
         </form>
 
         {/* Footer */}
-        <p className="login-footer">
-          © {new Date().getFullYear()} Bệnh viện đa khoa NHẬT TÂN <br/> Quản lý Sự cố Y khoa
+        <p className="login-footer" suppressHydrationWarning>
+          © {new Date().getFullYear()} Bệnh viện đa khoa NHẬT TÂN <br /> Quản lý
+          Sự cố Y khoa
         </p>
       </div>
     </div>

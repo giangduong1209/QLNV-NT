@@ -3,7 +3,7 @@ import { cache } from "react";
 import { redirect } from "next/navigation";
 import { verifySession } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
-import type { UserRole } from "@/lib/definitions";
+import type { UserRole } from "@/types";
 
 // ============================================================
 // Verify & Get Session (cached per request)
@@ -25,18 +25,8 @@ export const getCurrentUser = cache(async () => {
   const session = await getSession();
 
   try {
-    const user = await prisma.user.findUnique({
+    const user = await prisma.users.findUnique({
       where: { id: session.userId },
-      select: {
-        id: true,
-        username: true,
-        fullName: true,
-        email: true,
-        phone: true,
-        role: true,
-        department: true,
-        active: true,
-      },
     });
 
     if (!user || !user.active) {

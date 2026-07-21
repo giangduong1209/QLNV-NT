@@ -149,6 +149,10 @@
   transition: all 0.2s ease;
 }
 
+.ql-sidebar-control .ql-timepicker {
+  height: 34px !important;
+}
+
 .ql-sidebar-control select:focus,
 .ql-sidebar-control input:focus {
   border-color: var(--color-primary);
@@ -273,13 +277,13 @@
 
 .ql-sidebar-list-table tr.active {
   background-color: var(--color-primary-light);
-  border-left: 3px solid var(--color-primary);
-  font-weight: 700;
+  /* border-left: 3px solid var(--color-primary); */
+  /* font-weight: 700; */
 }
 
 .ql-sidebar-list-table tr.active td {
   color: var(--color-primary-dark);
-  font-weight: 600;
+  /* font-weight: 600; */
 }
 
 /* Main form content area */
@@ -372,8 +376,18 @@
 .ql-field-control select:disabled,
 .ql-field-control input:disabled,
 .ql-field-control textarea:disabled {
-  background-color: rgb(207, 207, 207);
-  color: var(--color-text-muted);
+  background-color: #f1f5f9;
+  color: var(--color-text-secondary);
+  cursor: default;
+  border-color: var(--color-border-light);
+}
+
+/* Readonly fields — visual style giống disabled nhưng cho text/date/textarea */
+.ql-field-control input[readonly],
+.ql-field-control textarea[readonly] {
+  background-color: #f1f5f9;
+  cursor: default;
+  border-color: var(--color-border-light);
 }
 
 .ql-field-control input[type="date"]:focus,
@@ -479,6 +493,33 @@
   -webkit-appearance: none;
 }
 
+.ql-timepicker input {
+  border: none !important;
+  box-shadow: none !important;
+  outline: none !important;
+  height: 100% !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  background: transparent !important;
+  font-size: 13px !important;
+  color: #000000 !important;
+  width: 24px !important;
+  text-align: center;
+  font-weight: 600;
+  box-sizing: border-box;
+}
+
+.ql-timepicker input:focus {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+.ql-timepicker input::placeholder {
+  color: var(--color-text-muted);
+  opacity: 0.5;
+  font-weight: 400;
+}
+
 .ql-timepicker-sep {
   color: var(--color-text-muted);
   font-weight: 700;
@@ -494,8 +535,13 @@
   padding: 0 6px;
 }
 
-.ql-timepicker--sm select {
+.ql-timepicker--sm select,
+.ql-timepicker--sm input {
   font-size: 12px !important;
+}
+
+.ql-timepicker--sm input {
+  width: 20px !important;
 }
 
 .ql-timepicker--sm .ql-timepicker-sep {
@@ -692,4 +738,44 @@
 }
 ::-webkit-scrollbar-thumb:hover {
   background: var(--color-text-muted);
+}
+
+/* ============================================================
+   TimePicker disabled state
+   ============================================================ */
+.ql-timepicker--disabled {
+  background-color: #f1f5f9 !important;
+  border-color: var(--color-border-light) !important;
+  cursor: default;
+}
+
+.ql-timepicker--disabled input {
+  background-color: transparent !important;
+  color: var(--color-text-secondary) !important;
+  cursor: default;
+}
+
+/* ============================================================
+   StatusBar button disabled state
+   ============================================================ */
+.ql-btn-action:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+/* ============================================================
+   Header form inputs readonly state
+   ============================================================ */
+.ql-form-header-field input[readonly] {
+  background-color: #f1f5f9;
+  cursor: default;
+  border-color: var(--color-border-light);
+}
+
+.ql-form-header-field select:disabled {
+  background-color: #f1f5f9;
+  cursor: default;
+  border-color: var(--color-border-light);
+  color: var(--color-text-secondary);
 }

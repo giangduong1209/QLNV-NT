@@ -4,22 +4,19 @@ import { redirect } from "next/navigation";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
 import { createSession, deleteSession } from "@/lib/session";
-import { LoginFormSchema, type LoginFormState, type UserRole } from "@/lib/definitions";
+import {
+  LoginFormSchema,
+  type LoginFormState,
+  type UserRole,
+} from "@/types";
 
 // ============================================================
 // Login Action
 // ============================================================
-const user = {
-  id: 'ID432423423',
-  username: 'admin',
-  password: '123456',
-  role: "admin",
-  active: true,
-}
 
 export async function login(
   _: LoginFormState,
-  formData: FormData
+  formData: FormData,
 ): Promise<LoginFormState> {
   // 1. Validate form fields
   const validatedFields = LoginFormSchema.safeParse({
@@ -29,27 +26,24 @@ export async function login(
 
   if (!validatedFields.success) {
     return {
-      errors: validatedFields.error?.flatten().fieldErrors
+      errors: validatedFields.error?.flatten().fieldErrors,
     };
   }
 
   const { username, password } = validatedFields.data;
 
-
   // 2. Find user in database
   try {
-    // const user = await prisma.user.findUnique({
-    //   where: { username },
-    //   select: {
-    //     id: true,
-    //     username: true,
-    //     password: true,
-    //     role: true,
-    //     active: true,
-    //   },
-    // });
-
-    console.log({user})
+    const user = await prisma.users.findFirst({
+      where: { username },
+      select: {
+        id: true,
+        username: true,
+        password: true,
+        quyen: true,
+        active: true,
+      },
+    });
 
     if (!user) {
       return {
@@ -64,6 +58,7 @@ export async function login(
     }
 
     // 3. Verify password
+
     // const passwordMatch = await bcrypt.compare(password, user.password);
 
     // if (!passwordMatch) {
@@ -71,9 +66,14 @@ export async function login(
     //     message: "Tên đăng nhập hoặc mật khẩu không đúng",
     //   };
     // }
+    if (password !== user.password) {
+      return {
+        message: "Tên đăng nhập hoặc mật khẩu không đúng",
+      };
+    }
 
     // 4. Create session
-    await createSession(user.id, user.role as UserRole);
+    await createSession(user.id, user.quyen as UserRole);
   } catch (error) {
     console.error("Login error:", error);
     return {
