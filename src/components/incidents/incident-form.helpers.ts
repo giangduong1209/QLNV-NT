@@ -1,6 +1,15 @@
 import type { SuCoDetail, IncidentFormValues, IncidentSavePayload } from "@/types";
 import type { LookupData } from "@/actions/lookup";
-import { toDateStr, toTimeStr, toDate } from "@/utils/format-date";
+import {
+  toDateStr,
+  toTimeStr,
+  toDate,
+  safeToString,
+  safeParseInt,
+  toNullableString,
+  formatBooleanOption,
+  parseBooleanOption,
+} from "@/utils";
 import { KHOA_PHONG_OPTIONS } from "./incident-form.constants";
 
 export function buildDefaultValues(
@@ -11,20 +20,20 @@ export function buildDefaultValues(
 ): IncidentFormValues {
   const suco = initialData?.sucoykhoa;
   let initialTenSuCo = suco?.tensuco ?? "";
-  let initialLoaiSuCo = suco?.maloaiscyk?.toString() ?? "";
+  let initialLoaiSuCo = safeToString(suco?.maloaiscyk);
 
   if (initialTenSuCo && lookupData?.tenSuCo?.length) {
     const matched = lookupData.tenSuCo.find(
       (t) =>
         t.tensucoyk === initialTenSuCo ||
-        t.idscyk.toString() === initialTenSuCo,
+        safeToString(t.idscyk) === initialTenSuCo,
     );
     if (matched) {
       if (matched.tensucoyk) {
         initialTenSuCo = matched.tensucoyk;
       }
       if (!initialLoaiSuCo && matched.maloaiscyk != null) {
-        initialLoaiSuCo = matched.maloaiscyk.toString();
+        initialLoaiSuCo = safeToString(matched.maloaiscyk);
       }
     }
   }
@@ -33,19 +42,19 @@ export function buildDefaultValues(
     sosuco: suco?.sosuco ?? "",
     ngayLapDate: suco?.ngay ? toDateStr(suco.ngay) : nowDate,
     ngayLapTime: suco?.ngay ? toTimeStr(suco.ngay) : nowTime,
-    mahinhthuc: suco?.mahinhthuc?.toString() ?? "1",
+    mahinhthuc: safeToString(suco?.mahinhthuc) || "1",
     maloaiscyk: initialLoaiSuCo,
     makcb: suco?.makcb ?? "",
     hoten: suco?.hoten ?? "",
-    maphong: suco?.maphong?.toString() ?? "",
+    maphong: safeToString(suco?.maphong),
     ngaysinh: suco?.ngaysinh ? toDateStr(suco.ngaysinh) : "",
     sobenhan: suco?.sobenhan ?? "",
-    maphai: suco?.maphai?.toString() ?? "",
-    madoituongsc: suco?.madoituongsc?.toString() ?? "",
+    maphai: safeToString(suco?.maphai),
+    madoituongsc: safeToString(suco?.madoituongsc),
     tensuco: initialTenSuCo,
     ngaySuCoDate: suco?.ngaysuco ? toDateStr(suco.ngaysuco) : nowDate,
     ngaySuCoTime: suco?.ngaysuco ? toTimeStr(suco.ngaysuco) : nowTime,
-    maphongnoi: suco?.maphongnoi?.toString() ?? "",
+    maphongnoi: safeToString(suco?.maphongnoi),
     vitricuthe: suco?.vitricuthe ?? "",
     mota: suco?.mota ?? "",
     giaiphapdexuat: suco?.giaiphapdexuat ?? "",
@@ -56,8 +65,8 @@ export function buildDefaultValues(
     thongbaonguoinha: formatBooleanOption(suco?.thongbaonguoinha),
     ghinhan: formatBooleanOption(suco?.ghinhan),
     thongbaonguoibenh: formatBooleanOption(suco?.thongbaonguoibenh),
-    phanloaibandau: suco?.phanloaibandau ?? "",
-    danhgiabandau: suco?.danhgiabandau ?? "",
+    phanloaibandau: safeToString(suco?.phanloaibandau),
+    danhgiabandau: safeToString(suco?.danhgiabandau),
     hotennguoibaocao: suco?.hotennguoibaocao ?? "",
     dienthoainguoibaocao: suco?.dienthoainguoibaocao ?? "",
     emailnguoibaocao: suco?.emailnguoibaocao ?? "",
@@ -76,13 +85,13 @@ export function buildPhongOptions(lookupData: LookupData) {
       const label = khoaItem?.tenkhoa
         ? `${p.tenphong} (${khoaItem.tenkhoa})`
         : (p.tenphong ?? `Phòng ${p.maphong}`);
-      optionsMap.set(p.maphong.toString(), label);
+      optionsMap.set(safeToString(p.maphong), label);
     });
   }
 
   if (lookupData.khoa?.length) {
     lookupData.khoa.forEach((k) => {
-      const key = k.makhoa.toString();
+      const key = safeToString(k.makhoa);
       if (!optionsMap.has(key)) {
         optionsMap.set(key, k.tenkhoa ?? `Khoa ${k.makhoa}`);
       }
@@ -108,7 +117,7 @@ export function buildTenSuCoList(
 ) {
   const filtered = selectedLoaiSuCo
     ? lookupData.tenSuCo.filter(
-        (item) => item.maloaiscyk?.toString() === selectedLoaiSuCo,
+        (item) => safeToString(item.maloaiscyk) === selectedLoaiSuCo,
       )
     : lookupData.tenSuCo;
 
@@ -117,13 +126,13 @@ export function buildTenSuCoList(
     const exists = result.some(
       (t) =>
         t.tensucoyk === currentTenSuCo ||
-        t.idscyk.toString() === currentTenSuCo,
+        safeToString(t.idscyk) === currentTenSuCo,
     );
     if (!exists) {
       const matchInLookup = lookupData.tenSuCo.find(
         (t) =>
           t.tensucoyk === currentTenSuCo ||
-          t.idscyk.toString() === currentTenSuCo,
+          safeToString(t.idscyk) === currentTenSuCo,
       );
       if (matchInLookup) {
         result.push(matchInLookup);
@@ -139,49 +148,38 @@ export function buildTenSuCoList(
   return result;
 }
 
-function formatBooleanOption(val: boolean | string | null | undefined): string {
-  if (val === true || val === "true" || val === "Có") return "true";
-  if (val === false || val === "false" || val === "Không") return "false";
-  return "";
-}
-
-function parseBooleanOption(val: string | null | undefined): boolean | null {
-  if (val === "true" || val === "Có") return true;
-  if (val === "false" || val === "Không") return false;
-  return null;
-}
-
 export function buildSavePayload(values: IncidentFormValues): IncidentSavePayload {
   return {
     ngay: toDate(values.ngayLapDate, values.ngayLapTime),
-    mahinhthuc: values.mahinhthuc ? parseInt(values.mahinhthuc) : null,
-    makcb: values.makcb || null,
-    hoten: values.hoten || null,
-    maphong: values.maphong ? parseInt(values.maphong) : null,
+    mahinhthuc: safeParseInt(values.mahinhthuc),
+    makcb: toNullableString(values.makcb),
+    hoten: toNullableString(values.hoten),
+    maphong: safeParseInt(values.maphong),
     ngaysinh: values.ngaysinh ? toDate(values.ngaysinh, "00:00") : null,
-    sobenhan: values.sobenhan || null,
-    maphai: values.maphai ? parseInt(values.maphai) : null,
-    madoituongsc: values.madoituongsc ? parseInt(values.madoituongsc) : null,
-    tensuco: values.tensuco || null,
+    sobenhan: toNullableString(values.sobenhan),
+    maphai: safeParseInt(values.maphai),
+    madoituongsc: safeParseInt(values.madoituongsc),
+    tensuco: toNullableString(values.tensuco),
     ngaysuco: toDate(values.ngaySuCoDate, values.ngaySuCoTime),
-    maphongnoi: values.maphongnoi ? parseInt(values.maphongnoi) : null,
-    vitricuthe: values.vitricuthe || null,
-    mota: values.mota || null,
-    giaiphapdexuat: values.giaiphapdexuat || null,
-    xulybandau: values.xulybandau || null,
-    nguyennhangoc: values.nguyennhangoc || null,
-    giaiphaptranhlaplai: values.giaiphaptranhlaplai || null,
+    maphongnoi: safeParseInt(values.maphongnoi),
+    vitricuthe: toNullableString(values.vitricuthe),
+    mota: toNullableString(values.mota),
+    giaiphapdexuat: toNullableString(values.giaiphapdexuat),
+    xulybandau: toNullableString(values.xulybandau),
+    nguyennhangoc: toNullableString(values.nguyennhangoc),
+    giaiphaptranhlaplai: toNullableString(values.giaiphaptranhlaplai),
     thongbaobacsy: parseBooleanOption(values.thongbaobacsy),
     thongbaonguoinha: parseBooleanOption(values.thongbaonguoinha),
     ghinhan: parseBooleanOption(values.ghinhan),
     thongbaonguoibenh: parseBooleanOption(values.thongbaonguoibenh),
-    phanloaibandau: values.phanloaibandau || null,
-    danhgiabandau: values.danhgiabandau || null,
-    hotennguoibaocao: values.hotennguoibaocao || null,
-    dienthoainguoibaocao: values.dienthoainguoibaocao || null,
-    emailnguoibaocao: values.emailnguoibaocao || null,
-    chungkien1: values.chungkien1 || null,
-    chungkien2: values.chungkien2 || null,
-    maloaiscyk: values.maloaiscyk ? parseInt(values.maloaiscyk) : null,
+    phanloaibandau: toNullableString(values.phanloaibandau),
+    danhgiabandau: toNullableString(values.danhgiabandau),
+    hotennguoibaocao: toNullableString(values.hotennguoibaocao),
+    dienthoainguoibaocao: toNullableString(values.dienthoainguoibaocao),
+    emailnguoibaocao: toNullableString(values.emailnguoibaocao),
+    chungkien1: toNullableString(values.chungkien1),
+    chungkien2: toNullableString(values.chungkien2),
+    maloaiscyk: safeParseInt(values.maloaiscyk),
   };
 }
+

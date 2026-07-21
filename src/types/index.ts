@@ -1,4 +1,6 @@
 import { z } from "zod/v4";
+export type { ActionResult } from "./action-result";
+
 
 // ============================================================
 // Auth & User Types

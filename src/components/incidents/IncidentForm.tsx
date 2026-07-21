@@ -75,10 +75,10 @@ export function IncidentForm({
     const result = await saveIncident(masuco, payload);
     setIsSaving(false);
 
-    if (result.success && result.masuco) {
+    if (result.success && result.data?.masuco) {
       toast.success("Lưu thông tin sự cố thành công!");
       setIsEditing(false);
-      router.push(`/dashboard?masuco=${result.masuco}`);
+      router.push(`/dashboard?masuco=${result.data.masuco}`);
     } else {
       toast.error(result.error ?? "Lưu không thành công. Vui lòng thử lại.");
     }
