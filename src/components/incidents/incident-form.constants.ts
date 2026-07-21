@@ -1,9 +1,8 @@
 import { KHOA_PHONG_MAP } from "@/types";
 
-
 export const CO_KHONG_OPTIONS = [
-  { value: "Có", label: "Có" },
-  { value: "Không", label: "Không" },
+  { value: "true", label: "Có" },
+  { value: "false", label: "Không" },
 ];
 
 export const PHAN_LOAI_OPTIONS = [

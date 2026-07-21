@@ -11,6 +11,7 @@ export interface LoaiSuCoItem {
 
 export interface TenSuCoItem {
   idscyk: number;
+  maloaiscyk?: number | null;
   tensucoyk: string | null;
 }
 
@@ -29,12 +30,25 @@ export interface DoiTuongItem {
   doituongsc: string | null;
 }
 
+export interface KhoaItem {
+  makhoa: number;
+  tenkhoa: string | null;
+}
+
+export interface PhongItem {
+  maphong: number;
+  makhoa: number | null;
+  tenphong: string | null;
+}
+
 export interface LookupData {
   loaiSuCo: LoaiSuCoItem[];
   tenSuCo: TenSuCoItem[];
   hinhThuc: HinhThucItem[];
   phai: PhaiItem[];
   doiTuong: DoiTuongItem[];
+  khoa: KhoaItem[];
+  phong: PhongItem[];
 }
 
 // ─── Fetch lookup tables từ DB qua service ────────────────────────────────────
@@ -44,7 +58,7 @@ export async function getLookupData(): Promise<LookupData> {
     return await getLookupDataFromDB();
   } catch (error) {
     console.error("getLookupData error:", error);
-    return { loaiSuCo: [], tenSuCo: [], hinhThuc: [], phai: [], doiTuong: [] };
+    return { loaiSuCo: [], tenSuCo: [], hinhThuc: [], phai: [], doiTuong: [], khoa: [], phong: [] };
   }
 }
 

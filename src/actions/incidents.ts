@@ -66,11 +66,7 @@ export async function getSuCoList(
 
     const rows = await getIncidentList(whereCondition);
 
-    const data: SuCoListItem[] = rows.map((row) => ({
-      ...row,
-    }));
-
-    return { data };
+    return { data: rows };
   } catch (error) {
     console.error("getSuCoList error:", error);
     return { data: [], error: "Không thể tải danh sách sự cố" };

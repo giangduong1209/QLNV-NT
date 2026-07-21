@@ -15,7 +15,6 @@ export function StatusBar() {
     ) as HTMLFormElement | null;
     if (form) {
       form.requestSubmit();
-      console.log(form);
     }
   };
 
