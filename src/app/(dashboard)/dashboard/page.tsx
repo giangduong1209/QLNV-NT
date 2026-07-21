@@ -1,36 +1,32 @@
-"use client";
-
-import { useEffect, useState } from "react";
-import { useSearchParams } from "next/navigation";
 import { IncidentForm } from "@/components/incidents/IncidentForm";
+import { getSuCoDetail } from "@/actions/incidents";
+import { getLookupData } from "@/actions/lookup";
 
-export default function DashboardPage() {
-  const searchParams = useSearchParams();
-  const masuco = searchParams.get("masuco");
-  const [loading, setLoading] = useState(false);
-  const [detail, setDetail] = useState(null);
+interface DashboardPageProps {
+  searchParams: Promise<{ masuco?: string }>;
+}
 
-  useEffect(() => {
-    if (masuco) {
-      setLoading(true);
-      fetch(`/api/dashboard?masuco=${encodeURIComponent(masuco)}`)
-        .then((res) => {
-          if (!res.ok) throw new Error("Failed to fetch");
-          return res.json();
-        })
-        .then((data) => setDetail(data))
-        .catch((err) => console.error("Error loading incident detail:", err))
-        .finally(() => setLoading(false));
-    }
-  }, [masuco]);
+export default async function DashboardPage({
+  searchParams,
+}: DashboardPageProps) {
+  const params = await searchParams;
+  const masucoRaw = params?.masuco;
+  const masuco = masucoRaw ? parseInt(masucoRaw) : undefined;
 
-  if (loading) {
-    return (
-      <div className="p-6 text-center text-gray-500">
-        Đang tải dữ liệu sự cố...
-      </div>
-    );
+  // Fetch lookup tables & incident detail song song
+  const lookupData = await getLookupData();
+
+  let initialData = null;
+  if (masuco && !isNaN(masuco)) {
+    const result = await getSuCoDetail(masuco);
+    initialData = result.data;
   }
 
-  return <IncidentForm initialData={detail} />;
+  return (
+    <IncidentForm
+      initialData={initialData}
+      lookupData={lookupData}
+      isNew={!masuco}
+    />
+  );
 }

@@ -5,7 +5,12 @@ import {
   getIncidentDetail,
   getIncidentList,
 } from "@/app/services/incident/incident.service";
-import type { FilterParams, SuCoListItem, SuCoDetail } from "@/types";
+import type {
+  FilterParams,
+  SuCoListItem,
+  SuCoDetail,
+  IncidentSavePayload,
+} from "@/types";
 
 // ============================================================
 // Lấy danh sách sự cố theo bộ lọc
@@ -99,6 +104,7 @@ export async function getSuCoDetail(
         ngaysinh: row.ngaysinh,
         sobenhan: row.sobenhan,
         maphai: row.maphai,
+        madoituongsc: row.madoituongsc,
         tensuco: row.tensuco,
         ngaysuco: row.ngaysuco,
         maphongnoi: row.maphongnoi,
@@ -122,6 +128,7 @@ export async function getSuCoDetail(
         giaiphaptranhlaplai: row.giaiphaptranhlaplai,
         maloaiscyk: row.maloaiscyk,
       },
+
       phantichsuco: row.phantichsuco
         ? {
             masuco: row.phantichsuco.masuco,
@@ -166,5 +173,22 @@ export async function getSuCoDetail(
   } catch (error) {
     console.error("getSuCoDetail error:", error);
     return { data: null, error: "Không thể tải chi tiết sự cố" };
+  }
+}
+
+// ============================================================
+// Lưu sự cố (tạo mới hoặc cập nhật dangky_sucoykhoa)
+// ============================================================
+import { saveIncidentToDB } from "@/app/services/incident/incident.service";
+
+export async function saveIncident(
+  masuco: number | null,
+  payload: IncidentSavePayload,
+): Promise<{ success: boolean; masuco?: number; error?: string }> {
+  try {
+    return await saveIncidentToDB(masuco, payload);
+  } catch (error) {
+    console.error("saveIncident error:", error);
+    return { success: false, error: "Không thể lưu sự cố. Vui lòng thử lại." };
   }
 }

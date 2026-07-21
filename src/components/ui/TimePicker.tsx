@@ -7,6 +7,7 @@ interface TimePickerProps {
   onChange: (value: string) => void;
   className?: string;
   size?: "sm" | "md";
+  disabled?: boolean;
 }
 
 export function TimePicker({
@@ -14,11 +15,13 @@ export function TimePicker({
   onChange,
   className = "",
   size = "md",
+  disabled = false,
 }: TimePickerProps) {
   const [hh, mm] = value ? value.split(":") : ["", ""];
   const minuteInputRef = useRef<HTMLInputElement>(null);
 
   const handleHour = (h: string) => {
+    if (disabled) return;
     let clean = h.replace(/\D/g, "").slice(0, 2);
     const num = parseInt(clean, 10);
     if (!isNaN(num) && num > 23) {
@@ -34,6 +37,7 @@ export function TimePicker({
   };
 
   const handleMinute = (m: string) => {
+    if (disabled) return;
     let clean = m.replace(/\D/g, "").slice(0, 2);
     const num = parseInt(clean, 10);
     if (!isNaN(num) && num > 59) {
@@ -52,17 +56,21 @@ export function TimePicker({
   };
 
   const handleHourBlur = (currentVal: string) => {
+    if (disabled) return;
     const padded = padValue(currentVal, 23);
     onChange(`${padded}:${mm || "00"}`);
   };
 
   const handleMinuteBlur = (currentVal: string) => {
+    if (disabled) return;
     const padded = padValue(currentVal, 59);
     onChange(`${hh || "00"}:${padded}`);
   };
 
   return (
-    <div className={`ql-timepicker ql-timepicker--${size} ${className}`}>
+    <div
+      className={`ql-timepicker ql-timepicker--${size} ${className}${disabled ? " ql-timepicker--disabled" : ""}`}
+    >
       <input
         type="text"
         value={hh}
@@ -71,6 +79,7 @@ export function TimePicker({
         placeholder="--"
         maxLength={2}
         aria-label="Giờ"
+        disabled={disabled}
       />
       <span className="ql-timepicker-sep">:</span>
       <input
@@ -82,6 +91,7 @@ export function TimePicker({
         placeholder="--"
         maxLength={2}
         aria-label="Phút"
+        disabled={disabled}
       />
     </div>
   );

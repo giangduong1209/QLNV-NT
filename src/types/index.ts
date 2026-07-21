@@ -67,6 +67,7 @@ export interface SuCoDetail {
     ngaysinh: Date | null;
     sobenhan: string | null;
     maphai: number | null;
+    madoituongsc: number | null;
     tensuco: string | null;
     ngaysuco: Date | null;
     maphongnoi: number | null;
@@ -90,6 +91,7 @@ export interface SuCoDetail {
     giaiphaptranhlaplai: string | null;
     maloaiscyk: number | null;
   };
+
   phantichsuco: {
     masuco: number;
     ngay: Date | null;
@@ -144,4 +146,78 @@ export const KHOA_PHONG_MAP: Record<number, string> = {
   12: "Khoa Dược",
   13: "Phòng Kế hoạch tổng hợp",
   14: "Phòng Điều dưỡng",
+};
+
+// Form values cho Incident Form
+export type IncidentFormValues = {
+  sosuco: string;
+  ngayLapDate: string;
+  ngayLapTime: string;
+  mahinhthuc: string;
+  maloaiscyk: string;
+  makcb: string;
+  hoten: string;
+  maphong: string;
+  ngaysinh: string;
+  sobenhan: string;
+  maphai: string;
+  madoituongsc: string;
+  tensuco: string;
+  ngaySuCoDate: string;
+  ngaySuCoTime: string;
+  maphongnoi: string;
+  vitricuthe: string;
+  mota: string;
+  giaiphapdexuat: string;
+  xulybandau: string;
+  nguyennhangoc: string;
+  giaiphaptranhlaplai: string;
+  thongbaobacsy: string;
+  thongbaonguoinha: string;
+  ghinhan: string;
+  thongbaonguoibenh: string;
+  phanloaibandau: string;
+  danhgiabandau: string;
+  hotennguoibaocao: string;
+  dienthoainguoibaocao: string;
+  emailnguoibaocao: string;
+  chungkien1: string;
+  chungkien2: string;
+};
+
+// ============================================================
+// Payload type cho lưu sự cố
+// ============================================================
+export type IncidentSavePayload = {
+  ngay?: Date | null;
+  mahinhthuc?: number | null;
+  makcb?: string | null;
+  hoten?: string | null;
+  maphong?: number | null;
+  ngaysinh?: Date | null;
+  sobenhan?: string | null;
+  maphai?: number | null;
+  madoituongsc?: number | null;
+  tensuco?: string | null;
+  ngaysuco?: Date | null;
+  maphongnoi?: number | null;
+  vitricuthe?: string | null;
+  mota?: string | null;
+  giaiphapdexuat?: string | null;
+  xulybandau?: string | null;
+  nguyennhangoc?: string | null;
+  giaiphaptranhlaplai?: string | null;
+  thongbaobacsy?: string | null;
+  thongbaonguoinha?: string | null;
+  ghinhan?: string | null;
+  thongbaonguoibenh?: string | null;
+  phanloaibandau?: string | null;
+  danhgiabandau?: string | null;
+  manguoibaocao?: number | null;
+  hotennguoibaocao?: string | null;
+  dienthoainguoibaocao?: string | null;
+  emailnguoibaocao?: string | null;
+  chungkien1?: string | null;
+  chungkien2?: string | null;
+  maloaiscyk?: number | null;
 };

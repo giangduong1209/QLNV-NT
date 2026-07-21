@@ -43,9 +43,6 @@ model dangky_phantichsuco {
   tttochuc         String?   @db.NVarChar(50)
   malanhdao        Int?
   duyet            Boolean?
-
-  // Relation 1-1 → dangky_sucoykhoa
-  sucoykhoa dangky_sucoykhoa @relation(fields: [masuco], references: [masuco])
 }
 
 model dangky_sucoykhoa {
@@ -87,9 +84,6 @@ model dangky_sucoykhoa {
   giaiphaptranhlaplai  String?   @db.NVarChar(Max)
   maloaiscyk           Int?
   daphantich           Boolean?
-
-  // Relation 1-1 ngược lại từ dangky_phantichsuco
-  phantichsuco dangky_phantichsuco?
 }
 
 model dmhanhvi_scyk {
@@ -196,4 +190,19 @@ model users {
   password      String  @db.NVarChar(50)
   quyen         String  @db.NVarChar(50)
   active        Boolean
+}
+
+model dmdoituongsc_scyk {
+  madoituongsc Int     @id(map: "PK_dmdoituongsc_scyk")
+  doituongsc   String? @db.NVarChar(150)
+}
+
+model dmhinhthuc_scyk {
+  mahinhthuc  Int     @id(map: "PK_dmhinhthuc_scyk")
+  tenhinhthuc String? @db.NVarChar(150)
+}
+
+model dmphai_scyk {
+  maphai Int     @id(map: "PK_dmphai_scyk")
+  phai   String? @db.NVarChar(50)
 }

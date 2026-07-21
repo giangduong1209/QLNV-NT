@@ -376,8 +376,18 @@
 .ql-field-control select:disabled,
 .ql-field-control input:disabled,
 .ql-field-control textarea:disabled {
-  background-color: rgb(207, 207, 207);
-  color: var(--color-text-muted);
+  background-color: #f1f5f9;
+  color: var(--color-text-secondary);
+  cursor: default;
+  border-color: var(--color-border-light);
+}
+
+/* Readonly fields — visual style giống disabled nhưng cho text/date/textarea */
+.ql-field-control input[readonly],
+.ql-field-control textarea[readonly] {
+  background-color: #f1f5f9;
+  cursor: default;
+  border-color: var(--color-border-light);
 }
 
 .ql-field-control input[type="date"]:focus,
@@ -728,4 +738,44 @@
 }
 ::-webkit-scrollbar-thumb:hover {
   background: var(--color-text-muted);
+}
+
+/* ============================================================
+   TimePicker disabled state
+   ============================================================ */
+.ql-timepicker--disabled {
+  background-color: #f1f5f9 !important;
+  border-color: var(--color-border-light) !important;
+  cursor: default;
+}
+
+.ql-timepicker--disabled input {
+  background-color: transparent !important;
+  color: var(--color-text-secondary) !important;
+  cursor: default;
+}
+
+/* ============================================================
+   StatusBar button disabled state
+   ============================================================ */
+.ql-btn-action:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+/* ============================================================
+   Header form inputs readonly state
+   ============================================================ */
+.ql-form-header-field input[readonly] {
+  background-color: #f1f5f9;
+  cursor: default;
+  border-color: var(--color-border-light);
+}
+
+.ql-form-header-field select:disabled {
+  background-color: #f1f5f9;
+  cursor: default;
+  border-color: var(--color-border-light);
+  color: var(--color-text-secondary);
 }
