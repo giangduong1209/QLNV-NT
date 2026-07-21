@@ -270,7 +270,7 @@ export function IncidentForm({
           <div className="grid grid-cols-12 gap-4">
             <div className="col-span-3">
               <div className="ql-field">
-                <span className="ql-field-label w-[60px]">Đối tượng:</span>
+                <span className="ql-field-label w-15">Đối tượng:</span>
                 <div className="ql-field-control">
                   <select {...register("madoituongsc")} disabled={!canEdit}>
                     <option value=""></option>
@@ -405,9 +405,7 @@ export function IncidentForm({
           <div className="grid grid-cols-12 gap-4 mb-4">
             <div className="col-span-12">
               <div className="ql-field">
-                <span className="ql-field-label w-[110px]">
-                  Nguyên nhân gốc:
-                </span>
+                <span className="ql-field-label w-27.5">Nguyên nhân gốc:</span>
                 <div className="ql-field-control">
                   <input
                     type="text"
