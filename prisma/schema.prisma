@@ -212,21 +212,15 @@ model dmphai_scyk {
   phai   String? @db.NVarChar(50)
 }
 
-model dmkhoa_scyk {
-  makhoa    Int      @id(map: "PK_dmkhoa_scyk")
-  tenkhoa   String?  @db.NVarChar(500)
-  trangthai Boolean?
-}
-
 model dmphong_scyk {
-  maphong            Int           @id(map: "PK_dmphong_scyk")
-  makhoa             Int?
-  tenphong           String?       @db.NVarChar(500)
-  loaiphong          String?       @db.NVarChar(500)
-  sogiuong           Int?
-  trangthai          Boolean?
-  dmphong_scyk       dmphong_scyk  @relation("dmphong_scykTodmphong_scyk", fields: [maphong], references: [maphong], onUpdate: NoAction, map: "FK_dmphong_scyk_dmphong_scyk")
-  other_dmphong_scyk dmphong_scyk? @relation("dmphong_scykTodmphong_scyk")
+  maphong            Int               @id(map: "PK_dmphong_scyk")
+  tenphong           String            @db.NVarChar(500)
+  loai               String            @db.NVarChar(50)
+  sapxep             Int
+  ksd                Boolean
+  dmphong_scyk       dmphong_scyk      @relation("dmphong_scykTodmphong_scyk", fields: [maphong], references: [maphong], onUpdate: NoAction, map: "FK_dmphong_scyk_dmphong_scyk")
+  other_dmphong_scyk dmphong_scyk?     @relation("dmphong_scykTodmphong_scyk")
+  dmphongnoi_scyk    dmphongnoi_scyk[]
 }
 
 model dmdanhgiabandau {
@@ -246,4 +240,13 @@ model dmphanloaibandau {
   sapxep           Int?               @default(1, map: "DF__dmphanloa__sapxe__2DE6D218")
   ksd              Boolean?           @default(false, map: "DF__dmphanloaib__ksd__2EDAF651")
   dangky_sucoykhoa dangky_sucoykhoa[]
+}
+
+model dmphongnoi_scyk {
+  maphongnoi   Int          @id(map: "PK_dmkhoa_scyk")
+  maphong      Int
+  tenphongnoi  String?      @db.NVarChar(500)
+  sapxep       Int
+  ksd          Boolean
+  dmphong_scyk dmphong_scyk @relation(fields: [maphong], references: [maphong], map: "FK_dmphongnoi_dmphong")
 }

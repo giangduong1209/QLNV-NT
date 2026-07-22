@@ -48,6 +48,91 @@ export interface SuCoListItem {
   daPhanTich?: boolean;
 }
 
+// ============================================================
+// Common UI & Form Types
+// ============================================================
+export interface SelectOption {
+  value: string;
+  label: string;
+}
+
+export type SidebarFilterFormValues = {
+  trangThai: AnalysisStatus;
+  tuNgayDate: string;
+  tuNgayTime: string;
+  denNgayDate: string;
+  denNgayTime: string;
+  maphong: string;
+};
+
+// ============================================================
+// Lookup Data Types
+// ============================================================
+export interface LoaiSuCoItem {
+  maloaiscyk: number;
+  tenloaiscyk: string | null;
+}
+
+export interface TenSuCoItem {
+  idscyk: number;
+  maloaiscyk?: number | null;
+  tensucoyk: string | null;
+}
+
+export interface HinhThucItem {
+  mahinhthuc: number;
+  tenhinhthuc: string | null;
+}
+
+export interface PhaiItem {
+  maphai: number;
+  phai: string | null;
+}
+
+export interface DoiTuongItem {
+  madoituongsc: number;
+  doituongsc: string | null;
+}
+
+export interface PhongItem {
+  maphong: number;
+  tenphong: string | null;
+  loai?: string | null;
+  sapxep?: number | null;
+  ksd?: boolean | null;
+}
+
+export interface PhongNoiItem {
+  maphongnoi: number;
+  maphong: number;
+  tenphongnoi: string | null;
+  sapxep?: number | null;
+  ksd?: boolean | null;
+}
+
+export interface PhanLoaiBanDauItem {
+  maphanloai: number;
+  tenphanloai: string | null;
+}
+
+export interface DanhGiaBanDauItem {
+  madanhgia: number;
+  mamucdo: string | null;
+  tendanhgia: string | null;
+}
+
+export interface LookupData {
+  loaiSuCo: LoaiSuCoItem[];
+  tenSuCo: TenSuCoItem[];
+  hinhThuc: HinhThucItem[];
+  phai: PhaiItem[];
+  doiTuong: DoiTuongItem[];
+  phong: PhongItem[];
+  phongNoi: PhongNoiItem[];
+  phanLoaiBanDau: PhanLoaiBanDauItem[];
+  danhGiaBanDau: DanhGiaBanDauItem[];
+}
+
 export interface FilterParams {
   trangThai: AnalysisStatus;
   tuNgay: string; // "YYYY-MM-DD"

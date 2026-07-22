@@ -81,28 +81,45 @@ export function buildPhongOptions(lookupData: LookupData) {
 
   if (lookupData.phong?.length) {
     lookupData.phong.forEach((p) => {
-      const khoaItem = lookupData.khoa?.find((k) => k.makhoa === p.makhoa);
-      const label = khoaItem?.tenkhoa
-        ? `${p.tenphong} (${khoaItem.tenkhoa})`
-        : (p.tenphong ?? `Phòng ${p.maphong}`);
-      optionsMap.set(safeToString(p.maphong), label);
+      optionsMap.set(safeToString(p.maphong), p.tenphong ?? `Khoa/Phòng ${p.maphong}`);
     });
   }
 
-  if (lookupData.khoa?.length) {
-    lookupData.khoa.forEach((k) => {
-      const key = safeToString(k.makhoa);
-      if (!optionsMap.has(key)) {
-        optionsMap.set(key, k.tenkhoa ?? `Khoa ${k.makhoa}`);
-      }
-    });
-  }
+  return Array.from(optionsMap.entries()).map(([value, label]) => ({
+    value,
+    label,
+  }));
+}
 
-  KHOA_PHONG_OPTIONS.forEach((item) => {
-    if (item.value && !optionsMap.has(item.value)) {
-      optionsMap.set(item.value, item.label);
+export function buildPhongNoiOptions(
+  lookupData: LookupData,
+  selectedMaphong?: string,
+) {
+  const optionsMap = new Map<string, string>();
+  optionsMap.set("", "");
+
+  const filterMaphong = safeParseInt(selectedMaphong);
+
+  if (lookupData.phongNoi?.length) {
+    // Nếu có chọn maphong, lọc danh sách phòng nội thuộc maphong đó
+    let filteredList = filterMaphong
+      ? lookupData.phongNoi.filter((pn) => pn.maphong === filterMaphong)
+      : lookupData.phongNoi;
+
+    // Nếu lọc xong mà rỗng (hoặc chưa chọn maphong), hiển thị tất cả
+    if (filteredList.length === 0 && filterMaphong) {
+      filteredList = lookupData.phongNoi;
     }
-  });
+
+    filteredList.forEach((pn) => {
+      const parent = lookupData.phong?.find((p) => p.maphong === pn.maphong);
+      const label =
+        parent && !filterMaphong
+          ? `${pn.tenphongnoi} (${parent.tenphong})`
+          : (pn.tenphongnoi ?? `Phòng ${pn.maphongnoi}`);
+      optionsMap.set(safeToString(pn.maphongnoi), label);
+    });
+  }
 
   return Array.from(optionsMap.entries()).map(([value, label]) => ({
     value,

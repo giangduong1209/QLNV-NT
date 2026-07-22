@@ -1,11 +1,6 @@
 "use client";
 
-import {
-  createContext,
-  useContext,
-  useState,
-  type ReactNode,
-} from "react";
+import { createContext, useContext, useState, type ReactNode } from "react";
 
 // Form ID dùng để trigger submit từ StatusBar
 export const DASHBOARD_FORM_ID = "incident-form-dashboard";

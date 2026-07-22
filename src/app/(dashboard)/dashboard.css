@@ -98,7 +98,7 @@
 
 /* Sidebar on the left */
 .ql-sidebar {
-  width: 500px;
+  width: 400px;
   background-color: #ffffff;
   border-right: 1px solid var(--color-border-light);
   display: flex;
@@ -379,7 +379,7 @@
   background-color: #f1f5f9;
   color: var(--color-text-secondary);
   cursor: default;
-  border-color: var(--color-border-light);
+  border-color: var(--color-border);
 }
 
 /* Readonly & disabled fields — visual style tương đồng đồng nhất */
@@ -392,7 +392,7 @@
   -webkit-text-fill-color: var(--color-text-secondary);
   opacity: 1;
   cursor: default;
-  border-color: var(--color-border-light);
+  border-color: var(--color-border);
 }
 
 .ql-field-control
@@ -744,7 +744,7 @@
    ============================================================ */
 .ql-timepicker--disabled {
   background-color: #f1f5f9 !important;
-  border-color: var(--color-border-light) !important;
+  border-color: var(--color-border) !important;
   cursor: default;
 }
 

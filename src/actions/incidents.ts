@@ -1,6 +1,5 @@
 "use server";
 
-import { Prisma } from "@prisma/client";
 import {
   getIncidentDetail,
   getIncidentList,
@@ -14,47 +13,21 @@ import type {
   ActionResult,
 } from "@/types";
 
-/**
- * Parse chuỗi ngày "YYYY-MM-DD" và giờ "HH:mm" thành đối tượng Date.
- */
-function parseDateTime(dateStr: string, timeStr: string): Date {
-  const [year, month, day] = dateStr.split("-").map(Number);
-  const [hour, minute] = timeStr.split(":").map(Number);
-  return new Date(year, (month || 1) - 1, day || 1, hour || 0, minute || 0);
-}
-
 // ============================================================
 // Lấy danh sách sự cố theo bộ lọc
 // ============================================================
 export async function getSuCoList(
   params: FilterParams,
 ): Promise<ActionResult<SuCoListItem[]>> {
-  const { trangThai, tuNgay, tuNgayTime, denNgay, denNgayTime, maphong } = params;
-
   try {
-    const startDate = parseDateTime(tuNgay, tuNgayTime);
-    const endDate = parseDateTime(denNgay, denNgayTime);
-
-    const baseWhere: Prisma.dangky_sucoykhoaWhereInput = {
-      ngaysuco: {
-        gte: startDate,
-        lte: endDate,
-      },
-      ...(maphong ? { maphong } : {}),
-    };
-
-    let whereCondition = baseWhere;
-    if (trangThai === "DA_PHAN_TICH") {
-      whereCondition = { ...baseWhere, daphantich: true };
-    } else if (trangThai === "CHUA_PHAN_TICH") {
-      whereCondition = { ...baseWhere, daphantich: false };
-    }
-
-    const rows = await getIncidentList(whereCondition);
+    const rows = await getIncidentList(params);
     return { success: true, data: rows };
   } catch (error) {
     console.error("[getSuCoList] Exception:", error);
-    return { success: false, error: "Không thể tải danh sách sự cố. Vui lòng thử lại sau." };
+    return {
+      success: false,
+      error: "Không thể tải danh sách sự cố. Vui lòng thử lại sau.",
+    };
   }
 }
 

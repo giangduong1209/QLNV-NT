@@ -24,7 +24,7 @@ export function StatusBar() {
 
   const handleNew = () => {
     setIsEditing(false);
-    router.push("/incidents");
+    router.push("/dashboard");
   };
 
   return (

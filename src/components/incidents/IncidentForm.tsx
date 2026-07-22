@@ -13,10 +13,12 @@ import {
   CO_KHONG_OPTIONS,
   PHAN_LOAI_OPTIONS,
   DANH_GIA_OPTIONS,
+  NOTIFICATION_FIELDS,
 } from "./incident-form.constants";
 import {
   buildDefaultValues,
   buildPhongOptions,
+  buildPhongNoiOptions,
   buildTenSuCoList,
   buildSavePayload,
 } from "./incident-form.helpers";
@@ -46,10 +48,15 @@ export function IncidentForm({
 
   const selectedLoaiSuCo = useWatch({ control, name: "maloaiscyk" });
   const currentTenSuCo = useWatch({ control, name: "tensuco" });
+  const selectedMaphong = useWatch({ control, name: "maphong" });
 
   const phongOptions = useMemo(
     () => buildPhongOptions(lookupData),
     [lookupData],
+  );
+  const phongNoiOptions = useMemo(
+    () => buildPhongNoiOptions(lookupData, selectedMaphong),
+    [lookupData, selectedMaphong],
   );
   const tenSuCoList = useMemo(
     () => buildTenSuCoList(lookupData, selectedLoaiSuCo, currentTenSuCo),
@@ -350,7 +357,7 @@ export function IncidentForm({
                 <span className="ql-field-label">Khoa/phòng:</span>
                 <div className="ql-field-control">
                   <select {...register("maphongnoi")} disabled={!canEdit}>
-                    {phongOptions.map((o) => (
+                    {phongNoiOptions.map((o) => (
                       <option key={o.value} value={o.value}>
                         {o.label}
                       </option>
@@ -447,27 +454,7 @@ export function IncidentForm({
         <div className="ql-form-section-body">
           <div className="grid grid-cols-12 gap-6">
             <div className="col-span-7 flex flex-col gap-3">
-              {(
-                [
-                  {
-                    name: "thongbaobacsy" as const,
-                    label:
-                      "Thông báo cho Bác sĩ điều trị/người có trách nhiệm:",
-                  },
-                  {
-                    name: "thongbaonguoinha" as const,
-                    label: "Thông báo cho người nhà/người bảo hộ:",
-                  },
-                  {
-                    name: "ghinhan" as const,
-                    label: "Ghi nhận vào hồ sơ bệnh án/giấy tờ liên quan:",
-                  },
-                  {
-                    name: "thongbaonguoibenh" as const,
-                    label: "Thông báo cho người bệnh:",
-                  },
-                ] as const
-              ).map(({ name, label }) => (
+              {NOTIFICATION_FIELDS.map(({ name, label }) => (
                 <div key={name} className="ql-field">
                   <span className="ql-field-label w-85 text-xs">{label}</span>
                   <div className="ql-field-control">
