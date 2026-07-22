@@ -203,3 +203,25 @@ export async function getLookupDataFromDB() {
   };
 }
 
+export async function deleteIncidentFromDB(
+  masuco: number,
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    await prisma.dangky_phantichsuco.deleteMany({
+      where: { masuco },
+    });
+
+    await prisma.dangky_sucoykhoa.delete({
+      where: { masuco },
+    });
+
+    return { success: true };
+  } catch (error) {
+    console.error("deleteIncidentFromDB error:", error);
+    return {
+      success: false,
+      error: "Không thể xóa sự cố khỏi CSDL. Vui lòng thử lại sau.",
+    };
+  }
+}
+

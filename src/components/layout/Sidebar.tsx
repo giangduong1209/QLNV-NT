@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useTransition, Suspense } from "react";
+import { useState, useEffect, useCallback, useTransition, Suspense } from "react";
 import { useForm } from "react-hook-form";
 import { useRouter, useSearchParams } from "next/navigation";
 import { TimePicker } from "@/components/ui/TimePicker";
@@ -52,21 +52,45 @@ function SidebarContent() {
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [departmentOptions, setDepartmentOptions] = useState<SelectOption[]>([]);
 
-  const { register, handleSubmit, watch, setValue } = useForm<SidebarFilterFormValues>({
-    defaultValues: {
-      trangThai: "TAT_CA",
-      tuNgayDate: todayStr(),
-      tuNgayTime: "00:00",
-      denNgayDate: todayStr(),
-      denNgayTime: "23:59",
-      maphong: "",
-    },
-  });
+  const { register, handleSubmit, watch, setValue, getValues } =
+    useForm<SidebarFilterFormValues>({
+      defaultValues: {
+        trangThai: "TAT_CA",
+        tuNgayDate: todayStr(),
+        tuNgayTime: "00:00",
+        denNgayDate: todayStr(),
+        denNgayTime: "23:59",
+        maphong: "",
+      },
+    });
 
   const tuNgayTime = watch("tuNgayTime");
   const denNgayTime = watch("denNgayTime");
 
-  // Nạp danh mục Khoa & Phòng động từ CSDL
+  const fetchList = useCallback(
+    (values: SidebarFilterFormValues) => {
+      setErrorMsg(null);
+      startTransition(async () => {
+        const result = await getSuCoList({
+          trangThai: values.trangThai,
+          tuNgay: values.tuNgayDate,
+          tuNgayTime: values.tuNgayTime,
+          denNgay: values.denNgayDate,
+          denNgayTime: values.denNgayTime,
+          maphong: values.maphong ? parseInt(values.maphong, 10) : undefined,
+        });
+
+        if (result.error) {
+          setErrorMsg(result.error);
+        } else {
+          setSuCoList(result.data ?? []);
+        }
+      });
+    },
+    [],
+  );
+
+  // Nạp danh mục Khoa & Phòng động từ CSDL và tự động nạp danh sách sự cố ban đầu
   useEffect(() => {
     let isMounted = true;
     getLookupData()
@@ -79,29 +103,15 @@ function SidebarContent() {
         console.error("[Sidebar] Lỗi nạp danh mục Khoa Phòng:", err);
       });
 
+    fetchList(getValues());
+
     return () => {
       isMounted = false;
     };
-  }, []);
+  }, [fetchList, getValues]);
 
   const onSubmit = (values: SidebarFilterFormValues) => {
-    setErrorMsg(null);
-    startTransition(async () => {
-      const result = await getSuCoList({
-        trangThai: values.trangThai,
-        tuNgay: values.tuNgayDate,
-        tuNgayTime: values.tuNgayTime,
-        denNgay: values.denNgayDate,
-        denNgayTime: values.denNgayTime,
-        maphong: values.maphong ? parseInt(values.maphong, 10) : undefined,
-      });
-
-      if (result.error) {
-        setErrorMsg(result.error);
-      } else {
-        setSuCoList(result.data ?? []);
-      }
-    });
+    fetchList(values);
   };
 
   const handleRowClick = (masuco: number) => {

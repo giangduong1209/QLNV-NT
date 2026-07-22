@@ -1,9 +1,11 @@
 "use server";
 
+import { revalidatePath } from "next/cache";
 import {
   getIncidentDetail,
   getIncidentList,
   saveIncidentToDB,
+  deleteIncidentFromDB,
 } from "@/app/services/incident/incident.service";
 import type {
   FilterParams,
@@ -139,6 +141,8 @@ export async function saveIncident(
     if (!res.success) {
       return { success: false, error: res.error || "Lưu sự cố không thành công." };
     }
+    revalidatePath("/dashboard");
+    revalidatePath("/incidents");
     return { success: true, data: { masuco: res.masuco } };
   } catch (error) {
     console.error("[saveIncident] Exception:", error);
@@ -146,3 +150,22 @@ export async function saveIncident(
   }
 }
 
+// ============================================================
+// Xóa sự cố theo mã sự cố
+// ============================================================
+export async function deleteIncident(
+  masuco: number,
+): Promise<ActionResult<{ masuco: number }>> {
+  try {
+    const res = await deleteIncidentFromDB(masuco);
+    if (!res.success) {
+      return { success: false, error: res.error || "Xóa sự cố không thành công." };
+    }
+    revalidatePath("/dashboard");
+    revalidatePath("/incidents");
+    return { success: true, data: { masuco } };
+  } catch (error) {
+    console.error("[deleteIncident] Exception:", error);
+    return { success: false, error: "Không thể xóa sự cố. Vui lòng thử lại." };
+  }
+}
