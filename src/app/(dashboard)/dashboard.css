@@ -382,12 +382,26 @@
   border-color: var(--color-border-light);
 }
 
-/* Readonly fields — visual style giống disabled nhưng cho text/date/textarea */
+/* Readonly & disabled fields — visual style tương đồng đồng nhất */
 .ql-field-control input[readonly],
-.ql-field-control textarea[readonly] {
+.ql-field-control textarea[readonly],
+.ql-field-control input[type="date"]:disabled,
+.ql-field-control input[type="date"][readonly] {
   background-color: #f1f5f9;
+  color: var(--color-text-secondary);
+  -webkit-text-fill-color: var(--color-text-secondary);
+  opacity: 1;
   cursor: default;
   border-color: var(--color-border-light);
+}
+
+.ql-field-control
+  input[type="date"]:disabled::-webkit-calendar-picker-indicator,
+.ql-field-control
+  input[type="date"][readonly]::-webkit-calendar-picker-indicator {
+  opacity: 0.4;
+  cursor: default;
+  pointer-events: none;
 }
 
 .ql-field-control input[type="date"]:focus,
@@ -406,21 +420,6 @@
   resize: vertical;
   line-height: 1.5;
 }
-
-/* .ql-field-control input[type="text"]:focus,
-.ql-field-control select:focus,
-.ql-field-control textarea:focus {
-  border-color: var(--color-primary);
-  box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.12);
-  outline: none;
-}
-
-.ql-field-control input[readonly] {
-  background-color: var(--color-primary-light);
-  color: var(--color-primary-dark) !important;
-  font-weight: 700;
-  border-color: rgba(220, 38, 38, 0.15);
-} */
 
 /* Date + Time row — overrides width:100% so flex sizing works */
 .ql-datetime-row {

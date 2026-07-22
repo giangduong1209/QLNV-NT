@@ -118,7 +118,7 @@ export function IncidentForm({
             {...register("sosuco")}
             readOnly
             placeholder={isNew ? "Tự động" : ""}
-            className="w-27.5 text-center font-bold bg-primary-light border border-[rgba(220,38,38,0.2)] text-primary-dark"
+            className="w-32.5 text-center font-bold bg-primary-light border border-[rgba(220,38,38,0.2)] text-primary-dark"
           />
         </div>
 
@@ -129,6 +129,7 @@ export function IncidentForm({
               type="date"
               {...register("ngayLapDate")}
               readOnly={!canEdit}
+              disabled={!canEdit}
               className="w-32.5 text-center bg-primary-light border border-[rgba(220,38,38,0.15)]"
             />
             <Controller
@@ -234,6 +235,7 @@ export function IncidentForm({
                     type="date"
                     {...register("ngaysinh")}
                     readOnly={!canEdit}
+                    disabled={!canEdit}
                   />
                 </div>
               </div>
@@ -324,6 +326,7 @@ export function IncidentForm({
                     type="date"
                     {...register("ngaySuCoDate")}
                     readOnly={!canEdit}
+                    disabled={!canEdit}
                   />
                   <Controller
                     name="ngaySuCoTime"
@@ -487,11 +490,20 @@ export function IncidentForm({
                 <div className="ql-field-control">
                   <select {...register("phanloaibandau")} disabled={!canEdit}>
                     <option value=""></option>
-                    {PHAN_LOAI_OPTIONS.map((o) => (
-                      <option key={o.value} value={o.value}>
-                        {o.label}
-                      </option>
-                    ))}
+                    {lookupData.phanLoaiBanDau?.length
+                      ? lookupData.phanLoaiBanDau.map((o) => (
+                          <option
+                            key={o.maphanloai}
+                            value={o.maphanloai.toString()}
+                          >
+                            {o.tenphanloai}
+                          </option>
+                        ))
+                      : PHAN_LOAI_OPTIONS.map((o) => (
+                          <option key={o.value} value={o.value}>
+                            {o.label}
+                          </option>
+                        ))}
                   </select>
                 </div>
               </div>
@@ -503,11 +515,22 @@ export function IncidentForm({
                 <div className="ql-field-control">
                   <select {...register("danhgiabandau")} disabled={!canEdit}>
                     <option value=""></option>
-                    {DANH_GIA_OPTIONS.map((o) => (
-                      <option key={o.value} value={o.value}>
-                        {o.label}
-                      </option>
-                    ))}
+                    {lookupData.danhGiaBanDau?.length
+                      ? lookupData.danhGiaBanDau.map((o) => (
+                          <option
+                            key={o.madanhgia}
+                            value={o.madanhgia.toString()}
+                          >
+                            {o.mamucdo
+                              ? `${o.mamucdo} - ${o.tendanhgia}`
+                              : o.tendanhgia}
+                          </option>
+                        ))
+                      : DANH_GIA_OPTIONS.map((o) => (
+                          <option key={o.value} value={o.value}>
+                            {o.label}
+                          </option>
+                        ))}
                   </select>
                 </div>
               </div>

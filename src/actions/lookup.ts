@@ -41,6 +41,17 @@ export interface PhongItem {
   tenphong: string | null;
 }
 
+export interface PhanLoaiBanDauItem {
+  maphanloai: number;
+  tenphanloai: string | null;
+}
+
+export interface DanhGiaBanDauItem {
+  madanhgia: number;
+  mamucdo: string | null;
+  tendanhgia: string | null;
+}
+
 export interface LookupData {
   loaiSuCo: LoaiSuCoItem[];
   tenSuCo: TenSuCoItem[];
@@ -49,6 +60,8 @@ export interface LookupData {
   doiTuong: DoiTuongItem[];
   khoa: KhoaItem[];
   phong: PhongItem[];
+  phanLoaiBanDau: PhanLoaiBanDauItem[];
+  danhGiaBanDau: DanhGiaBanDauItem[];
 }
 
 // ─── Fetch lookup tables từ DB qua service ────────────────────────────────────
@@ -58,7 +71,17 @@ export async function getLookupData(): Promise<LookupData> {
     return await getLookupDataFromDB();
   } catch (error) {
     console.error("getLookupData error:", error);
-    return { loaiSuCo: [], tenSuCo: [], hinhThuc: [], phai: [], doiTuong: [], khoa: [], phong: [] };
+    return {
+      loaiSuCo: [],
+      tenSuCo: [],
+      hinhThuc: [],
+      phai: [],
+      doiTuong: [],
+      khoa: [],
+      phong: [],
+      phanLoaiBanDau: [],
+      danhGiaBanDau: [],
+    };
   }
 }
 

@@ -213,8 +213,8 @@ export type IncidentSavePayload = {
   thongbaonguoinha?: boolean | null;
   ghinhan?: boolean | null;
   thongbaonguoibenh?: boolean | null;
-  phanloaibandau?: string | null;
-  danhgiabandau?: string | null;
+  phanloaibandau?: number | null;
+  danhgiabandau?: number | null;
   manguoibaocao?: number | null;
   hotennguoibaocao?: string | null;
   dienthoainguoibaocao?: string | null;

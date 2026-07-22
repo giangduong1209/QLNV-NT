@@ -54,10 +54,11 @@ export function Sidebar() {
       if (result.error) {
         setErrorMsg(result.error);
       } else {
-        setSuCoList(result.data);
+        const list = result.data ?? [];
+        setSuCoList(list);
         if (
           selectedMaSuCo &&
-          !result.data.find((r) => r.masuco === selectedMaSuCo)
+          !list.find((r) => r.masuco === selectedMaSuCo)
         ) {
           setSelectedMaSuCo(null);
         }

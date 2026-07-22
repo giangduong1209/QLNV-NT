@@ -64,7 +64,17 @@ export async function saveIncidentToDB(
 }
 
 export async function getLookupDataFromDB() {
-  const [loaiSuCo, tenSuCo, hinhThuc, phai, doiTuong, khoa, phong] = await Promise.all([
+  const [
+    loaiSuCo,
+    tenSuCo,
+    hinhThuc,
+    phai,
+    doiTuong,
+    khoa,
+    phong,
+    phanLoaiBanDau,
+    danhGiaBanDau,
+  ] = await Promise.all([
     prisma.dmloaisuco.findMany({
       orderBy: { sapxep: "asc" },
       select: { maloaiscyk: true, tenloaiscyk: true },
@@ -88,8 +98,28 @@ export async function getLookupDataFromDB() {
     prisma.dmphong_scyk.findMany({
       select: { maphong: true, makhoa: true, tenphong: true },
     }),
+    prisma.dmphanloaibandau.findMany({
+      where: { ksd: false },
+      orderBy: { sapxep: "asc" },
+      select: { maphanloai: true, tenphanloai: true },
+    }),
+    prisma.dmdanhgiabandau.findMany({
+      where: { ksd: false },
+      orderBy: { sapxep: "asc" },
+      select: { madanhgia: true, mamucdo: true, tendanhgia: true },
+    }),
   ]);
 
-  return { loaiSuCo, tenSuCo, hinhThuc, phai, doiTuong, khoa, phong };
+  return {
+    loaiSuCo,
+    tenSuCo,
+    hinhThuc,
+    phai,
+    doiTuong,
+    khoa,
+    phong,
+    phanLoaiBanDau,
+    danhGiaBanDau,
+  };
 }
 
