@@ -363,7 +363,7 @@
 .ql-field-control textarea {
   width: 100%;
   font-size: 13px;
-  height: 36px;
+  height: 40px;
   padding: 8px 12px;
   border: 1px solid var(--color-border);
   border-radius: 8px;
@@ -416,9 +416,10 @@
 
 .ql-field-control textarea {
   height: auto;
-  min-height: 56px;
+  min-height: 88px;
   resize: vertical;
-  line-height: 1.5;
+  line-height: 1.6;
+  padding: 10px 12px;
 }
 
 /* Date + Time row — overrides width:100% so flex sizing works */
@@ -433,7 +434,7 @@
   min-width: 0;
   width: auto !important; /* override the width:100% from .ql-field-control rule */
   font-size: 13px;
-  height: 36px;
+  height: 40px;
   padding: 8px 10px;
   border: 1px solid var(--color-border);
   border-radius: 8px;

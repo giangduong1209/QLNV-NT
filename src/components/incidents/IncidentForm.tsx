@@ -384,14 +384,14 @@ export function IncidentForm({
             <div className="col-span-6">
               <div className="ql-field-label mb-1">Mô tả:</div>
               <div className="ql-field-control">
-                <textarea rows={3} {...register("mota")} readOnly={!canEdit} />
+                <textarea rows={5} {...register("mota")} readOnly={!canEdit} />
               </div>
             </div>
             <div className="col-span-6">
               <div className="ql-field-label mb-1">Đề xuất giải pháp:</div>
               <div className="ql-field-control">
                 <textarea
-                  rows={3}
+                  rows={5}
                   {...register("giaiphapdexuat")}
                   readOnly={!canEdit}
                 />
@@ -404,7 +404,7 @@ export function IncidentForm({
               <div className="ql-field-label mb-1">Xử lý ban đầu:</div>
               <div className="ql-field-control">
                 <textarea
-                  rows={2}
+                  rows={4}
                   {...register("xulybandau")}
                   readOnly={!canEdit}
                 />

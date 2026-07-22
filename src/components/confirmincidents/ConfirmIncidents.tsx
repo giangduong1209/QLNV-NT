@@ -295,7 +295,7 @@ export const ConfirmIncidents = ({ initialData }: ConfirmIncidentsProps) => {
             <div className="col-span-6">
               <div className="ql-field-label">Mô tả:</div>
               <div className="ql-field-control">
-                <textarea rows={3} {...register("pt_mota")} />
+                <textarea rows={5} {...register("pt_mota")} />
               </div>
             </div>
           </div>
@@ -318,7 +318,7 @@ export const ConfirmIncidents = ({ initialData }: ConfirmIncidentsProps) => {
               <div className="ql-field mb-2">
                 <span className="ql-field-label w-[40px]">Y lệnh:</span>
                 <div className="ql-field-control">
-                  <textarea rows={2} {...register("ylenh")} />
+                  <textarea rows={3} {...register("ylenh")} />
                 </div>
               </div>
 
@@ -334,13 +334,13 @@ export const ConfirmIncidents = ({ initialData }: ConfirmIncidentsProps) => {
               <div>
                 <span className="ql-field-label">Khắc phục sự cố</span>
                 <div className="ql-field-control">
-                  <textarea rows={2} {...register("khacphucsuco")} />
+                  <textarea rows={3} {...register("khacphucsuco")} />
                 </div>
               </div>
               <div className="mt-2">
                 <div className="ql-field-label">Đề xuất khuyến cáo</div>
                 <div className="ql-field-control">
-                  <textarea rows={2} {...register("dexuat")} />
+                  <textarea rows={3} {...register("dexuat")} />
                 </div>
               </div>
             </div>
@@ -355,7 +355,7 @@ export const ConfirmIncidents = ({ initialData }: ConfirmIncidentsProps) => {
                 </div>
                 <div className="ql-field-control">
                   <textarea
-                    rows={3}
+                    rows={5}
                     {...register("chuyengiadanhgia")}
                     disabled
                   />
