@@ -1,4 +1,4 @@
-// import { getSuCoDetail } from "@/actions/incidents";
+import { getSuCoDetail } from "@/actions/incidents";
 import { ConfirmIncidents } from "@/components/confirmincidents/ConfirmIncidents";
 
 interface IncidentsPageProps {
@@ -9,13 +9,13 @@ export default async function IncidentsPage({
   searchParams,
 }: IncidentsPageProps) {
   const params = await searchParams;
-  const masucoRaw = params?.masuco;
-  const masuco = masucoRaw ? parseInt(masucoRaw) : undefined;
+  const rawMasuco = params?.masuco;
+  const masuco = rawMasuco ? parseInt(rawMasuco, 10) : undefined;
 
   let initialData = null;
   if (masuco && !isNaN(masuco)) {
-    // const result = await getSuCoDetail(masuco);
-    // initialData = result.data;
+    const result = await getSuCoDetail(masuco);
+    initialData = result.data ?? null;
   }
 
   return <ConfirmIncidents initialData={initialData} />;

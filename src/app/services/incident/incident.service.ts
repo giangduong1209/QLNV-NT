@@ -1,14 +1,87 @@
 import { prisma } from "@/lib/prisma";
 import { Prisma } from "@prisma/client";
+import { toDate } from "@/utils";
+import type { FilterParams } from "@/types";
+
+export async function getCandidateDepartmentIds(selectedId: number): Promise<{
+  maphongIds: number[];
+  maphongnoiIds: number[];
+}> {
+  const subRooms = await prisma.dmphongnoi_scyk.findMany({
+    where: { maphong: selectedId },
+    select: { maphongnoi: true },
+  });
+
+  return {
+    maphongIds: [selectedId],
+    maphongnoiIds: subRooms.map((room) => room.maphongnoi),
+  };
+}
+
+function isFilterParams(arg: any): arg is FilterParams {
+  return (
+    arg && typeof arg === "object" && ("trangThai" in arg || "tuNgay" in arg)
+  );
+}
 
 export async function getIncidentList(
-  where?: Prisma.dangky_sucoykhoaWhereInput,
+  params?: FilterParams | Prisma.dangky_sucoykhoaWhereInput,
 ) {
+  if (!params) {
+    return prisma.dangky_sucoykhoa.findMany({
+      orderBy: { ngaysuco: "desc" },
+    });
+  }
+
+  if (!isFilterParams(params)) {
+    return prisma.dangky_sucoykhoa.findMany({
+      where: params,
+      orderBy: { ngaysuco: "desc" },
+    });
+  }
+
+  const { trangThai, tuNgay, tuNgayTime, denNgay, denNgayTime, maphong } =
+    params;
+
+  const startDate = tuNgay ? toDate(tuNgay, tuNgayTime || "00:00") : null;
+  const endDate = denNgay ? toDate(denNgay, denNgayTime || "23:59") : null;
+
+  const conditions: Prisma.dangky_sucoykhoaWhereInput[] = [];
+
+  if (startDate || endDate) {
+    conditions.push({
+      ngaysuco: {
+        ...(startDate ? { gte: startDate } : {}),
+        ...(endDate ? { lte: endDate } : {}),
+      },
+    });
+  }
+
+  if (trangThai === "DA_PHAN_TICH") {
+    conditions.push({ daphantich: true });
+  } else if (trangThai === "CHUA_PHAN_TICH") {
+    conditions.push({ daphantich: false });
+  }
+
+  if (maphong) {
+    const { maphongIds, maphongnoiIds } =
+      await getCandidateDepartmentIds(maphong);
+    const orConditions: Prisma.dangky_sucoykhoaWhereInput[] = [
+      { maphong: { in: maphongIds } },
+      { makkbaocao: { in: maphongIds } },
+    ];
+    if (maphongnoiIds.length > 0) {
+      orConditions.push({ maphongnoi: { in: maphongnoiIds } });
+    }
+    conditions.push({ OR: orConditions });
+  }
+
+  const where: Prisma.dangky_sucoykhoaWhereInput =
+    conditions.length > 0 ? { AND: conditions } : {};
+
   return prisma.dangky_sucoykhoa.findMany({
     where,
-    orderBy: {
-      ngaysuco: "desc",
-    },
+    orderBy: { ngaysuco: "desc" },
   });
 }
 
@@ -64,16 +137,26 @@ export async function saveIncidentToDB(
 }
 
 export async function getLookupDataFromDB() {
-  const [loaiSuCo, tenSuCo, hinhThuc, phai, doiTuong] = await Promise.all([
+  const [
+    loaiSuCo,
+    tenSuCo,
+    hinhThuc,
+    phai,
+    doiTuong,
+    phong,
+    phongNoi,
+    phanLoaiBanDau,
+    danhGiaBanDau,
+  ] = await Promise.all([
     prisma.dmloaisuco.findMany({
-      where: { ksd: true },
+      where: { ksd: false },
       orderBy: { sapxep: "asc" },
       select: { maloaiscyk: true, tenloaiscyk: true },
     }),
     prisma.dmtensucoyk.findMany({
-      where: { ksd: true },
+      where: { ksd: false },
       orderBy: { sapxep: "asc" },
-      select: { idscyk: true, tensucoyk: true },
+      select: { idscyk: true, maloaiscyk: true, tensucoyk: true },
     }),
     prisma.dmhinhthuc_scyk.findMany({
       select: { mahinhthuc: true, tenhinhthuc: true },
@@ -84,8 +167,64 @@ export async function getLookupDataFromDB() {
     prisma.dmdoituongsc_scyk.findMany({
       select: { madoituongsc: true, doituongsc: true },
     }),
+    prisma.dmphong_scyk.findMany({
+      where: { ksd: false },
+      orderBy: { sapxep: "asc" },
+      select: { maphong: true, tenphong: true, loai: true, sapxep: true },
+    }),
+    prisma.dmphongnoi_scyk.findMany({
+      where: { ksd: false },
+      orderBy: { sapxep: "asc" },
+      select: {
+        maphongnoi: true,
+        maphong: true,
+        tenphongnoi: true,
+        sapxep: true,
+      },
+    }),
+    prisma.dmphanloaibandau.findMany({
+      where: { ksd: false },
+      orderBy: { sapxep: "asc" },
+      select: { maphanloai: true, tenphanloai: true },
+    }),
+    prisma.dmdanhgiabandau.findMany({
+      where: { ksd: false },
+      orderBy: { sapxep: "asc" },
+      select: { madanhgia: true, mamucdo: true, tendanhgia: true },
+    }),
   ]);
 
-  return { loaiSuCo, tenSuCo, hinhThuc, phai, doiTuong };
+  return {
+    loaiSuCo,
+    tenSuCo,
+    hinhThuc,
+    phai,
+    doiTuong,
+    phong,
+    phongNoi,
+    phanLoaiBanDau,
+    danhGiaBanDau,
+  };
 }
 
+export async function deleteIncidentFromDB(
+  masuco: number,
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    await prisma.dangky_phantichsuco.deleteMany({
+      where: { masuco },
+    });
+
+    await prisma.dangky_sucoykhoa.delete({
+      where: { masuco },
+    });
+
+    return { success: true };
+  } catch (error) {
+    console.error("deleteIncidentFromDB error:", error);
+    return {
+      success: false,
+      error: "Không thể xóa sự cố khỏi CSDL. Vui lòng thử lại sau.",
+    };
+  }
+}

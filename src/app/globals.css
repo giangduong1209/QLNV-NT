@@ -14,8 +14,8 @@
   --color-bg: #f8fafc; /* slate-50 */
   --color-surface: #ffffff;
   --color-surface-alt: #f1f5f9; /* slate-100 */
-  --color-border: #cbd5e1; /* slate-300 */
-  --color-border-light: #e2e8f0; /* slate-200 */
+  --color-border: #94a3b8; /* slate-400 - màu viền ô đậm, rõ nét hơn */
+  --color-border-light: #cbd5e1; /* slate-300 - màu viền phụ đậm hơn */
 
   /* Text & Border variables */
   --color-text-primary: #0f172a; /* slate-900 */
@@ -23,7 +23,12 @@
   --color-text-muted: #64748b; /* slate-500 */
   --color-text-on-primary: #ffffff;
   --color-error: #ef4444; /* red-500 */
-  --color-border-primary: rgba(148, 163, 184, 0.15); /* slate-400 with opacity */
+  --color-border-primary: rgba(
+    148,
+    163,
+    184,
+    0.15
+  ); /* slate-400 with opacity */
 }
 
 @theme inline {
@@ -31,7 +36,7 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
-  
+
   --color-primary: var(--color-primary);
   --color-primary-dark: var(--color-primary-dark);
   --color-primary-light: var(--color-primary-light);
@@ -56,7 +61,12 @@
 
 body {
   background: var(--color-bg);
-  font-family: var(--font-geist-sans), 'Inter', system-ui, -apple-system, sans-serif;
+  font-family:
+    var(--font-geist-sans),
+    "Inter",
+    system-ui,
+    -apple-system,
+    sans-serif;
   margin: 0;
   padding: 0;
   overflow: hidden;

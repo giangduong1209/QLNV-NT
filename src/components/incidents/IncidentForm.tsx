@@ -1,67 +1,27 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useForm, Controller } from "react-hook-form";
+import { useState, useEffect, useMemo } from "react";
+import { useForm, Controller, useWatch } from "react-hook-form";
 import { useRouter } from "next/navigation";
 import { TimePicker } from "@/components/ui/TimePicker";
+import { useToast } from "@/components/ui/ToastProvider";
 import { useEditMode, DASHBOARD_FORM_ID } from "@/lib/edit-mode-context";
 import { saveIncident } from "@/actions/incidents";
-import type {
-  SuCoDetail,
-  IncidentFormValues,
-  IncidentSavePayload,
-} from "@/types";
+import type { SuCoDetail, IncidentFormValues } from "@/types";
 import type { LookupData } from "@/actions/lookup";
-import { toDateStr, toTimeStr, toDate } from "@/utils/format-date";
 import {
   CO_KHONG_OPTIONS,
   PHAN_LOAI_OPTIONS,
   DANH_GIA_OPTIONS,
-  KHOA_PHONG_OPTIONS,
+  NOTIFICATION_FIELDS,
 } from "./incident-form.constants";
-
-function buildDefaultValues(
-  initialData: SuCoDetail | null,
-  nowDate: string,
-  nowTime: string,
-): IncidentFormValues {
-  const suco = initialData?.sucoykhoa;
-  return {
-    sosuco: suco?.sosuco ?? "",
-    ngayLapDate: suco?.ngay ? toDateStr(suco.ngay) : nowDate,
-    ngayLapTime: suco?.ngay ? toTimeStr(suco.ngay) : nowTime,
-    mahinhthuc: suco?.mahinhthuc?.toString() ?? "1",
-    maloaiscyk: suco?.maloaiscyk?.toString() ?? "",
-    makcb: suco?.makcb ?? "",
-    hoten: suco?.hoten ?? "",
-    maphong: suco?.maphong?.toString() ?? "",
-    ngaysinh: suco?.ngaysinh ? toDateStr(suco.ngaysinh) : "",
-    sobenhan: suco?.sobenhan ?? "",
-    maphai: suco?.maphai?.toString() ?? "",
-    madoituongsc: suco?.madoituongsc?.toString() ?? "",
-    tensuco: suco?.tensuco ?? "",
-    ngaySuCoDate: suco?.ngaysuco ? toDateStr(suco.ngaysuco) : nowDate,
-    ngaySuCoTime: suco?.ngaysuco ? toTimeStr(suco.ngaysuco) : nowTime,
-    maphongnoi: suco?.maphongnoi?.toString() ?? "",
-    vitricuthe: suco?.vitricuthe ?? "",
-    mota: suco?.mota ?? "",
-    giaiphapdexuat: suco?.giaiphapdexuat ?? "",
-    xulybandau: suco?.xulybandau ?? "",
-    nguyennhangoc: suco?.nguyennhangoc ?? "",
-    giaiphaptranhlaplai: suco?.giaiphaptranhlaplai ?? "",
-    thongbaobacsy: suco?.thongbaobacsy ?? "",
-    thongbaonguoinha: suco?.thongbaonguoinha ?? "",
-    ghinhan: suco?.ghinhan ?? "",
-    thongbaonguoibenh: suco?.thongbaonguoibenh ?? "",
-    phanloaibandau: suco?.phanloaibandau ?? "",
-    danhgiabandau: suco?.danhgiabandau ?? "",
-    hotennguoibaocao: suco?.hotennguoibaocao ?? "",
-    dienthoainguoibaocao: suco?.dienthoainguoibaocao ?? "",
-    emailnguoibaocao: suco?.emailnguoibaocao ?? "",
-    chungkien1: suco?.chungkien1 ?? "",
-    chungkien2: suco?.chungkien2 ?? "",
-  };
-}
+import {
+  buildDefaultValues,
+  buildPhongOptions,
+  buildPhongNoiOptions,
+  buildTenSuCoList,
+  buildSavePayload,
+} from "./incident-form.helpers";
 
 interface IncidentFormProps {
   initialData: SuCoDetail | null;
@@ -75,17 +35,33 @@ export function IncidentForm({
   isNew,
 }: IncidentFormProps) {
   const router = useRouter();
+  const toast = useToast();
   const { isEditing, setIsEditing } = useEditMode();
   const [isSaving, setIsSaving] = useState(false);
-  const [saveError, setSaveError] = useState<string | null>(null);
-  const [saveSuccess, setSaveSuccess] = useState(false);
 
   const canEdit = isNew || isEditing;
 
   const { register, control, handleSubmit, reset } =
     useForm<IncidentFormValues>({
-      defaultValues: buildDefaultValues(initialData, "", ""),
+      defaultValues: buildDefaultValues(initialData, lookupData, "", ""),
     });
+
+  const selectedLoaiSuCo = useWatch({ control, name: "maloaiscyk" });
+  const currentTenSuCo = useWatch({ control, name: "tensuco" });
+  const selectedMaphong = useWatch({ control, name: "maphong" });
+
+  const phongOptions = useMemo(
+    () => buildPhongOptions(lookupData),
+    [lookupData],
+  );
+  const phongNoiOptions = useMemo(
+    () => buildPhongNoiOptions(lookupData, selectedMaphong),
+    [lookupData, selectedMaphong],
+  );
+  const tenSuCoList = useMemo(
+    () => buildTenSuCoList(lookupData, selectedLoaiSuCo, currentTenSuCo),
+    [lookupData, selectedLoaiSuCo, currentTenSuCo],
+  );
 
   useEffect(() => {
     const now = new Date();
@@ -93,61 +69,25 @@ export function IncidentForm({
     const date = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
     const time = `${pad(now.getHours())}:${pad(now.getMinutes())}`;
 
-    reset(buildDefaultValues(initialData, date, time));
+    reset(buildDefaultValues(initialData, lookupData, date, time));
     setIsEditing(isNew);
-    setSaveError(null);
-    setSaveSuccess(false);
-  }, [initialData?.sucoykhoa?.masuco, isNew, reset, setIsEditing]);
+  }, [initialData?.sucoykhoa?.masuco, lookupData, isNew, reset, setIsEditing]);
 
   const onSubmit = async (values: IncidentFormValues) => {
     setIsSaving(true);
-    setSaveError(null);
-    setSaveSuccess(false);
 
     const masuco = initialData?.sucoykhoa?.masuco ?? null;
-
-    const payload: IncidentSavePayload = {
-      ngay: toDate(values.ngayLapDate, values.ngayLapTime),
-      mahinhthuc: values.mahinhthuc ? parseInt(values.mahinhthuc) : null,
-      makcb: values.makcb || null,
-      hoten: values.hoten || null,
-      maphong: values.maphong ? parseInt(values.maphong) : null,
-      ngaysinh: values.ngaysinh ? toDate(values.ngaysinh, "00:00") : null,
-      sobenhan: values.sobenhan || null,
-      maphai: values.maphai ? parseInt(values.maphai) : null,
-      madoituongsc: values.madoituongsc ? parseInt(values.madoituongsc) : null,
-      tensuco: values.tensuco || null,
-      ngaysuco: toDate(values.ngaySuCoDate, values.ngaySuCoTime),
-      maphongnoi: values.maphongnoi ? parseInt(values.maphongnoi) : null,
-      vitricuthe: values.vitricuthe || null,
-      mota: values.mota || null,
-      giaiphapdexuat: values.giaiphapdexuat || null,
-      xulybandau: values.xulybandau || null,
-      nguyennhangoc: values.nguyennhangoc || null,
-      giaiphaptranhlaplai: values.giaiphaptranhlaplai || null,
-      thongbaobacsy: values.thongbaobacsy || null,
-      thongbaonguoinha: values.thongbaonguoinha || null,
-      ghinhan: values.ghinhan || null,
-      thongbaonguoibenh: values.thongbaonguoibenh || null,
-      phanloaibandau: values.phanloaibandau || null,
-      danhgiabandau: values.danhgiabandau || null,
-      hotennguoibaocao: values.hotennguoibaocao || null,
-      dienthoainguoibaocao: values.dienthoainguoibaocao || null,
-      emailnguoibaocao: values.emailnguoibaocao || null,
-      chungkien1: values.chungkien1 || null,
-      chungkien2: values.chungkien2 || null,
-      maloaiscyk: values.maloaiscyk ? parseInt(values.maloaiscyk) : null,
-    };
+    const payload = buildSavePayload(values);
 
     const result = await saveIncident(masuco, payload);
     setIsSaving(false);
 
-    if (result.success && result.masuco) {
-      setSaveSuccess(true);
+    if (result.success && result.data?.masuco) {
+      toast.success("Lưu thông tin sự cố thành công!");
       setIsEditing(false);
-      router.push(`/dashboard?masuco=${result.masuco}`);
+      router.push(`/dashboard?masuco=${result.data.masuco}`);
     } else {
-      setSaveError(result.error ?? "Lưu không thành công. Vui lòng thử lại.");
+      toast.error(result.error ?? "Lưu không thành công. Vui lòng thử lại.");
     }
   };
 
@@ -157,19 +97,22 @@ export function IncidentForm({
       onSubmit={handleSubmit(onSubmit)}
       className="ql-form-container"
     >
-      {saveError && (
-        <div className="mb-3 px-4 py-2.5 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm flex items-center gap-2">
-          <span>⚠</span> {saveError}
-        </div>
-      )}
-      {saveSuccess && (
-        <div className="mb-3 px-4 py-2.5 bg-green-50 border border-green-200 rounded-lg text-green-700 text-sm flex items-center gap-2">
-          <span>✓</span> Lưu thành công!
-        </div>
-      )}
       {isSaving && (
-        <div className="mb-3 px-4 py-2.5 bg-blue-50 border border-blue-200 rounded-lg text-blue-700 text-sm">
-          Đang lưu...
+        <div className="mb-3 px-4 py-2.5 bg-blue-50 border border-blue-200 rounded-lg text-blue-700 text-sm flex items-center gap-2">
+          <svg
+            className="w-4 h-4 animate-spin"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth="2"
+              d="M12 4v1m0 14v1m8-8h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707"
+            />
+          </svg>
+          Đang lưu dữ liệu...
         </div>
       )}
 
@@ -182,7 +125,7 @@ export function IncidentForm({
             {...register("sosuco")}
             readOnly
             placeholder={isNew ? "Tự động" : ""}
-            className="w-27.5 text-center font-bold bg-primary-light border border-[rgba(220,38,38,0.2)] text-primary-dark"
+            className="w-32.5 text-center font-bold bg-primary-light border border-[rgba(220,38,38,0.2)] text-primary-dark"
           />
         </div>
 
@@ -193,6 +136,7 @@ export function IncidentForm({
               type="date"
               {...register("ngayLapDate")}
               readOnly={!canEdit}
+              disabled={!canEdit}
               className="w-32.5 text-center bg-primary-light border border-[rgba(220,38,38,0.15)]"
             />
             <Controller
@@ -215,7 +159,7 @@ export function IncidentForm({
           <select
             {...register("mahinhthuc")}
             disabled={!canEdit}
-            className="w-30"
+            className="w-40"
           >
             {lookupData.hinhThuc.map((o) => (
               <option key={o.mahinhthuc} value={o.mahinhthuc.toString()}>
@@ -230,7 +174,7 @@ export function IncidentForm({
           <select
             {...register("maloaiscyk")}
             disabled={!canEdit}
-            className="w-55"
+            className="w-full"
           >
             <option value=""></option>
             {lookupData.loaiSuCo.map((item) => (
@@ -251,7 +195,7 @@ export function IncidentForm({
           <div className="grid grid-cols-12 gap-4 mb-4">
             <div className="col-span-3">
               <div className="ql-field">
-                <span className="ql-field-label w-[60px]">Mã KCB:</span>
+                <span className="ql-field-label w-15">Mã KCB:</span>
                 <div className="ql-field-control">
                   <input
                     type="text"
@@ -261,9 +205,9 @@ export function IncidentForm({
                 </div>
               </div>
             </div>
-            <div className="col-span-6">
+            <div className="col-span-4">
               <div className="ql-field">
-                <span className="ql-field-label w-[70px]">Họ và tên:</span>
+                <span className="ql-field-label w-17.5">Họ và tên:</span>
                 <div className="ql-field-control">
                   <input
                     type="text"
@@ -273,12 +217,12 @@ export function IncidentForm({
                 </div>
               </div>
             </div>
-            <div className="col-span-3">
+            <div className="col-span-5">
               <div className="ql-field">
-                <span className="ql-field-label w-[80px]">Khoa/phòng:</span>
+                <span className="ql-field-label w-20">Khoa/phòng:</span>
                 <div className="ql-field-control">
                   <select {...register("maphong")} disabled={!canEdit}>
-                    {KHOA_PHONG_OPTIONS.map((o) => (
+                    {phongOptions.map((o) => (
                       <option key={o.value} value={o.value}>
                         {o.label}
                       </option>
@@ -292,19 +236,20 @@ export function IncidentForm({
           <div className="grid grid-cols-12 gap-4 mb-4">
             <div className="col-span-3">
               <div className="ql-field">
-                <span className="ql-field-label w-[60px]">Ngày sinh:</span>
+                <span className="ql-field-label w-15">Ngày sinh:</span>
                 <div className="ql-field-control">
                   <input
                     type="date"
                     {...register("ngaysinh")}
                     readOnly={!canEdit}
+                    disabled={!canEdit}
                   />
                 </div>
               </div>
             </div>
-            <div className="col-span-6">
+            <div className="col-span-4">
               <div className="ql-field">
-                <span className="ql-field-label w-[70px]">Số bệnh án:</span>
+                <span className="ql-field-label w-17.5">Số bệnh án:</span>
                 <div className="ql-field-control">
                   <input
                     type="text"
@@ -316,7 +261,7 @@ export function IncidentForm({
             </div>
             <div className="col-span-3">
               <div className="ql-field">
-                <span className="ql-field-label w-[80px]">Giới tính:</span>
+                <span className="ql-field-label w-20">Giới tính:</span>
                 <div className="ql-field-control">
                   <select {...register("maphai")} disabled={!canEdit}>
                     <option value=""></option>
@@ -334,7 +279,7 @@ export function IncidentForm({
           <div className="grid grid-cols-12 gap-4">
             <div className="col-span-3">
               <div className="ql-field">
-                <span className="ql-field-label w-[60px]">Đối tượng:</span>
+                <span className="ql-field-label w-15">Đối tượng:</span>
                 <div className="ql-field-control">
                   <select {...register("madoituongsc")} disabled={!canEdit}>
                     <option value=""></option>
@@ -371,7 +316,7 @@ export function IncidentForm({
                     className="w-full"
                   >
                     <option value=""></option>
-                    {lookupData.tenSuCo.map((item) => (
+                    {tenSuCoList.map((item) => (
                       <option key={item.idscyk} value={item.tensucoyk ?? ""}>
                         {item.tensucoyk}
                       </option>
@@ -388,6 +333,7 @@ export function IncidentForm({
                     type="date"
                     {...register("ngaySuCoDate")}
                     readOnly={!canEdit}
+                    disabled={!canEdit}
                   />
                   <Controller
                     name="ngaySuCoTime"
@@ -411,7 +357,7 @@ export function IncidentForm({
                 <span className="ql-field-label">Khoa/phòng:</span>
                 <div className="ql-field-control">
                   <select {...register("maphongnoi")} disabled={!canEdit}>
-                    {KHOA_PHONG_OPTIONS.map((o) => (
+                    {phongNoiOptions.map((o) => (
                       <option key={o.value} value={o.value}>
                         {o.label}
                       </option>
@@ -438,14 +384,14 @@ export function IncidentForm({
             <div className="col-span-6">
               <div className="ql-field-label mb-1">Mô tả:</div>
               <div className="ql-field-control">
-                <textarea rows={3} {...register("mota")} readOnly={!canEdit} />
+                <textarea rows={5} {...register("mota")} readOnly={!canEdit} />
               </div>
             </div>
             <div className="col-span-6">
               <div className="ql-field-label mb-1">Đề xuất giải pháp:</div>
               <div className="ql-field-control">
                 <textarea
-                  rows={3}
+                  rows={5}
                   {...register("giaiphapdexuat")}
                   readOnly={!canEdit}
                 />
@@ -458,7 +404,7 @@ export function IncidentForm({
               <div className="ql-field-label mb-1">Xử lý ban đầu:</div>
               <div className="ql-field-control">
                 <textarea
-                  rows={2}
+                  rows={4}
                   {...register("xulybandau")}
                   readOnly={!canEdit}
                 />
@@ -469,9 +415,7 @@ export function IncidentForm({
           <div className="grid grid-cols-12 gap-4 mb-4">
             <div className="col-span-12">
               <div className="ql-field">
-                <span className="ql-field-label w-[110px]">
-                  Nguyên nhân gốc:
-                </span>
+                <span className="ql-field-label w-27.5">Nguyên nhân gốc:</span>
                 <div className="ql-field-control">
                   <input
                     type="text"
@@ -510,27 +454,7 @@ export function IncidentForm({
         <div className="ql-form-section-body">
           <div className="grid grid-cols-12 gap-6">
             <div className="col-span-7 flex flex-col gap-3">
-              {(
-                [
-                  {
-                    name: "thongbaobacsy" as const,
-                    label:
-                      "Thông báo cho Bác sĩ điều trị/người có trách nhiệm:",
-                  },
-                  {
-                    name: "thongbaonguoinha" as const,
-                    label: "Thông báo cho người nhà/người bảo hộ:",
-                  },
-                  {
-                    name: "ghinhan" as const,
-                    label: "Ghi nhận vào hồ sơ bệnh án/giấy tờ liên quan:",
-                  },
-                  {
-                    name: "thongbaonguoibenh" as const,
-                    label: "Thông báo cho người bệnh:",
-                  },
-                ] as const
-              ).map(({ name, label }) => (
+              {NOTIFICATION_FIELDS.map(({ name, label }) => (
                 <div key={name} className="ql-field">
                   <span className="ql-field-label w-85 text-xs">{label}</span>
                   <div className="ql-field-control">
@@ -553,11 +477,20 @@ export function IncidentForm({
                 <div className="ql-field-control">
                   <select {...register("phanloaibandau")} disabled={!canEdit}>
                     <option value=""></option>
-                    {PHAN_LOAI_OPTIONS.map((o) => (
-                      <option key={o.value} value={o.value}>
-                        {o.label}
-                      </option>
-                    ))}
+                    {lookupData.phanLoaiBanDau?.length
+                      ? lookupData.phanLoaiBanDau.map((o) => (
+                          <option
+                            key={o.maphanloai}
+                            value={o.maphanloai.toString()}
+                          >
+                            {o.tenphanloai}
+                          </option>
+                        ))
+                      : PHAN_LOAI_OPTIONS.map((o) => (
+                          <option key={o.value} value={o.value}>
+                            {o.label}
+                          </option>
+                        ))}
                   </select>
                 </div>
               </div>
@@ -569,11 +502,22 @@ export function IncidentForm({
                 <div className="ql-field-control">
                   <select {...register("danhgiabandau")} disabled={!canEdit}>
                     <option value=""></option>
-                    {DANH_GIA_OPTIONS.map((o) => (
-                      <option key={o.value} value={o.value}>
-                        {o.label}
-                      </option>
-                    ))}
+                    {lookupData.danhGiaBanDau?.length
+                      ? lookupData.danhGiaBanDau.map((o) => (
+                          <option
+                            key={o.madanhgia}
+                            value={o.madanhgia.toString()}
+                          >
+                            {o.mamucdo
+                              ? `${o.mamucdo} - ${o.tendanhgia}`
+                              : o.tendanhgia}
+                          </option>
+                        ))
+                      : DANH_GIA_OPTIONS.map((o) => (
+                          <option key={o.value} value={o.value}>
+                            {o.label}
+                          </option>
+                        ))}
                   </select>
                 </div>
               </div>

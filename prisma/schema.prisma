@@ -46,44 +46,46 @@ model dangky_phantichsuco {
 }
 
 model dangky_sucoykhoa {
-  masuco               Int       @id(map: "PK_dangky_sucoykhoa")
-  sosuco               String?   @db.NVarChar(15)
-  ngay                 DateTime? @db.SmallDateTime
+  masuco               Int               @id(map: "PK_dangky_sucoykhoa")
+  sosuco               String?           @db.NVarChar(15)
+  ngay                 DateTime?         @db.SmallDateTime
   mahinhthuc           Int?
-  makcb                String?   @db.NVarChar(15)
-  hoten                String?   @db.NVarChar(250)
+  makcb                String?           @db.NVarChar(15)
+  hoten                String?           @db.NVarChar(250)
   maphong              Int?
   madoituongsc         Int?
-  ngaysinh             DateTime? @db.SmallDateTime
-  sobenhan             String?   @db.NVarChar(50)
+  ngaysinh             DateTime?         @db.SmallDateTime
+  sobenhan             String?           @db.NVarChar(50)
   maphai               Int?
   madonnguyen          Int?
-  tensuco              String?   @db.NVarChar(250)
-  ngaysuco             DateTime? @db.SmallDateTime
+  tensuco              String?           @db.NVarChar(250)
+  ngaysuco             DateTime?         @db.SmallDateTime
   maphongnoi           Int?
-  vitricuthe           String?   @db.NVarChar(250)
-  mota                 String?   @db.NVarChar(Max)
-  giaiphapdexuat       String?   @db.NVarChar(500)
-  xulybandau           String?   @db.NVarChar(500)
-  thongbaobacsy        String?   @db.NVarChar(10)
-  thongbaonguoinha     String?   @db.NVarChar(10)
-  ghinhan              String?   @db.NVarChar(10)
-  thongbaonguoibenh    String?   @db.NVarChar(10)
-  phanloaibandau       String?   @db.NVarChar(10)
-  danhgiabandau        String?   @db.NVarChar(10)
+  vitricuthe           String?           @db.NVarChar(250)
+  mota                 String?           @db.NVarChar(Max)
+  giaiphapdexuat       String?           @db.NVarChar(500)
+  xulybandau           String?           @db.NVarChar(500)
+  thongbaobacsy        Boolean?
+  thongbaonguoinha     Boolean?
+  ghinhan              Boolean?
+  thongbaonguoibenh    Boolean?
+  phanloaibandau       Int?
+  danhgiabandau        Int?
   manguoibaocao        Int?
-  hotennguoibaocao     String?   @db.NVarChar(150)
-  dienthoainguoibaocao String?   @db.NVarChar(150)
-  emailnguoibaocao     String?   @db.NVarChar(150)
-  chungkien1           String?   @db.NVarChar(150)
-  chungkien2           String?   @db.NVarChar(150)
-  nguoibckhac          String?   @db.NVarChar(Max)
+  hotennguoibaocao     String?           @db.NVarChar(150)
+  dienthoainguoibaocao String?           @db.NVarChar(150)
+  emailnguoibaocao     String?           @db.NVarChar(150)
+  chungkien1           String?           @db.NVarChar(150)
+  chungkien2           String?           @db.NVarChar(150)
+  nguoibckhac          String?           @db.NVarChar(Max)
   txtmakkbaocao        Int?
   makkbaocao           Int?
-  nguyennhangoc        String?   @db.NVarChar(Max)
-  giaiphaptranhlaplai  String?   @db.NVarChar(Max)
+  nguyennhangoc        String?           @db.NVarChar(Max)
+  giaiphaptranhlaplai  String?           @db.NVarChar(Max)
   maloaiscyk           Int?
   daphantich           Boolean?
+  dmdanhgiabandau      dmdanhgiabandau?  @relation(fields: [danhgiabandau], references: [madanhgia], onDelete: NoAction, onUpdate: NoAction, map: "FK_sucoykhoa_danhgiabandau")
+  dmphanloaibandau     dmphanloaibandau? @relation(fields: [phanloaibandau], references: [maphanloai], onDelete: NoAction, onUpdate: NoAction, map: "FK_sucoykhoa_phanloaibandau")
 }
 
 model dmhanhvi_scyk {
@@ -102,10 +104,11 @@ model dmkythuat_scyk {
 }
 
 model dmloaisuco {
-  maloaiscyk  Int      @id(map: "PK_dmloaisuco")
-  tenloaiscyk String?  @db.NVarChar(Max)
+  maloaiscyk  Int           @id(map: "PK_dmloaisuco")
+  tenloaiscyk String?       @db.NVarChar(Max)
   sapxep      Int?
   ksd         Boolean?
+  dmtensucoyk dmtensucoyk[]
 }
 
 model dmmau_scyk {
@@ -149,10 +152,12 @@ model dmtainan_scyk {
 }
 
 model dmtensucoyk {
-  idscyk    Int      @id(map: "PK_dmtensucoyk")
-  tensucoyk String?  @db.NVarChar(500)
-  ksd       Boolean?
-  sapxep    Int?
+  idscyk     Int         @id(map: "PK_dmtensucoyk")
+  maloaiscyk Int?
+  tensucoyk  String?     @db.NVarChar(500)
+  ksd        Boolean?
+  sapxep     Int?
+  dmloaisuco dmloaisuco? @relation(fields: [maloaiscyk], references: [maloaiscyk], onDelete: NoAction, onUpdate: NoAction, map: "FK_tensuco_loaisuco")
 }
 
 model dmthietbiyte_scyk {
@@ -205,4 +210,43 @@ model dmhinhthuc_scyk {
 model dmphai_scyk {
   maphai Int     @id(map: "PK_dmphai_scyk")
   phai   String? @db.NVarChar(50)
+}
+
+model dmphong_scyk {
+  maphong            Int               @id(map: "PK_dmphong_scyk")
+  tenphong           String            @db.NVarChar(500)
+  loai               String            @db.NVarChar(50)
+  sapxep             Int
+  ksd                Boolean
+  dmphong_scyk       dmphong_scyk      @relation("dmphong_scykTodmphong_scyk", fields: [maphong], references: [maphong], onUpdate: NoAction, map: "FK_dmphong_scyk_dmphong_scyk")
+  other_dmphong_scyk dmphong_scyk?     @relation("dmphong_scykTodmphong_scyk")
+  dmphongnoi_scyk    dmphongnoi_scyk[]
+}
+
+model dmdanhgiabandau {
+  madanhgia        Int                @id(map: "PK__dmdanhgi__7E08925853EFED24")
+  mamucdo          String             @db.VarChar(10)
+  tendanhgia       String             @db.NVarChar(255)
+  mota             String?            @db.NVarChar(500)
+  sapxep           Int?               @default(1, map: "DF__dmdanhgia__sapxe__31B762FC")
+  ksd              Boolean?           @default(false, map: "DF__dmdanhgiaba__ksd__32AB8735")
+  dangky_sucoykhoa dangky_sucoykhoa[]
+}
+
+model dmphanloaibandau {
+  maphanloai       Int                @id(map: "PK__dmphanlo__A925974034AF0E75")
+  tenphanloai      String             @db.NVarChar(255)
+  mota             String?            @db.NVarChar(500)
+  sapxep           Int?               @default(1, map: "DF__dmphanloa__sapxe__2DE6D218")
+  ksd              Boolean?           @default(false, map: "DF__dmphanloaib__ksd__2EDAF651")
+  dangky_sucoykhoa dangky_sucoykhoa[]
+}
+
+model dmphongnoi_scyk {
+  maphongnoi   Int          @id(map: "PK_dmkhoa_scyk")
+  maphong      Int
+  tenphongnoi  String?      @db.NVarChar(500)
+  sapxep       Int
+  ksd          Boolean
+  dmphong_scyk dmphong_scyk @relation(fields: [maphong], references: [maphong], map: "FK_dmphongnoi_dmphong")
 }

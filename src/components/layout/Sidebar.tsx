@@ -1,72 +1,181 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState, useEffect, useCallback, useTransition, Suspense } from "react";
 import { useForm } from "react-hook-form";
-import { usePathname, useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { TimePicker } from "@/components/ui/TimePicker";
-import { getSuCoList } from "@/actions/incidents";
+import { getSuCoList, getSuCoDetail } from "@/actions/incidents";
+import { getLookupData } from "@/actions/lookup";
 import { KHOA_PHONG_MAP } from "@/types";
-import type { AnalysisStatus, SuCoListItem } from "@/types";
+import type {
+  SuCoListItem,
+  SelectOption,
+  SidebarFilterFormValues,
+  LookupData,
+} from "@/types";
 import { formatDate, todayStr } from "@/utils";
 
-type FilterForm = {
-  trangThai: AnalysisStatus;
-  tuNgayDate: string;
-  tuNgayTime: string;
-  denNgayDate: string;
-  denNgayTime: string;
-  maphong: string;
-};
+const FILTER_STORAGE_KEY = "qlscyk_sidebar_filter";
 
-export function Sidebar() {
+/**
+ * Xây dựng danh sách tùy chọn Khoa & Phòng phân cấp từ LookupData.
+ */
+function buildDepartmentSelectOptions(lookupData: LookupData): SelectOption[] {
+  const options: SelectOption[] = [];
+
+  if (lookupData.phong?.length) {
+    lookupData.phong.forEach((parentPhong) => {
+      options.push({
+        value: parentPhong.maphong.toString(),
+        label: parentPhong.tenphong ?? `Khoa/Phòng ${parentPhong.maphong}`,
+      });
+    });
+  }
+
+  // Fallback nếu CSDL chưa khởi tạo dữ liệu phòng khoa
+  if (options.length === 0) {
+    Object.entries(KHOA_PHONG_MAP).forEach(([ma, ten]) => {
+      options.push({ value: ma, label: ten });
+    });
+  }
+
+  return options;
+}
+
+function SidebarContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+
+  const masucoParam = searchParams.get("masuco");
+  const activeMasuco = masucoParam ? parseInt(masucoParam, 10) : null;
+
   const [isPending, startTransition] = useTransition();
   const [suCoList, setSuCoList] = useState<SuCoListItem[]>([]);
-  const [selectedMaSuCo, setSelectedMaSuCo] = useState<number | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [departmentOptions, setDepartmentOptions] = useState<SelectOption[]>([]);
 
-  const { register, handleSubmit, watch, setValue } = useForm<FilterForm>({
-    defaultValues: {
-      trangThai: "TAT_CA",
-      tuNgayDate: todayStr(),
-      tuNgayTime: "00:00",
-      denNgayDate: todayStr(),
-      denNgayTime: "23:59",
-      maphong: "",
-    },
-  });
+  const { register, handleSubmit, watch, setValue, getValues, reset } =
+    useForm<SidebarFilterFormValues>({
+      defaultValues: {
+        trangThai: "TAT_CA",
+        tuNgayDate: todayStr(),
+        tuNgayTime: "00:00",
+        denNgayDate: todayStr(),
+        denNgayTime: "23:59",
+        maphong: "",
+      },
+    });
 
   const tuNgayTime = watch("tuNgayTime");
   const denNgayTime = watch("denNgayTime");
 
-  const onSubmit = (values: FilterForm) => {
-    setErrorMsg(null);
-    startTransition(async () => {
-      const result = await getSuCoList({
-        trangThai: values.trangThai,
-        tuNgay: values.tuNgayDate,
-        tuNgayTime: values.tuNgayTime,
-        denNgay: values.denNgayDate,
-        denNgayTime: values.denNgayTime,
-        maphong: values.maphong ? parseInt(values.maphong) : undefined,
-      });
+  const fetchList = useCallback(
+    (values: SidebarFilterFormValues) => {
+      setErrorMsg(null);
 
-      if (result.error) {
-        setErrorMsg(result.error);
-      } else {
-        setSuCoList(result.data);
-        if (
-          selectedMaSuCo &&
-          !result.data.find((r) => r.masuco === selectedMaSuCo)
-        ) {
-          setSelectedMaSuCo(null);
+      // Lưu bộ lọc hiện tại vào sessionStorage để duy trì khi refresh trang (F5)
+      try {
+        sessionStorage.setItem(FILTER_STORAGE_KEY, JSON.stringify(values));
+      } catch (e) {
+        console.error("Lỗi khi ghi sessionStorage:", e);
+      }
+
+      startTransition(async () => {
+        const result = await getSuCoList({
+          trangThai: values.trangThai,
+          tuNgay: values.tuNgayDate,
+          tuNgayTime: values.tuNgayTime,
+          denNgay: values.denNgayDate,
+          denNgayTime: values.denNgayTime,
+          maphong: values.maphong ? parseInt(values.maphong, 10) : undefined,
+        });
+
+        if (result.error) {
+          setErrorMsg(result.error);
+        } else {
+          const list = result.data ?? [];
+          setSuCoList(list);
+
+          // Nếu URL có masuco nhưng sự cố không xuất hiện trong danh sách (do lệch khoảng ngày), tự nạp ngày sự cố để điều chỉnh bộ lọc
+          if (activeMasuco && !list.some((item) => item.masuco === activeMasuco)) {
+            const detailRes = await getSuCoDetail(activeMasuco);
+            if (detailRes.success && detailRes.data?.sucoykhoa?.ngaysuco) {
+              const suCoDateStr = new Date(detailRes.data.sucoykhoa.ngaysuco)
+                .toISOString()
+                .split("T")[0];
+
+              if (suCoDateStr < values.tuNgayDate || suCoDateStr > values.denNgayDate) {
+                const updatedValues: SidebarFilterFormValues = {
+                  ...values,
+                  tuNgayDate: suCoDateStr < values.tuNgayDate ? suCoDateStr : values.tuNgayDate,
+                  denNgayDate: suCoDateStr > values.denNgayDate ? suCoDateStr : values.denNgayDate,
+                };
+                reset(updatedValues);
+                try {
+                  sessionStorage.setItem(FILTER_STORAGE_KEY, JSON.stringify(updatedValues));
+                } catch (e) {}
+
+                const refetched = await getSuCoList({
+                  trangThai: updatedValues.trangThai,
+                  tuNgay: updatedValues.tuNgayDate,
+                  tuNgayTime: updatedValues.tuNgayTime,
+                  denNgay: updatedValues.denNgayDate,
+                  denNgayTime: updatedValues.denNgayTime,
+                  maphong: updatedValues.maphong ? parseInt(updatedValues.maphong, 10) : undefined,
+                });
+                if (refetched.data) {
+                  setSuCoList(refetched.data);
+                }
+              }
+            }
+          }
+        }
+      });
+    },
+    [activeMasuco, reset],
+  );
+
+  // Nạp danh mục Khoa & Phòng động và khôi phục bộ lọc từ sessionStorage khi mount
+  useEffect(() => {
+    let isMounted = true;
+
+    // Khôi phục bộ lọc đã lưu từ sessionStorage (nếu có)
+    let initialValues: SidebarFilterFormValues = getValues();
+    try {
+      const saved = sessionStorage.getItem(FILTER_STORAGE_KEY);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed && typeof parsed === "object") {
+          initialValues = { ...initialValues, ...parsed };
+          reset(initialValues);
         }
       }
-    });
+    } catch (e) {
+      console.error("Lỗi khi đọc bộ lọc từ sessionStorage:", e);
+    }
+
+    getLookupData()
+      .then((data) => {
+        if (isMounted) {
+          setDepartmentOptions(buildDepartmentSelectOptions(data));
+        }
+      })
+      .catch((err) => {
+        console.error("[Sidebar] Lỗi nạp danh mục Khoa Phòng:", err);
+      });
+
+    fetchList(initialValues);
+
+    return () => {
+      isMounted = false;
+    };
+  }, [fetchList, getValues, reset]);
+
+  const onSubmit = (values: SidebarFilterFormValues) => {
+    fetchList(values);
   };
 
   const handleRowClick = (masuco: number) => {
-    setSelectedMaSuCo(masuco);
     router.push(`/dashboard?masuco=${masuco}`);
   };
 
@@ -99,11 +208,7 @@ export function Sidebar() {
         <div className="ql-sidebar-row">
           <div className="ql-sidebar-label">Đến ngày</div>
           <div className="ql-sidebar-control flex gap-2 items-center">
-            <input
-              type="date"
-              {...register("denNgayDate")}
-              className="flex-1"
-            />
+            <input type="date" {...register("denNgayDate")} className="flex-1" />
             <TimePicker
               value={denNgayTime}
               onChange={(v) => setValue("denNgayTime", v)}
@@ -116,10 +221,10 @@ export function Sidebar() {
           <div className="ql-sidebar-label">K.phòng</div>
           <div className="ql-sidebar-control">
             <select {...register("maphong")}>
-              <option value="">-- Tất cả --</option>
-              {Object.entries(KHOA_PHONG_MAP).map(([ma, ten]) => (
-                <option key={ma} value={ma}>
-                  {ten}
+              <option value="">Tất cả khoa phòng</option>
+              {departmentOptions.map((opt) => (
+                <option key={opt.value} value={opt.value}>
+                  {opt.label}
                 </option>
               ))}
             </select>
@@ -127,15 +232,21 @@ export function Sidebar() {
         </div>
 
         <div className="ql-sidebar-btn-row">
-          <button type="submit" className="ql-sidebar-btn" disabled={isPending}>
+          <button
+            type="submit"
+            className="ql-sidebar-btn"
+            disabled={isPending}
+          >
             {isPending ? "Đang tải..." : "Nạp"}
           </button>
         </div>
-
-        {errorMsg && (
-          <div className="text-red-500 text-xs px-1 -mt-2">{errorMsg}</div>
-        )}
       </form>
+
+      {errorMsg && (
+        <div className="mt-2 text-xs text-red-600 bg-red-50 p-2 rounded">
+          {errorMsg}
+        </div>
+      )}
 
       <div className="ql-sidebar-list-container">
         <table className="ql-sidebar-list-table">
@@ -160,7 +271,7 @@ export function Sidebar() {
               suCoList.map((inc) => (
                 <tr
                   key={inc.masuco}
-                  className={selectedMaSuCo === inc.masuco ? "active" : ""}
+                  className={activeMasuco === inc.masuco ? "active" : ""}
                   onClick={() => handleRowClick(inc.masuco)}
                   title={inc.daPhanTich ? "Đã phân tích" : "Chưa phân tích"}
                   style={{ cursor: "pointer" }}
@@ -175,5 +286,19 @@ export function Sidebar() {
         </table>
       </div>
     </div>
+  );
+}
+
+export function Sidebar() {
+  return (
+    <Suspense
+      fallback={
+        <div className="ql-sidebar">
+          <div className="text-slate-400 text-xs py-4">Đang tải danh sách...</div>
+        </div>
+      }
+    >
+      <SidebarContent />
+    </Suspense>
   );
 }

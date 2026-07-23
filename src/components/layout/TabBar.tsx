@@ -1,22 +1,25 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 
 export function TabBar() {
   const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const queryString = searchParams.toString();
+  const querySuffix = queryString ? `?${queryString}` : "";
 
   return (
     <div className="ql-tab-bar">
       <Link
-        href="/dashboard"
+        href={`/dashboard${querySuffix}`}
         className={`ql-tab ${pathname === "/dashboard" ? "active" : ""}`}
       >
         Thông báo sự cố Y khoa
         <span className="ql-tab-close">×</span>
       </Link>
       <Link
-        href="/incidents"
+        href={`/incidents${querySuffix}`}
         className={`ql-tab ${pathname === "/incidents" ? "active" : ""}`}
       >
         Duyệt thông tin sự cố Y khoa

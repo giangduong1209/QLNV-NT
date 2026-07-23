@@ -1,15 +1,18 @@
 "use server";
 
-import { Prisma } from "@prisma/client";
+import { revalidatePath } from "next/cache";
 import {
   getIncidentDetail,
   getIncidentList,
+  saveIncidentToDB,
+  deleteIncidentFromDB,
 } from "@/app/services/incident/incident.service";
 import type {
   FilterParams,
   SuCoListItem,
   SuCoDetail,
   IncidentSavePayload,
+  ActionResult,
 } from "@/types";
 
 // ============================================================
@@ -17,63 +20,16 @@ import type {
 // ============================================================
 export async function getSuCoList(
   params: FilterParams,
-): Promise<{ data: SuCoListItem[]; error?: string }> {
-  const { trangThai, tuNgay, tuNgayTime, denNgay, denNgayTime, maphong } =
-    params;
-
+): Promise<ActionResult<SuCoListItem[]>> {
   try {
-    const [startYear, startMonth, startDay] = tuNgay.split("-").map(Number);
-    const [startHour, startMinute] = tuNgayTime.split(":").map(Number);
-    const startDate = new Date(
-      startYear,
-      startMonth - 1,
-      startDay,
-      startHour,
-      startMinute,
-    );
-
-    const [endYear, endMonth, endDay] = denNgay.split("-").map(Number);
-    const [endHour, endMinute] = denNgayTime.split(":").map(Number);
-
-    const endDate = new Date(endYear, endMonth - 1, endDay, endHour, endMinute);
-
-    // Điều kiện cơ bản: lọc theo ngày sự cố
-
-    const baseWhere: Prisma.dangky_sucoykhoaWhereInput = {
-      ngaysuco: {
-        gte: startDate,
-        lte: endDate,
-      },
-      ...(maphong ? { maphong } : {}),
-    };
-
-    // Điều kiện lọc theo trạng thái phân tích
-    let whereCondition: typeof baseWhere;
-
-    if (trangThai === "DA_PHAN_TICH") {
-      whereCondition = {
-        ...baseWhere,
-        daphantich: true,
-      };
-    } else if (trangThai === "CHUA_PHAN_TICH") {
-      whereCondition = {
-        ...baseWhere,
-        daphantich: false,
-      };
-    } else {
-      whereCondition = baseWhere;
-    }
-
-    const rows = await getIncidentList(whereCondition);
-
-    const data: SuCoListItem[] = rows.map((row) => ({
-      ...row,
-    }));
-
-    return { data };
+    const rows = await getIncidentList(params);
+    return { success: true, data: rows };
   } catch (error) {
-    console.error("getSuCoList error:", error);
-    return { data: [], error: "Không thể tải danh sách sự cố" };
+    console.error("[getSuCoList] Exception:", error);
+    return {
+      success: false,
+      error: "Không thể tải danh sách sự cố. Vui lòng thử lại sau.",
+    };
   }
 }
 
@@ -82,15 +38,13 @@ export async function getSuCoList(
 // ============================================================
 export async function getSuCoDetail(
   masuco: number,
-): Promise<{ data: SuCoDetail | null; error?: string }> {
+): Promise<ActionResult<SuCoDetail>> {
   try {
     const row = await getIncidentDetail(masuco);
 
     if (!row) {
-      return { data: null, error: "Không tìm thấy sự cố" };
+      return { success: false, error: "Không tìm thấy sự cố yêu cầu" };
     }
-
-    console.log({ row });
 
     const data: SuCoDetail = {
       sucoykhoa: {
@@ -128,7 +82,6 @@ export async function getSuCoDetail(
         giaiphaptranhlaplai: row.giaiphaptranhlaplai,
         maloaiscyk: row.maloaiscyk,
       },
-
       phantichsuco: row.phantichsuco
         ? {
             masuco: row.phantichsuco.masuco,
@@ -169,26 +122,50 @@ export async function getSuCoDetail(
         : null,
     };
 
-    return { data };
+    return { success: true, data };
   } catch (error) {
-    console.error("getSuCoDetail error:", error);
-    return { data: null, error: "Không thể tải chi tiết sự cố" };
+    console.error("[getSuCoDetail] Exception:", error);
+    return { success: false, error: "Không thể tải chi tiết sự cố." };
   }
 }
 
 // ============================================================
 // Lưu sự cố (tạo mới hoặc cập nhật dangky_sucoykhoa)
 // ============================================================
-import { saveIncidentToDB } from "@/app/services/incident/incident.service";
-
 export async function saveIncident(
   masuco: number | null,
   payload: IncidentSavePayload,
-): Promise<{ success: boolean; masuco?: number; error?: string }> {
+): Promise<ActionResult<{ masuco?: number }>> {
   try {
-    return await saveIncidentToDB(masuco, payload);
+    const res = await saveIncidentToDB(masuco, payload);
+    if (!res.success) {
+      return { success: false, error: res.error || "Lưu sự cố không thành công." };
+    }
+    revalidatePath("/dashboard");
+    revalidatePath("/incidents");
+    return { success: true, data: { masuco: res.masuco } };
   } catch (error) {
-    console.error("saveIncident error:", error);
+    console.error("[saveIncident] Exception:", error);
     return { success: false, error: "Không thể lưu sự cố. Vui lòng thử lại." };
+  }
+}
+
+// ============================================================
+// Xóa sự cố theo mã sự cố
+// ============================================================
+export async function deleteIncident(
+  masuco: number,
+): Promise<ActionResult<{ masuco: number }>> {
+  try {
+    const res = await deleteIncidentFromDB(masuco);
+    if (!res.success) {
+      return { success: false, error: res.error || "Xóa sự cố không thành công." };
+    }
+    revalidatePath("/dashboard");
+    revalidatePath("/incidents");
+    return { success: true, data: { masuco } };
+  } catch (error) {
+    console.error("[deleteIncident] Exception:", error);
+    return { success: false, error: "Không thể xóa sự cố. Vui lòng thử lại." };
   }
 }

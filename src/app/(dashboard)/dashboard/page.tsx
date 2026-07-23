@@ -19,7 +19,7 @@ export default async function DashboardPage({
   let initialData = null;
   if (masuco && !isNaN(masuco)) {
     const result = await getSuCoDetail(masuco);
-    initialData = result.data;
+    initialData = result.data ?? null;
   }
 
   return (

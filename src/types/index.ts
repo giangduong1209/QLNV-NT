@@ -1,4 +1,6 @@
 import { z } from "zod/v4";
+export type { ActionResult } from "./action-result";
+
 
 // ============================================================
 // Auth & User Types
@@ -46,6 +48,91 @@ export interface SuCoListItem {
   daPhanTich?: boolean;
 }
 
+// ============================================================
+// Common UI & Form Types
+// ============================================================
+export interface SelectOption {
+  value: string;
+  label: string;
+}
+
+export type SidebarFilterFormValues = {
+  trangThai: AnalysisStatus;
+  tuNgayDate: string;
+  tuNgayTime: string;
+  denNgayDate: string;
+  denNgayTime: string;
+  maphong: string;
+};
+
+// ============================================================
+// Lookup Data Types
+// ============================================================
+export interface LoaiSuCoItem {
+  maloaiscyk: number;
+  tenloaiscyk: string | null;
+}
+
+export interface TenSuCoItem {
+  idscyk: number;
+  maloaiscyk?: number | null;
+  tensucoyk: string | null;
+}
+
+export interface HinhThucItem {
+  mahinhthuc: number;
+  tenhinhthuc: string | null;
+}
+
+export interface PhaiItem {
+  maphai: number;
+  phai: string | null;
+}
+
+export interface DoiTuongItem {
+  madoituongsc: number;
+  doituongsc: string | null;
+}
+
+export interface PhongItem {
+  maphong: number;
+  tenphong: string | null;
+  loai?: string | null;
+  sapxep?: number | null;
+  ksd?: boolean | null;
+}
+
+export interface PhongNoiItem {
+  maphongnoi: number;
+  maphong: number;
+  tenphongnoi: string | null;
+  sapxep?: number | null;
+  ksd?: boolean | null;
+}
+
+export interface PhanLoaiBanDauItem {
+  maphanloai: number;
+  tenphanloai: string | null;
+}
+
+export interface DanhGiaBanDauItem {
+  madanhgia: number;
+  mamucdo: string | null;
+  tendanhgia: string | null;
+}
+
+export interface LookupData {
+  loaiSuCo: LoaiSuCoItem[];
+  tenSuCo: TenSuCoItem[];
+  hinhThuc: HinhThucItem[];
+  phai: PhaiItem[];
+  doiTuong: DoiTuongItem[];
+  phong: PhongItem[];
+  phongNoi: PhongNoiItem[];
+  phanLoaiBanDau: PhanLoaiBanDauItem[];
+  danhGiaBanDau: DanhGiaBanDauItem[];
+}
+
 export interface FilterParams {
   trangThai: AnalysisStatus;
   tuNgay: string; // "YYYY-MM-DD"
@@ -75,12 +162,12 @@ export interface SuCoDetail {
     mota: string | null;
     giaiphapdexuat: string | null;
     xulybandau: string | null;
-    thongbaobacsy: string | null;
-    thongbaonguoinha: string | null;
-    ghinhan: string | null;
-    thongbaonguoibenh: string | null;
-    phanloaibandau: string | null;
-    danhgiabandau: string | null;
+    thongbaobacsy: boolean | string | null;
+    thongbaonguoinha: boolean | string | null;
+    ghinhan: boolean | string | null;
+    thongbaonguoibenh: boolean | string | null;
+    phanloaibandau: string | number | null;
+    danhgiabandau: string | number | null;
     manguoibaocao: number | null;
     hotennguoibaocao: string | null;
     dienthoainguoibaocao: string | null;
@@ -207,12 +294,12 @@ export type IncidentSavePayload = {
   xulybandau?: string | null;
   nguyennhangoc?: string | null;
   giaiphaptranhlaplai?: string | null;
-  thongbaobacsy?: string | null;
-  thongbaonguoinha?: string | null;
-  ghinhan?: string | null;
-  thongbaonguoibenh?: string | null;
-  phanloaibandau?: string | null;
-  danhgiabandau?: string | null;
+  thongbaobacsy?: boolean | null;
+  thongbaonguoinha?: boolean | null;
+  ghinhan?: boolean | null;
+  thongbaonguoibenh?: boolean | null;
+  phanloaibandau?: number | null;
+  danhgiabandau?: number | null;
   manguoibaocao?: number | null;
   hotennguoibaocao?: string | null;
   dienthoainguoibaocao?: string | null;

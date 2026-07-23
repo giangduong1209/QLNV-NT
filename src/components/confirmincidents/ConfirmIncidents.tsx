@@ -3,17 +3,8 @@ import { useEffect } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { TimePicker } from "../ui/TimePicker";
 import type { SuCoDetail } from "@/types";
-import { KHOA_PHONG_MAP } from "@/types";
-
-// ─── Options danh mục (static mapping từ DB dm* tables) ─────────────────────
-
-const KHOA_PHONG_OPTIONS = [
-  { value: "", label: "" },
-  ...Object.entries(KHOA_PHONG_MAP).map(([ma, ten]) => ({
-    value: ma,
-    label: ten,
-  })),
-];
+import { toDateStr, toTimeStr } from "@/utils";
+import { KHOA_PHONG_OPTIONS } from "@/components/incidents/incident-form.constants";
 
 interface CauseItem {
   key: string;
@@ -45,6 +36,13 @@ const CAUSES_RIGHT: CauseItem[] = [
   { key: "nnntochuc", label: "Tổ chức/ dịch vụ", max: 4 },
   { key: "nnnbenngoai", label: "Yếu tố bên ngoài", max: 3 },
 ];
+
+const INJURY_FIELDS = [
+  { field: "tt_NC1" as const, label: "Tổn thương nhẹ NC1:" },
+  { field: "tt_NC2" as const, label: "Tổn thương trung bình NC2:" },
+  { field: "tt_NC3" as const, label: "Tổn thương nặng NC3:" },
+  { field: "tttochuc" as const, label: "Tổn thương trên tổ chức:" },
+] as const;
 
 // ─── Kiểu form ───────────────────────────────────────────────────────────────
 
@@ -98,22 +96,6 @@ type ConfirmForm = {
   tttochuc: string;
   duyet: boolean;
 };
-
-// ─── Helper: chuyển Date thành "YYYY-MM-DD" ──────────────────────────────────
-function toDateStr(d: Date | null | undefined): string {
-  if (!d) return "";
-  const dt = new Date(d);
-  const pad = (n: number) => String(n).padStart(2, "0");
-  return `${dt.getFullYear()}-${pad(dt.getMonth() + 1)}-${pad(dt.getDate())}`;
-}
-
-// ─── Helper: chuyển Date thành "HH:MM" ───────────────────────────────────────
-function toTimeStr(d: Date | null | undefined): string {
-  if (!d) return "";
-  const dt = new Date(d);
-  const pad = (n: number) => String(n).padStart(2, "0");
-  return `${pad(dt.getHours())}:${pad(dt.getMinutes())}`;
-}
 
 // ─── Props ───────────────────────────────────────────────────────────────────
 
@@ -313,7 +295,7 @@ export const ConfirmIncidents = ({ initialData }: ConfirmIncidentsProps) => {
             <div className="col-span-6">
               <div className="ql-field-label">Mô tả:</div>
               <div className="ql-field-control">
-                <textarea rows={3} {...register("pt_mota")} />
+                <textarea rows={5} {...register("pt_mota")} />
               </div>
             </div>
           </div>
@@ -336,7 +318,7 @@ export const ConfirmIncidents = ({ initialData }: ConfirmIncidentsProps) => {
               <div className="ql-field mb-2">
                 <span className="ql-field-label w-[40px]">Y lệnh:</span>
                 <div className="ql-field-control">
-                  <textarea rows={2} {...register("ylenh")} />
+                  <textarea rows={3} {...register("ylenh")} />
                 </div>
               </div>
 
@@ -352,13 +334,13 @@ export const ConfirmIncidents = ({ initialData }: ConfirmIncidentsProps) => {
               <div>
                 <span className="ql-field-label">Khắc phục sự cố</span>
                 <div className="ql-field-control">
-                  <textarea rows={2} {...register("khacphucsuco")} />
+                  <textarea rows={3} {...register("khacphucsuco")} />
                 </div>
               </div>
               <div className="mt-2">
                 <div className="ql-field-label">Đề xuất khuyến cáo</div>
                 <div className="ql-field-control">
-                  <textarea rows={2} {...register("dexuat")} />
+                  <textarea rows={3} {...register("dexuat")} />
                 </div>
               </div>
             </div>
@@ -373,7 +355,7 @@ export const ConfirmIncidents = ({ initialData }: ConfirmIncidentsProps) => {
                 </div>
                 <div className="ql-field-control">
                   <textarea
-                    rows={3}
+                    rows={5}
                     {...register("chuyengiadanhgia")}
                     disabled
                   />
@@ -436,30 +418,18 @@ export const ConfirmIncidents = ({ initialData }: ConfirmIncidentsProps) => {
           </div>
 
           {/* NC1, NC2, NC3, Tổ chức */}
-          {(["tt_NC1", "tt_NC2", "tt_NC3", "tttochuc"] as const).map(
-            (field, idx) => {
-              const labels = [
-                "Tổn thương nhẹ NC1:",
-                "Tổn thương trung bình NC2:",
-                "Tổn thương nặng NC3:",
-                "Tổn thương trên tổ chức:",
-              ];
-              return (
-                <div key={field} className="grid grid-cols-12 gap-4 mb-4">
-                  <div className="col-span-8">
-                    <div className="ql-field">
-                      <span className="ql-field-label w-[190px]">
-                        {labels[idx]}
-                      </span>
-                      <div className="ql-field-control">
-                        <input type="text" {...register(field)} disabled />
-                      </div>
-                    </div>
+          {INJURY_FIELDS.map(({ field, label }) => (
+            <div key={field} className="grid grid-cols-12 gap-4 mb-4">
+              <div className="col-span-8">
+                <div className="ql-field">
+                  <span className="ql-field-label w-[190px]">{label}</span>
+                  <div className="ql-field-control">
+                    <input type="text" {...register(field)} disabled />
                   </div>
                 </div>
-              );
-            },
-          )}
+              </div>
+            </div>
+          ))}
         </div>
       </div>
     </div>

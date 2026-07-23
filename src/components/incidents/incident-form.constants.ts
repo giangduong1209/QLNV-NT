@@ -1,21 +1,21 @@
 import { KHOA_PHONG_MAP } from "@/types";
 
-
 export const CO_KHONG_OPTIONS = [
-  { value: "Có", label: "Có" },
-  { value: "Không", label: "Không" },
+  { value: "true", label: "Có" },
+  { value: "false", label: "Không" },
 ];
 
 export const PHAN_LOAI_OPTIONS = [
-  { value: "Nặng", label: "Nặng" },
-  { value: "Trung bình", label: "Trung bình" },
-  { value: "Nhẹ", label: "Nhẹ" },
+  { value: "1", label: "Sự cố suýt xảy ra (Near miss)" },
+  { value: "2", label: "Sự cố đã tác động đến người bệnh nhưng chưa gây tổn thương" },
+  { value: "3", label: "Sự cố đã gây tổn thương cho người bệnh" },
 ];
 
 export const DANH_GIA_OPTIONS = [
-  { value: "Mức độ 1", label: "Mức độ 1" },
-  { value: "Mức độ 2", label: "Mức độ 2" },
-  { value: "Mức độ 3", label: "Mức độ 3" },
+  { value: "1", label: "NC0 - Chưa gây tổn thương (Nhẹ)" },
+  { value: "2", label: "NC1 - Tổn thương nhẹ" },
+  { value: "3", label: "NC2 - Tổn thương trung bình" },
+  { value: "4", label: "NC3 - Tổn thương nặng / Tử vong" },
 ];
 
 export const KHOA_PHONG_OPTIONS = [
@@ -25,3 +25,22 @@ export const KHOA_PHONG_OPTIONS = [
     label: ten,
   })),
 ];
+
+export const NOTIFICATION_FIELDS = [
+  {
+    name: "thongbaobacsy" as const,
+    label: "Thông báo cho Bác sĩ điều trị/người có trách nhiệm:",
+  },
+  {
+    name: "thongbaonguoinha" as const,
+    label: "Thông báo cho người nhà/người bảo hộ:",
+  },
+  {
+    name: "ghinhan" as const,
+    label: "Ghi nhận vào hồ sơ bệnh án/giấy tờ liên quan:",
+  },
+  {
+    name: "thongbaonguoibenh" as const,
+    label: "Thông báo cho người bệnh:",
+  },
+] as const;
