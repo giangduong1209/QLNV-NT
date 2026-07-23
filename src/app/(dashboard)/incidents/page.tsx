@@ -1,4 +1,5 @@
 import { getSuCoDetail } from "@/actions/incidents";
+import { getLookupData } from "@/actions/lookup";
 import { ConfirmIncidents } from "@/components/confirmincidents/ConfirmIncidents";
 
 interface IncidentsPageProps {
@@ -18,5 +19,7 @@ export default async function IncidentsPage({
     initialData = result.data ?? null;
   }
 
-  return <ConfirmIncidents initialData={initialData} />;
+  const lookupData = await getLookupData();
+
+  return <ConfirmIncidents initialData={initialData} lookupData={lookupData} />;
 }

@@ -1,13 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useState, Suspense } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEditMode, DASHBOARD_FORM_ID } from "@/lib/edit-mode-context";
 import { useToast } from "@/components/ui/ToastProvider";
 import { ConfirmModal } from "@/components/ui/ConfirmModal";
 import { deleteIncident } from "@/actions/incidents";
 
-export function StatusBar() {
+function StatusBarContent() {
   const pathname = usePathname();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -135,3 +135,12 @@ export function StatusBar() {
     </>
   );
 }
+
+export function StatusBar() {
+  return (
+    <Suspense fallback={<div className="ql-status-bar" />}>
+      <StatusBarContent />
+    </Suspense>
+  );
+}
+

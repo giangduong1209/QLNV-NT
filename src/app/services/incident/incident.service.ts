@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { Prisma } from "@prisma/client";
-import { toDate } from "@/utils";
+import { toDate, generateRandomIncidentCodeParts } from "@/utils";
 import type { FilterParams } from "@/types";
 
 export async function getCandidateDepartmentIds(selectedId: number): Promise<{
@@ -86,7 +86,6 @@ export async function getIncidentList(
 }
 
 export async function getIncidentDetail(masuco: number) {
-  // Dùng $queryRaw + findUnique riêng để tránh Prisma 1-1 relation type conflict
   const sucoykhoa = await prisma.dangky_sucoykhoa.findUnique({
     where: { masuco },
   });
@@ -100,11 +99,68 @@ export async function getIncidentDetail(masuco: number) {
   return { ...sucoykhoa, phantichsuco: phantichsuco ?? null };
 }
 
+export async function getPreviewIncidentCode(): Promise<{
+  sosuco: string;
+  masuco: number;
+}> {
+  const maxRetries = 20;
+  for (let i = 0; i < maxRetries; i++) {
+    const candidate = generateRandomIncidentCodeParts();
+    const existing = await prisma.dangky_sucoykhoa.findUnique({
+      where: { masuco: candidate.masuco },
+      select: { masuco: true },
+    });
+    if (!existing) {
+      return candidate;
+    }
+  }
+  const fallbackMasuco = parseInt(String(Date.now()).slice(-9), 10);
+  return { sosuco: `SC${fallbackMasuco}`, masuco: fallbackMasuco };
+}
+
 export async function saveIncidentToDB(
   masuco: number | null,
   payload: any,
 ): Promise<{ success: boolean; masuco?: number; error?: string }> {
   try {
+    // 1. Kiểm tra không trùng Mã KCB nếu có nhập
+    const trimmedKcb = String(payload.makcb).trim();
+    if (payload.makcb && trimmedKcb !== "") {
+      const existingKcb = await prisma.dangky_sucoykhoa.findFirst({
+        where: {
+          makcb: trimmedKcb,
+          ...(masuco ? { masuco: { not: masuco } } : {}),
+        },
+        select: { masuco: true, sosuco: true },
+      });
+
+      if (existingKcb) {
+        return {
+          success: false,
+          error: `Mã KCB "${trimmedKcb}" đã được sử dụng ở sự cố ${existingKcb.sosuco ?? existingKcb.masuco}.`,
+        };
+      }
+    }
+
+    // 2. Kiểm tra không trùng Số bệnh án nếu có nhập
+    const trimmedBenhAn = String(payload.sobenhan).trim();
+    if (payload.sobenhan && trimmedBenhAn !== "") {
+      const existingBenhAn = await prisma.dangky_sucoykhoa.findFirst({
+        where: {
+          sobenhan: trimmedBenhAn,
+          ...(masuco ? { masuco: { not: masuco } } : {}),
+        },
+        select: { masuco: true, sosuco: true },
+      });
+
+      if (existingBenhAn) {
+        return {
+          success: false,
+          error: `Số bệnh án "${trimmedBenhAn}" đã được sử dụng ở sự cố ${existingBenhAn.sosuco ?? existingBenhAn.masuco}.`,
+        };
+      }
+    }
+
     if (masuco) {
       await prisma.dangky_sucoykhoa.update({
         where: { masuco },
@@ -112,23 +168,41 @@ export async function saveIncidentToDB(
       });
       return { success: true, masuco };
     } else {
-      const lastRecord = await prisma.dangky_sucoykhoa.findFirst({
-        orderBy: { masuco: "desc" },
-        select: { masuco: true },
-      });
-      const newMasuco = (lastRecord?.masuco ?? 0) + 1;
-      const year = new Date().getFullYear().toString().slice(-2);
-      const sosuco = `SC${year}${String(newMasuco).padStart(6, "0")}`;
+      const maximumRetryAttempts = 10;
+      for (let attempt = 0; attempt < maximumRetryAttempts; attempt++) {
+        const candidateIncidentCode = generateRandomIncidentCodeParts();
 
-      await prisma.dangky_sucoykhoa.create({
-        data: {
-          masuco: newMasuco,
-          sosuco,
-          daphantich: false,
-          ...payload,
-        },
-      });
-      return { success: true, masuco: newMasuco };
+        // Kiểm tra xem mã sự cố đã tồn tại trong CSDL chưa
+        const existingIncidentRecord = await prisma.dangky_sucoykhoa.findUnique({
+          where: { masuco: candidateIncidentCode.masuco },
+          select: { masuco: true },
+        });
+
+        if (existingIncidentRecord) {
+          continue;
+        }
+
+        try {
+          await prisma.dangky_sucoykhoa.create({
+            data: {
+              masuco: candidateIncidentCode.masuco,
+              sosuco: candidateIncidentCode.sosuco,
+              daphantich: false,
+              ...payload,
+            },
+          });
+          return { success: true, masuco: candidateIncidentCode.masuco };
+        } catch (databaseInsertError: any) {
+          console.warn(
+            `[saveIncidentToDB] Xung đột DB/Race Condition tại lượt ${attempt + 1}:`,
+            databaseInsertError?.message,
+          );
+          if (attempt === maximumRetryAttempts - 1) {
+            throw databaseInsertError;
+          }
+        }
+      }
+      return { success: false, error: "Không thể tạo mã sự cố tự động." };
     }
   } catch (error) {
     console.error("saveIncidentToDB error:", error);
@@ -147,6 +221,21 @@ export async function getLookupDataFromDB() {
     phongNoi,
     phanLoaiBanDau,
     danhGiaBanDau,
+    kyThuatMaxCount,
+    nhiemKhuanMaxCount,
+    thuocMaxCount,
+    mauMaxCount,
+    thietBiYTeMaxCount,
+    hanhViMaxCount,
+    taiNanMaxCount,
+    haTangMaxCount,
+    nguonLucMaxCount,
+    taiLieuMaxCount,
+    nhanVienMaxCount,
+    nguoiBenhMaxCount,
+    moiTruongMaxCount,
+    toChucMaxCount,
+    yeuToBenNgoaiMaxCount,
   ] = await Promise.all([
     prisma.dmloaisuco.findMany({
       where: { ksd: false },
@@ -192,6 +281,21 @@ export async function getLookupDataFromDB() {
       orderBy: { sapxep: "asc" },
       select: { madanhgia: true, mamucdo: true, tendanhgia: true },
     }),
+    prisma.dmkythuat_scyk.count(),
+    prisma.dmnhiemkhuan_scyk.count(),
+    prisma.dmthuoc_scyk.count(),
+    prisma.dmmau_scyk.count(),
+    prisma.dmthietbiyte_scyk.count(),
+    prisma.dmhanhvi_scyk.count(),
+    prisma.dmtainan_scyk.count(),
+    prisma.dmhatang_scyk.count(),
+    prisma.dmnguonluc_scyk.count(),
+    prisma.dmtailieu_scyk.count(),
+    prisma.dmnhanvien_scyk.count(),
+    prisma.dmnguoibenh_scyk.count(),
+    prisma.dmmoitruong_scyk.count(),
+    prisma.dmtochuc_scyk.count(),
+    prisma.dmyeutobenngoai_scyk.count(),
   ]);
 
   return {
@@ -204,6 +308,23 @@ export async function getLookupDataFromDB() {
     phongNoi,
     phanLoaiBanDau,
     danhGiaBanDau,
+    causeMaxOptionsMap: {
+      kythuat: kyThuatMaxCount,
+      nhiemkhuan: nhiemKhuanMaxCount,
+      thuoc: thuocMaxCount,
+      mau: mauMaxCount,
+      thietbiyte: thietBiYTeMaxCount,
+      hanhvi: hanhViMaxCount,
+      tainan: taiNanMaxCount,
+      hatang: haTangMaxCount,
+      nguonluc: nguonLucMaxCount,
+      tailieu: taiLieuMaxCount,
+      nnnnhanvien: nhanVienMaxCount,
+      nnnnguoibenh: nguoiBenhMaxCount,
+      nnnmoitruong: moiTruongMaxCount,
+      nnntochuc: toChucMaxCount,
+      nnnbenngoai: yeuToBenNgoaiMaxCount,
+    },
   };
 }
 
