@@ -168,37 +168,37 @@ export async function saveIncidentToDB(
       });
       return { success: true, masuco };
     } else {
-      const maxRetries = 10;
-      for (let attempt = 0; attempt < maxRetries; attempt++) {
-        const candidate = generateRandomIncidentCodeParts();
+      const maximumRetryAttempts = 10;
+      for (let attempt = 0; attempt < maximumRetryAttempts; attempt++) {
+        const candidateIncidentCode = generateRandomIncidentCodeParts();
 
         // Kiểm tra xem mã sự cố đã tồn tại trong CSDL chưa
-        const existing = await prisma.dangky_sucoykhoa.findUnique({
-          where: { masuco: candidate.masuco },
+        const existingIncidentRecord = await prisma.dangky_sucoykhoa.findUnique({
+          where: { masuco: candidateIncidentCode.masuco },
           select: { masuco: true },
         });
 
-        if (existing) {
+        if (existingIncidentRecord) {
           continue;
         }
 
         try {
           await prisma.dangky_sucoykhoa.create({
             data: {
-              masuco: candidate.masuco,
-              sosuco: candidate.sosuco,
+              masuco: candidateIncidentCode.masuco,
+              sosuco: candidateIncidentCode.sosuco,
               daphantich: false,
               ...payload,
             },
           });
-          return { success: true, masuco: candidate.masuco };
-        } catch (dbError: any) {
+          return { success: true, masuco: candidateIncidentCode.masuco };
+        } catch (databaseInsertError: any) {
           console.warn(
             `[saveIncidentToDB] Xung đột DB/Race Condition tại lượt ${attempt + 1}:`,
-            dbError?.message,
+            databaseInsertError?.message,
           );
-          if (attempt === maxRetries - 1) {
-            throw dbError;
+          if (attempt === maximumRetryAttempts - 1) {
+            throw databaseInsertError;
           }
         }
       }
@@ -221,6 +221,21 @@ export async function getLookupDataFromDB() {
     phongNoi,
     phanLoaiBanDau,
     danhGiaBanDau,
+    kyThuatMaxCount,
+    nhiemKhuanMaxCount,
+    thuocMaxCount,
+    mauMaxCount,
+    thietBiYTeMaxCount,
+    hanhViMaxCount,
+    taiNanMaxCount,
+    haTangMaxCount,
+    nguonLucMaxCount,
+    taiLieuMaxCount,
+    nhanVienMaxCount,
+    nguoiBenhMaxCount,
+    moiTruongMaxCount,
+    toChucMaxCount,
+    yeuToBenNgoaiMaxCount,
   ] = await Promise.all([
     prisma.dmloaisuco.findMany({
       where: { ksd: false },
@@ -266,6 +281,21 @@ export async function getLookupDataFromDB() {
       orderBy: { sapxep: "asc" },
       select: { madanhgia: true, mamucdo: true, tendanhgia: true },
     }),
+    prisma.dmkythuat_scyk.count(),
+    prisma.dmnhiemkhuan_scyk.count(),
+    prisma.dmthuoc_scyk.count(),
+    prisma.dmmau_scyk.count(),
+    prisma.dmthietbiyte_scyk.count(),
+    prisma.dmhanhvi_scyk.count(),
+    prisma.dmtainan_scyk.count(),
+    prisma.dmhatang_scyk.count(),
+    prisma.dmnguonluc_scyk.count(),
+    prisma.dmtailieu_scyk.count(),
+    prisma.dmnhanvien_scyk.count(),
+    prisma.dmnguoibenh_scyk.count(),
+    prisma.dmmoitruong_scyk.count(),
+    prisma.dmtochuc_scyk.count(),
+    prisma.dmyeutobenngoai_scyk.count(),
   ]);
 
   return {
@@ -278,6 +308,23 @@ export async function getLookupDataFromDB() {
     phongNoi,
     phanLoaiBanDau,
     danhGiaBanDau,
+    causeMaxOptionsMap: {
+      kythuat: kyThuatMaxCount,
+      nhiemkhuan: nhiemKhuanMaxCount,
+      thuoc: thuocMaxCount,
+      mau: mauMaxCount,
+      thietbiyte: thietBiYTeMaxCount,
+      hanhvi: hanhViMaxCount,
+      tainan: taiNanMaxCount,
+      hatang: haTangMaxCount,
+      nguonluc: nguonLucMaxCount,
+      tailieu: taiLieuMaxCount,
+      nnnnhanvien: nhanVienMaxCount,
+      nnnnguoibenh: nguoiBenhMaxCount,
+      nnnmoitruong: moiTruongMaxCount,
+      nnntochuc: toChucMaxCount,
+      nnnbenngoai: yeuToBenNgoaiMaxCount,
+    },
   };
 }
 

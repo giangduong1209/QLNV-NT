@@ -1,4 +1,8 @@
-import type { SuCoDetail, IncidentFormValues, IncidentSavePayload } from "@/types";
+import type {
+  SuCoDetail,
+  IncidentFormValues,
+  IncidentSavePayload,
+} from "@/types";
 import type { LookupData } from "@/actions/lookup";
 import {
   toDateStr,
@@ -10,7 +14,6 @@ import {
   formatBooleanOption,
   parseBooleanOption,
 } from "@/utils";
-import { KHOA_PHONG_OPTIONS } from "./incident-form.constants";
 
 export function buildDefaultValues(
   initialData: SuCoDetail | null,
@@ -81,7 +84,10 @@ export function buildPhongOptions(lookupData: LookupData) {
 
   if (lookupData.phong?.length) {
     lookupData.phong.forEach((p) => {
-      optionsMap.set(safeToString(p.maphong), p.tenphong ?? `Khoa/Phòng ${p.maphong}`);
+      optionsMap.set(
+        safeToString(p.maphong),
+        p.tenphong ?? `Khoa/Phòng ${p.maphong}`,
+      );
     });
   }
 
@@ -165,7 +171,9 @@ export function buildTenSuCoList(
   return result;
 }
 
-export function buildSavePayload(values: IncidentFormValues): IncidentSavePayload {
+export function buildSavePayload(
+  values: IncidentFormValues,
+): IncidentSavePayload {
   return {
     ngay: toDate(values.ngayLapDate, values.ngayLapTime),
     mahinhthuc: safeParseInt(values.mahinhthuc),
@@ -199,4 +207,3 @@ export function buildSavePayload(values: IncidentFormValues): IncidentSavePayloa
     maloaiscyk: safeParseInt(values.maloaiscyk),
   };
 }
-

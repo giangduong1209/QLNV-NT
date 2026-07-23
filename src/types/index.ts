@@ -1,7 +1,6 @@
 import { z } from "zod/v4";
 export type { ActionResult } from "./action-result";
 
-
 // ============================================================
 // Auth & User Types
 // ============================================================
@@ -131,6 +130,7 @@ export interface LookupData {
   phongNoi: PhongNoiItem[];
   phanLoaiBanDau: PhanLoaiBanDauItem[];
   danhGiaBanDau: DanhGiaBanDauItem[];
+  causeMaxOptionsMap?: Record<string, number>;
 }
 
 export interface FilterParams {
@@ -307,4 +307,57 @@ export type IncidentSavePayload = {
   chungkien1?: string | null;
   chungkien2?: string | null;
   maloaiscyk?: number | null;
+};
+
+// ─── Kiểu form ───────────────────────────────────────────────────────────────
+
+export type ConfirmForm = {
+  // Thông tin sự cố (từ dangky_sucoykhoa)
+  masuco: string;
+  sosuco: string;
+  makcb: string;
+  hoten: string;
+  maphong: string;
+  vitricuthe: string;
+  ngaySuCoDate: string;
+  ngaySuCoTime: string;
+  tensuco: string;
+
+  // Phân tích (từ dangky_phantichsuco)
+  pt_ngayDate: string;
+  pt_ngayTime: string;
+  pt_mota: string;
+  // Nguyên nhân cột trái (lưu giá trị select dropdown)
+  kythuat: string;
+  nhiemkhuan: string;
+  thuoc: string;
+  mau: string;
+  thietbiyte: string;
+  hanhvi: string;
+  tainan: string;
+  hatang: string;
+  nguonluc: string;
+  tailieu: string;
+  ptkhac: string;
+  // Nguyên nhân cột phải
+  ylenh: string;
+  nnnnhanvien: string;
+  nnnnguoibenh: string;
+  nnnmoitruong: string;
+  nnntochuc: string;
+  nnnbenngoai: string;
+  nnnkhac: string;
+  // Kết quả phân tích
+  khacphucsuco: string;
+  dexuat: string;
+  chuyengiadanhgia: string;
+  cgthaoluan: string;
+  phuhop: string;
+  khuyencao: string;
+  tt_NC0: boolean;
+  tt_NC1: string;
+  tt_NC2: string;
+  tt_NC3: string;
+  tttochuc: string;
+  duyet: boolean;
 };

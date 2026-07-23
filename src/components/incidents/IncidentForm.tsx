@@ -88,7 +88,6 @@ export function IncidentForm({
     setIsEditing,
   ]);
 
-
   const onSubmit = async (values: IncidentFormValues) => {
     setIsSaving(true);
 
@@ -101,7 +100,7 @@ export function IncidentForm({
     if (result.success && result.data?.masuco) {
       toast.success("Lưu thông tin sự cố thành công!");
       setIsEditing(false);
-      router.push(`/dashboard?masuco=${result.data.masuco}`);
+      router.push(`/incidents?masuco=${result.data.masuco}`);
     } else {
       toast.error(result.error ?? "Lưu không thành công. Vui lòng thử lại.");
     }
