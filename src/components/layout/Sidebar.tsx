@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback, useTransition, Suspense } from "react
 import { useForm } from "react-hook-form";
 import { useRouter, useSearchParams } from "next/navigation";
 import { TimePicker } from "@/components/ui/TimePicker";
-import { getSuCoList } from "@/actions/incidents";
+import { getSuCoList, getSuCoDetail } from "@/actions/incidents";
 import { getLookupData } from "@/actions/lookup";
 import { KHOA_PHONG_MAP } from "@/types";
 import type {
@@ -14,6 +14,8 @@ import type {
   LookupData,
 } from "@/types";
 import { formatDate, todayStr } from "@/utils";
+
+const FILTER_STORAGE_KEY = "qlscyk_sidebar_filter";
 
 /**
  * Xây dựng danh sách tùy chọn Khoa & Phòng phân cấp từ LookupData.
@@ -52,7 +54,7 @@ function SidebarContent() {
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [departmentOptions, setDepartmentOptions] = useState<SelectOption[]>([]);
 
-  const { register, handleSubmit, watch, setValue, getValues } =
+  const { register, handleSubmit, watch, setValue, getValues, reset } =
     useForm<SidebarFilterFormValues>({
       defaultValues: {
         trangThai: "TAT_CA",
@@ -70,6 +72,14 @@ function SidebarContent() {
   const fetchList = useCallback(
     (values: SidebarFilterFormValues) => {
       setErrorMsg(null);
+
+      // Lưu bộ lọc hiện tại vào sessionStorage để duy trì khi refresh trang (F5)
+      try {
+        sessionStorage.setItem(FILTER_STORAGE_KEY, JSON.stringify(values));
+      } catch (e) {
+        console.error("Lỗi khi ghi sessionStorage:", e);
+      }
+
       startTransition(async () => {
         const result = await getSuCoList({
           trangThai: values.trangThai,
@@ -83,16 +93,67 @@ function SidebarContent() {
         if (result.error) {
           setErrorMsg(result.error);
         } else {
-          setSuCoList(result.data ?? []);
+          const list = result.data ?? [];
+          setSuCoList(list);
+
+          // Nếu URL có masuco nhưng sự cố không xuất hiện trong danh sách (do lệch khoảng ngày), tự nạp ngày sự cố để điều chỉnh bộ lọc
+          if (activeMasuco && !list.some((item) => item.masuco === activeMasuco)) {
+            const detailRes = await getSuCoDetail(activeMasuco);
+            if (detailRes.success && detailRes.data?.sucoykhoa?.ngaysuco) {
+              const suCoDateStr = new Date(detailRes.data.sucoykhoa.ngaysuco)
+                .toISOString()
+                .split("T")[0];
+
+              if (suCoDateStr < values.tuNgayDate || suCoDateStr > values.denNgayDate) {
+                const updatedValues: SidebarFilterFormValues = {
+                  ...values,
+                  tuNgayDate: suCoDateStr < values.tuNgayDate ? suCoDateStr : values.tuNgayDate,
+                  denNgayDate: suCoDateStr > values.denNgayDate ? suCoDateStr : values.denNgayDate,
+                };
+                reset(updatedValues);
+                try {
+                  sessionStorage.setItem(FILTER_STORAGE_KEY, JSON.stringify(updatedValues));
+                } catch (e) {}
+
+                const refetched = await getSuCoList({
+                  trangThai: updatedValues.trangThai,
+                  tuNgay: updatedValues.tuNgayDate,
+                  tuNgayTime: updatedValues.tuNgayTime,
+                  denNgay: updatedValues.denNgayDate,
+                  denNgayTime: updatedValues.denNgayTime,
+                  maphong: updatedValues.maphong ? parseInt(updatedValues.maphong, 10) : undefined,
+                });
+                if (refetched.data) {
+                  setSuCoList(refetched.data);
+                }
+              }
+            }
+          }
         }
       });
     },
-    [],
+    [activeMasuco, reset],
   );
 
-  // Nạp danh mục Khoa & Phòng động từ CSDL và tự động nạp danh sách sự cố ban đầu
+  // Nạp danh mục Khoa & Phòng động và khôi phục bộ lọc từ sessionStorage khi mount
   useEffect(() => {
     let isMounted = true;
+
+    // Khôi phục bộ lọc đã lưu từ sessionStorage (nếu có)
+    let initialValues: SidebarFilterFormValues = getValues();
+    try {
+      const saved = sessionStorage.getItem(FILTER_STORAGE_KEY);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed && typeof parsed === "object") {
+          initialValues = { ...initialValues, ...parsed };
+          reset(initialValues);
+        }
+      }
+    } catch (e) {
+      console.error("Lỗi khi đọc bộ lọc từ sessionStorage:", e);
+    }
+
     getLookupData()
       .then((data) => {
         if (isMounted) {
@@ -103,12 +164,12 @@ function SidebarContent() {
         console.error("[Sidebar] Lỗi nạp danh mục Khoa Phòng:", err);
       });
 
-    fetchList(getValues());
+    fetchList(initialValues);
 
     return () => {
       isMounted = false;
     };
-  }, [fetchList, getValues]);
+  }, [fetchList, getValues, reset]);
 
   const onSubmit = (values: SidebarFilterFormValues) => {
     fetchList(values);

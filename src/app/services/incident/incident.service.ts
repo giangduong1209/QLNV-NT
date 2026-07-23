@@ -104,7 +104,6 @@ export async function saveIncidentToDB(
   masuco: number | null,
   payload: any,
 ): Promise<{ success: boolean; masuco?: number; error?: string }> {
-  console.log({ payload });
   try {
     if (masuco) {
       await prisma.dangky_sucoykhoa.update({

@@ -376,30 +376,34 @@
 .ql-field-control select:disabled,
 .ql-field-control input:disabled,
 .ql-field-control textarea:disabled {
-  background-color: #f1f5f9;
-  color: var(--color-text-secondary);
+  background-color: #e2e8f0;
+  color: #0f172a;
+  -webkit-text-fill-color: #0f172a;
+  opacity: 1;
+  font-weight: 600;
   cursor: default;
-  border-color: var(--color-border);
+  border-color: #94a3b8;
 }
 
-/* Readonly & disabled fields — visual style tương đồng đồng nhất */
+/* Readonly & disabled fields — visual style tương đồng đồng nhất, màu đậm và rõ nét hơn */
 .ql-field-control input[readonly],
 .ql-field-control textarea[readonly],
 .ql-field-control input[type="date"]:disabled,
 .ql-field-control input[type="date"][readonly] {
-  background-color: #f1f5f9;
-  color: var(--color-text-secondary);
-  -webkit-text-fill-color: var(--color-text-secondary);
+  background-color: #e2e8f0;
+  color: #0f172a;
+  -webkit-text-fill-color: #0f172a;
   opacity: 1;
+  font-weight: 600;
   cursor: default;
-  border-color: var(--color-border);
+  border-color: #94a3b8;
 }
 
 .ql-field-control
   input[type="date"]:disabled::-webkit-calendar-picker-indicator,
 .ql-field-control
   input[type="date"][readonly]::-webkit-calendar-picker-indicator {
-  opacity: 0.4;
+  opacity: 0.6;
   cursor: default;
   pointer-events: none;
 }
@@ -744,14 +748,16 @@
    TimePicker disabled state
    ============================================================ */
 .ql-timepicker--disabled {
-  background-color: #f1f5f9 !important;
-  border-color: var(--color-border) !important;
+  background-color: #e2e8f0 !important;
+  border-color: #94a3b8 !important;
   cursor: default;
 }
 
 .ql-timepicker--disabled input {
   background-color: transparent !important;
-  color: var(--color-text-secondary) !important;
+  color: #0f172a !important;
+  -webkit-text-fill-color: #0f172a !important;
+  font-weight: 600;
   cursor: default;
 }
 
@@ -768,14 +774,19 @@
    Header form inputs readonly state
    ============================================================ */
 .ql-form-header-field input[readonly] {
-  background-color: #f1f5f9;
+  background-color: #e2e8f0;
+  color: #0f172a;
+  -webkit-text-fill-color: #0f172a;
+  font-weight: 600;
   cursor: default;
-  border-color: var(--color-border-light);
+  border-color: #94a3b8;
 }
 
 .ql-form-header-field select:disabled {
-  background-color: #f1f5f9;
+  background-color: #e2e8f0;
   cursor: default;
-  border-color: var(--color-border-light);
-  color: var(--color-text-secondary);
+  border-color: #94a3b8;
+  color: #0f172a;
+  -webkit-text-fill-color: #0f172a;
+  font-weight: 600;
 }
