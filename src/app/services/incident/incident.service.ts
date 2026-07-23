@@ -19,7 +19,9 @@ export async function getCandidateDepartmentIds(selectedId: number): Promise<{
 }
 
 function isFilterParams(arg: any): arg is FilterParams {
-  return arg && typeof arg === "object" && ("trangThai" in arg || "tuNgay" in arg);
+  return (
+    arg && typeof arg === "object" && ("trangThai" in arg || "tuNgay" in arg)
+  );
 }
 
 export async function getIncidentList(
@@ -38,7 +40,8 @@ export async function getIncidentList(
     });
   }
 
-  const { trangThai, tuNgay, tuNgayTime, denNgay, denNgayTime, maphong } = params;
+  const { trangThai, tuNgay, tuNgayTime, denNgay, denNgayTime, maphong } =
+    params;
 
   const startDate = tuNgay ? toDate(tuNgay, tuNgayTime || "00:00") : null;
   const endDate = denNgay ? toDate(denNgay, denNgayTime || "23:59") : null;
@@ -61,7 +64,8 @@ export async function getIncidentList(
   }
 
   if (maphong) {
-    const { maphongIds, maphongnoiIds } = await getCandidateDepartmentIds(maphong);
+    const { maphongIds, maphongnoiIds } =
+      await getCandidateDepartmentIds(maphong);
     const orConditions: Prisma.dangky_sucoykhoaWhereInput[] = [
       { maphong: { in: maphongIds } },
       { makkbaocao: { in: maphongIds } },
@@ -100,6 +104,7 @@ export async function saveIncidentToDB(
   masuco: number | null,
   payload: any,
 ): Promise<{ success: boolean; masuco?: number; error?: string }> {
+  console.log({ payload });
   try {
     if (masuco) {
       await prisma.dangky_sucoykhoa.update({
@@ -224,4 +229,3 @@ export async function deleteIncidentFromDB(
     };
   }
 }
-
