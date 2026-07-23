@@ -5,6 +5,7 @@ import { useForm, Controller } from "react-hook-form";
 import { TimePicker } from "../ui/TimePicker";
 import type { LookupData, SuCoDetail, ConfirmForm } from "@/types";
 import { buildPhongOptions } from "../incidents/incident-form.helpers";
+import { MultiSelect } from "../ui/MultiSelect";
 import {
   CAUSES_LEFT_DEFAULT,
   CAUSES_RIGHT_DEFAULT,
@@ -68,15 +69,13 @@ export const ConfirmIncidents = ({
           const isChecked = Boolean(
             selectedOptionValue && selectedOptionValue !== "0",
           );
-          const selectedOptionNumber = isChecked
-            ? parseInt(selectedOptionValue, 10)
-            : 0;
 
           const handleCheckboxChange = (
             e: React.ChangeEvent<HTMLInputElement>,
           ) => {
             if (e.target.checked) {
-              field.onChange("1");
+              const defaultFirstId = String(causeItem.subItems[0]?.id || 1);
+              field.onChange(defaultFirstId);
             } else {
               field.onChange("");
             }
@@ -90,29 +89,12 @@ export const ConfirmIncidents = ({
                 onChange={handleCheckboxChange}
                 className="w-4 h-4 text-red-600 rounded border-slate-300 focus:ring-red-500 cursor-pointer"
               />
-              <div className="relative flex items-center">
-                <select
-                  value={selectedOptionValue}
-                  onChange={(e) => field.onChange(e.target.value)}
-                  className="w-36 text-xs pl-2 pr-11 py-0.5 bg-white border border-[#bbb] rounded appearance-none cursor-pointer focus:outline-none focus:border-red-500"
-                >
-                  <option value="">Không chọn</option>
-                  {Array.from(
-                    { length: causeItem.maxOptionsCount },
-                    (_, index) => index + 1,
-                  ).map((optionNumber) => (
-                    <option key={optionNumber} value={String(optionNumber)}>
-                      {optionNumber}
-                    </option>
-                  ))}
-                </select>
-                <div className="absolute right-1.5 pointer-events-none flex items-center gap-0.5 text-xs">
-                  <span className="text-red-600 font-bold">
-                    {selectedOptionNumber}/{causeItem.maxOptionsCount}
-                  </span>
-                  <span className="text-slate-500 text-[9px]">▼</span>
-                </div>
-              </div>
+              <MultiSelect
+                value={selectedOptionValue}
+                onChange={field.onChange}
+                options={causeItem.subItems}
+                totalMax={causeItem.maxOptionsCount}
+              />
             </div>
           );
         }}

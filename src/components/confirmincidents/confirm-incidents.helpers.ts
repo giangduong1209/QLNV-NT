@@ -1,4 +1,9 @@
-import type { SuCoDetail, ConfirmForm, LookupData } from "@/types";
+import type {
+  SuCoDetail,
+  ConfirmForm,
+  LookupData,
+  CauseSubItem,
+} from "@/types";
 import { toDateStr, toTimeStr } from "@/utils";
 import type { CauseItem } from "./confirm-incidents.constants";
 
@@ -6,6 +11,7 @@ export interface ResolvedCauseItem {
   causeKey: string;
   causeLabel: string;
   maxOptionsCount: number;
+  subItems: CauseSubItem[];
 }
 
 export function buildDefaultValues(
@@ -62,23 +68,52 @@ export function buildDefaultValues(
 }
 
 /**
- * Tính toán danh mục nguyên nhân động từ LookupData (CSDL), fallback về defaultMaxOptions nếu DB rỗng
+ * Tính toán danh mục nguyên nhân động từ LookupData (CSDL), bao gồm danh sách tiểu mục subItems
  */
 export function buildCauseItemsFromLookup(
   baseCauseItems: CauseItem[],
   lookupData?: LookupData,
 ): ResolvedCauseItem[] {
   return baseCauseItems.map((causeItem) => {
-    const databaseCauseCount = lookupData?.causeMaxOptionsMap?.[causeItem.causeKey];
-    const maxOptionsCount =
-      databaseCauseCount && databaseCauseCount > 0
-        ? databaseCauseCount
-        : causeItem.defaultMaxOptions;
+    const dbSubItems = lookupData?.causeSubItemsMap?.[causeItem.causeKey];
+    let subItems: CauseSubItem[] = [];
+
+    if (dbSubItems && dbSubItems.length > 0) {
+      subItems = dbSubItems;
+    } else {
+      // Fallback nếu DB chưa có bản ghi
+      subItems = Array.from(
+        { length: causeItem.defaultMaxOptions },
+        (_, i) => ({
+          id: i + 1,
+          name: `Tùy chọn ${i + 1}`,
+        }),
+      );
+    }
 
     return {
       causeKey: causeItem.causeKey,
       causeLabel: causeItem.causeLabel,
-      maxOptionsCount,
+      maxOptionsCount: subItems.length,
+      subItems,
     };
   });
+}
+
+/**
+ * Tách chuỗi ID phân cách bởi dấu phẩy thành mảng string ID
+ */
+export function parseCommaSeparatedIds(valueString: string): string[] {
+  if (!valueString) return [];
+  return valueString
+    .split(",")
+    .map((id) => id.trim())
+    .filter(Boolean);
+}
+
+/**
+ * Ghép mảng ID thành chuỗi phân cách bởi dấu phẩy
+ */
+export function formatCommaSeparatedIds(idsArray: string[]): string {
+  return idsArray.filter(Boolean).join(",");
 }
