@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { TimePicker } from "@/components/ui/TimePicker";
 import { useToast } from "@/components/ui/ToastProvider";
 import { useEditMode, DASHBOARD_FORM_ID } from "@/lib/edit-mode-context";
-import { saveIncident } from "@/actions/incidents";
+import { saveIncident, getPreviewSoSuCo } from "@/actions/incidents";
 import type { SuCoDetail, IncidentFormValues } from "@/types";
 import type { LookupData } from "@/actions/lookup";
 import {
@@ -41,7 +41,7 @@ export function IncidentForm({
 
   const canEdit = isNew || isEditing;
 
-  const { register, control, handleSubmit, reset } =
+  const { register, control, handleSubmit, reset, setValue } =
     useForm<IncidentFormValues>({
       defaultValues: buildDefaultValues(initialData, lookupData, "", ""),
     });
@@ -71,7 +71,23 @@ export function IncidentForm({
 
     reset(buildDefaultValues(initialData, lookupData, date, time));
     setIsEditing(isNew);
-  }, [initialData?.sucoykhoa?.masuco, lookupData, isNew, reset, setIsEditing]);
+
+    if (isNew) {
+      getPreviewSoSuCo().then((res) => {
+        if (res.success && res.data?.sosuco) {
+          setValue("sosuco", res.data.sosuco);
+        }
+      });
+    }
+  }, [
+    initialData?.sucoykhoa?.masuco,
+    lookupData,
+    isNew,
+    reset,
+    setValue,
+    setIsEditing,
+  ]);
+
 
   const onSubmit = async (values: IncidentFormValues) => {
     setIsSaving(true);

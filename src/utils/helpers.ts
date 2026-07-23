@@ -38,3 +38,25 @@ export function parseBooleanOption(
   if (val === "false" || val === "Không") return false;
   return null;
 }
+
+/**
+ * Sinh ngẫu nhiên Mã sự cố theo format SC + YYMMDD + 3 số ngẫu nhiên
+ */
+export function generateRandomIncidentCodeParts(date: Date = new Date()): {
+  sosuco: string;
+  masuco: number;
+} {
+  const yy = date.getFullYear().toString().slice(-2);
+  const mm = String(date.getMonth() + 1).padStart(2, "0");
+  const dd = String(date.getDate()).padStart(2, "0");
+  const datePrefix = `${yy}${mm}${dd}`;
+  const random3Digits = Math.floor(Math.random() * 1000)
+    .toString()
+    .padStart(3, "0");
+
+  const sosuco = `SC${datePrefix}${random3Digits}`;
+  const masuco = parseInt(`${datePrefix}${random3Digits}`, 10);
+
+  return { sosuco, masuco };
+}
+

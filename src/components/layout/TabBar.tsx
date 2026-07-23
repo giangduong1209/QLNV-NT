@@ -1,9 +1,11 @@
 "use client";
 
+import { Suspense } from "react";
+
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 
-export function TabBar() {
+function TabBarContent() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const queryString = searchParams.toString();
@@ -28,3 +30,12 @@ export function TabBar() {
     </div>
   );
 }
+
+export function TabBar() {
+  return (
+    <Suspense fallback={<div className="ql-tab-bar" />}>
+      <TabBarContent />
+    </Suspense>
+  );
+}
+

@@ -6,6 +6,7 @@ import {
   getIncidentList,
   saveIncidentToDB,
   deleteIncidentFromDB,
+  getPreviewIncidentCode,
 } from "@/app/services/incident/incident.service";
 import type {
   FilterParams,
@@ -14,6 +15,25 @@ import type {
   IncidentSavePayload,
   ActionResult,
 } from "@/types";
+
+// ============================================================
+// Lấy Mã sự cố ngẫu nhiên dự kiến (Preview cho màn hình Thêm mới)
+// ============================================================
+export async function getPreviewSoSuCo(): Promise<
+  ActionResult<{ sosuco: string }>
+> {
+  try {
+    const res = await getPreviewIncidentCode();
+    return { success: true, data: { sosuco: res.sosuco } };
+  } catch (error) {
+    console.error("[getPreviewSoSuCo] Exception:", error);
+    return {
+      success: false,
+      error: "Không thể lấy mã sự cố dự kiến.",
+    };
+  }
+}
+
 
 // ============================================================
 // Lấy danh sách sự cố theo bộ lọc
