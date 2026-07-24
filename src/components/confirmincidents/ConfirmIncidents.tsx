@@ -65,10 +65,11 @@ export const ConfirmIncidents = ({
     [lookupData],
   );
 
-  // Reset form khi initialData thay đổi
+  // Reset form và chế độ sửa khi initialData thay đổi (chọn sự cố khác)
   useEffect(() => {
     reset(buildDefaultValues(suco, phanTich));
-  }, [initialData, reset, suco, phanTich]);
+    setIsEditing(false);
+  }, [initialData, reset, suco, phanTich, setIsEditing]);
 
   const daPhanTich = !!phanTich;
   const daDuyet = !!phanTich?.duyet;
@@ -80,10 +81,11 @@ export const ConfirmIncidents = ({
     setDisableEditButton(!daPhanTich);
     setDisableApproveButton(daDuyet);
     return () => {
+      setIsEditing(false);
       setDisableEditButton(false);
       setDisableApproveButton(false);
     };
-  }, [daPhanTich, daDuyet, setDisableEditButton, setDisableApproveButton]);
+  }, [daPhanTich, daDuyet, setIsEditing, setDisableEditButton, setDisableApproveButton]);
 
   // Khi sự cố chưa phân tích (!daPhanTich): tự động enable ô nhập sẵn theo quyền mà không cần bấm Sửa trước
   // Khi sự cố đã phân tích (daPhanTich): disable theo mặc định, bấm Sửa (isEditing) mới enable

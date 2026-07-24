@@ -497,15 +497,14 @@ export function IncidentForm({
                 <div className="ql-field-control">
                   <select {...register("phanloaibandau")} disabled={!canEdit}>
                     <option value=""></option>
-                    {lookupData.phanLoaiBanDau?.length &&
-                      lookupData.phanLoaiBanDau.map((o) => (
-                        <option
-                          key={o.maphanloai}
-                          value={o.maphanloai.toString()}
-                        >
-                          {o.tenphanloai}
-                        </option>
-                      ))}
+                    {lookupData.phanLoaiBanDau?.map((o) => (
+                      <option
+                        key={o.maphanloai}
+                        value={o.maphanloai.toString()}
+                      >
+                        {o.tenphanloai}
+                      </option>
+                    ))}
                   </select>
                 </div>
               </div>
@@ -517,17 +516,16 @@ export function IncidentForm({
                 <div className="ql-field-control">
                   <select {...register("danhgiabandau")} disabled={!canEdit}>
                     <option value=""></option>
-                    {lookupData.danhGiaBanDau?.length &&
-                      lookupData.danhGiaBanDau.map((o) => (
-                        <option
-                          key={o.madanhgia}
-                          value={o.madanhgia.toString()}
-                        >
-                          {o.mamucdo
-                            ? `${o.mamucdo} - ${o.tendanhgia}`
-                            : o.tendanhgia}
-                        </option>
-                      ))}
+                    {lookupData.danhGiaBanDau?.map((o) => (
+                      <option
+                        key={o.madanhgia}
+                        value={o.madanhgia.toString()}
+                      >
+                        {o.mamucdo
+                          ? `${o.mamucdo} - ${o.tendanhgia}`
+                          : o.tendanhgia}
+                      </option>
+                    ))}
                   </select>
                 </div>
               </div>
