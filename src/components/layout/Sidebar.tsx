@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useTransition, Suspense } from "react";
 import { useForm } from "react-hook-form";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { TimePicker } from "@/components/ui/TimePicker";
 import { getSuCoList, getSuCoDetail } from "@/actions/incidents";
 import { getLookupData } from "@/actions/lookup";
@@ -45,6 +45,7 @@ function buildDepartmentSelectOptions(lookupData: LookupData): SelectOption[] {
 function SidebarContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const pathname = usePathname();
 
   const masucoParam = searchParams.get("masuco");
   const activeMasuco = masucoParam ? parseInt(masucoParam, 10) : null;
@@ -176,7 +177,7 @@ function SidebarContent() {
   };
 
   const handleRowClick = (masuco: number) => {
-    router.push(`/dashboard?masuco=${masuco}`);
+    router.push(`${pathname}?masuco=${masuco}`);
   };
 
   return (

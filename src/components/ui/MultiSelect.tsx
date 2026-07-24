@@ -117,7 +117,9 @@ export const MultiSelect = ({
 
           <div className="max-h-48 overflow-y-auto space-y-1 pr-1">
             {options.map((optionItem) => {
-              const isOptionChecked = selectedIds.includes(String(optionItem.id));
+              const isOptionChecked = selectedIds.includes(
+                String(optionItem.id),
+              );
               return (
                 <label
                   key={optionItem.id}

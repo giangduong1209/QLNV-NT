@@ -58,7 +58,7 @@ export const ConfirmIncidents = ({
   // ── Render nguyên nhân ─────────────────────────────────────────────────────
   const renderCauseRow = (causeItem: ResolvedCauseItem) => (
     <div key={causeItem.causeKey} className="flex items-center gap-2 mb-1.5 text-[13px]">
-      <span className="flex-1 min-w-0 font-medium text-slate-700">
+      <span className="flex-1 min-w-0 font-bold text-slate-800">
         {causeItem.causeLabel}
       </span>
       <Controller
