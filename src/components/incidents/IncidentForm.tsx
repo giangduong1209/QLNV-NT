@@ -11,8 +11,6 @@ import type { SuCoDetail, IncidentFormValues } from "@/types";
 import type { LookupData } from "@/actions/lookup";
 import {
   CO_KHONG_OPTIONS,
-  PHAN_LOAI_OPTIONS,
-  DANH_GIA_OPTIONS,
   NOTIFICATION_FIELDS,
 } from "./incident-form.constants";
 import {
@@ -36,7 +34,7 @@ export function IncidentForm({
 }: IncidentFormProps) {
   const router = useRouter();
   const toast = useToast();
-  const { isEditing, setIsEditing } = useEditMode();
+  const { isEditing, setIsEditing, setDisableEditButton } = useEditMode();
   const [isSaving, setIsSaving] = useState(false);
 
   const canEdit = isNew || isEditing;
@@ -71,6 +69,7 @@ export function IncidentForm({
 
     reset(buildDefaultValues(initialData, lookupData, date, time));
     setIsEditing(isNew);
+    setDisableEditButton(isNew);
 
     if (isNew) {
       getPreviewSoSuCo().then((res) => {
@@ -79,6 +78,10 @@ export function IncidentForm({
         }
       });
     }
+
+    return () => {
+      setDisableEditButton(false);
+    };
   }, [
     initialData?.sucoykhoa?.masuco,
     lookupData,
@@ -86,6 +89,7 @@ export function IncidentForm({
     reset,
     setValue,
     setIsEditing,
+    setDisableEditButton,
   ]);
 
   const onSubmit = async (values: IncidentFormValues) => {
@@ -153,6 +157,7 @@ export function IncidentForm({
               readOnly={!canEdit}
               disabled={!canEdit}
               className="w-32.5 text-center bg-primary-light border border-[rgba(220,38,38,0.15)]"
+              suppressHydrationWarning
             />
             <Controller
               name="ngayLapTime"
@@ -492,20 +497,15 @@ export function IncidentForm({
                 <div className="ql-field-control">
                   <select {...register("phanloaibandau")} disabled={!canEdit}>
                     <option value=""></option>
-                    {lookupData.phanLoaiBanDau?.length
-                      ? lookupData.phanLoaiBanDau.map((o) => (
-                          <option
-                            key={o.maphanloai}
-                            value={o.maphanloai.toString()}
-                          >
-                            {o.tenphanloai}
-                          </option>
-                        ))
-                      : PHAN_LOAI_OPTIONS.map((o) => (
-                          <option key={o.value} value={o.value}>
-                            {o.label}
-                          </option>
-                        ))}
+                    {lookupData.phanLoaiBanDau?.length &&
+                      lookupData.phanLoaiBanDau.map((o) => (
+                        <option
+                          key={o.maphanloai}
+                          value={o.maphanloai.toString()}
+                        >
+                          {o.tenphanloai}
+                        </option>
+                      ))}
                   </select>
                 </div>
               </div>
@@ -517,22 +517,17 @@ export function IncidentForm({
                 <div className="ql-field-control">
                   <select {...register("danhgiabandau")} disabled={!canEdit}>
                     <option value=""></option>
-                    {lookupData.danhGiaBanDau?.length
-                      ? lookupData.danhGiaBanDau.map((o) => (
-                          <option
-                            key={o.madanhgia}
-                            value={o.madanhgia.toString()}
-                          >
-                            {o.mamucdo
-                              ? `${o.mamucdo} - ${o.tendanhgia}`
-                              : o.tendanhgia}
-                          </option>
-                        ))
-                      : DANH_GIA_OPTIONS.map((o) => (
-                          <option key={o.value} value={o.value}>
-                            {o.label}
-                          </option>
-                        ))}
+                    {lookupData.danhGiaBanDau?.length &&
+                      lookupData.danhGiaBanDau.map((o) => (
+                        <option
+                          key={o.madanhgia}
+                          value={o.madanhgia.toString()}
+                        >
+                          {o.mamucdo
+                            ? `${o.mamucdo} - ${o.tendanhgia}`
+                            : o.tendanhgia}
+                        </option>
+                      ))}
                   </select>
                 </div>
               </div>

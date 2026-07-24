@@ -2,9 +2,9 @@
 
 import { useState, useEffect, useCallback, useTransition, Suspense } from "react";
 import { useForm } from "react-hook-form";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { TimePicker } from "@/components/ui/TimePicker";
-import { getSuCoList, getSuCoDetail } from "@/actions/incidents";
+import { getSuCoList } from "@/actions/incidents";
 import { getLookupData } from "@/actions/lookup";
 import { KHOA_PHONG_MAP } from "@/types";
 import type {
@@ -45,12 +45,14 @@ function buildDepartmentSelectOptions(lookupData: LookupData): SelectOption[] {
 function SidebarContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const pathname = usePathname();
 
   const masucoParam = searchParams.get("masuco");
   const activeMasuco = masucoParam ? parseInt(masucoParam, 10) : null;
 
   const [isPending, startTransition] = useTransition();
   const [suCoList, setSuCoList] = useState<SuCoListItem[]>([]);
+  const [hasSearched, setHasSearched] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [departmentOptions, setDepartmentOptions] = useState<SelectOption[]>([]);
 
@@ -90,49 +92,26 @@ function SidebarContent() {
           maphong: values.maphong ? parseInt(values.maphong, 10) : undefined,
         });
 
+        setHasSearched(true);
+
         if (result.error) {
           setErrorMsg(result.error);
+          setSuCoList([]);
         } else {
           const list = result.data ?? [];
           setSuCoList(list);
 
-          // Nếu URL có masuco nhưng sự cố không xuất hiện trong danh sách (do lệch khoảng ngày), tự nạp ngày sự cố để điều chỉnh bộ lọc
-          if (activeMasuco && !list.some((item) => item.masuco === activeMasuco)) {
-            const detailRes = await getSuCoDetail(activeMasuco);
-            if (detailRes.success && detailRes.data?.sucoykhoa?.ngaysuco) {
-              const suCoDateStr = new Date(detailRes.data.sucoykhoa.ngaysuco)
-                .toISOString()
-                .split("T")[0];
-
-              if (suCoDateStr < values.tuNgayDate || suCoDateStr > values.denNgayDate) {
-                const updatedValues: SidebarFilterFormValues = {
-                  ...values,
-                  tuNgayDate: suCoDateStr < values.tuNgayDate ? suCoDateStr : values.tuNgayDate,
-                  denNgayDate: suCoDateStr > values.denNgayDate ? suCoDateStr : values.denNgayDate,
-                };
-                reset(updatedValues);
-                try {
-                  sessionStorage.setItem(FILTER_STORAGE_KEY, JSON.stringify(updatedValues));
-                } catch (e) {}
-
-                const refetched = await getSuCoList({
-                  trangThai: updatedValues.trangThai,
-                  tuNgay: updatedValues.tuNgayDate,
-                  tuNgayTime: updatedValues.tuNgayTime,
-                  denNgay: updatedValues.denNgayDate,
-                  denNgayTime: updatedValues.denNgayTime,
-                  maphong: updatedValues.maphong ? parseInt(updatedValues.maphong, 10) : undefined,
-                });
-                if (refetched.data) {
-                  setSuCoList(refetched.data);
-                }
-              }
-            }
+          if (list.length === 0) {
+            // Không tìm thấy dữ liệu trong khoảng ngày chọn -> xóa param masuco
+            router.push(pathname);
+          } else if (activeMasuco && !list.some((item) => item.masuco === activeMasuco)) {
+            // Có dữ liệu nhưng masuco hiện tại không nằm trong danh sách mới -> chọn item đầu tiên
+            router.push(`${pathname}?masuco=${list[0].masuco}`);
           }
         }
       });
     },
-    [activeMasuco, reset],
+    [activeMasuco, pathname, router],
   );
 
   // Nạp danh mục Khoa & Phòng động và khôi phục bộ lọc từ sessionStorage khi mount
@@ -176,7 +155,7 @@ function SidebarContent() {
   };
 
   const handleRowClick = (masuco: number) => {
-    router.push(`/dashboard?masuco=${masuco}`);
+    router.push(`${pathname}?masuco=${masuco}`);
   };
 
   return (
@@ -196,7 +175,12 @@ function SidebarContent() {
         <div className="ql-sidebar-row">
           <div className="ql-sidebar-label">Từ ngày</div>
           <div className="ql-sidebar-control flex gap-2 items-center">
-            <input type="date" {...register("tuNgayDate")} className="flex-1" />
+            <input
+              type="date"
+              {...register("tuNgayDate")}
+              className="flex-1"
+              suppressHydrationWarning
+            />
             <TimePicker
               value={tuNgayTime}
               onChange={(v) => setValue("tuNgayTime", v)}
@@ -208,7 +192,12 @@ function SidebarContent() {
         <div className="ql-sidebar-row">
           <div className="ql-sidebar-label">Đến ngày</div>
           <div className="ql-sidebar-control flex gap-2 items-center">
-            <input type="date" {...register("denNgayDate")} className="flex-1" />
+            <input
+              type="date"
+              {...register("denNgayDate")}
+              className="flex-1"
+              suppressHydrationWarning
+            />
             <TimePicker
               value={denNgayTime}
               onChange={(v) => setValue("denNgayTime", v)}
@@ -264,7 +253,11 @@ function SidebarContent() {
                   colSpan={3}
                   className="text-center text-slate-400 italic py-6"
                 >
-                  {isPending ? "Đang tải..." : "Nhấn Nạp để tìm kiếm"}
+                  {isPending
+                    ? "Đang tải..."
+                    : hasSearched
+                    ? "Không tìm thấy dữ liệu"
+                    : "Nhấn Nạp để tìm kiếm"}
                 </td>
               </tr>
             ) : (

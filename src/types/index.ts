@@ -120,6 +120,11 @@ export interface DanhGiaBanDauItem {
   tendanhgia: string | null;
 }
 
+export interface CauseSubItem {
+  id: number;
+  name: string;
+}
+
 export interface LookupData {
   loaiSuCo: LoaiSuCoItem[];
   tenSuCo: TenSuCoItem[];
@@ -131,6 +136,7 @@ export interface LookupData {
   phanLoaiBanDau: PhanLoaiBanDauItem[];
   danhGiaBanDau: DanhGiaBanDauItem[];
   causeMaxOptionsMap?: Record<string, number>;
+  causeSubItemsMap?: Record<string, CauseSubItem[]>;
 }
 
 export interface FilterParams {
