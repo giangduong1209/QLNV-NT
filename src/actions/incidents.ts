@@ -6,6 +6,7 @@ import {
   getIncidentList,
   saveIncidentToDB,
   deleteIncidentFromDB,
+  saveAnalysisToDB,
   getPreviewIncidentCode,
 } from "@/app/services/incident/incident.service";
 import type {
@@ -187,5 +188,33 @@ export async function deleteIncident(
   } catch (error) {
     console.error("[deleteIncident] Exception:", error);
     return { success: false, error: "Không thể xóa sự cố. Vui lòng thử lại." };
+  }
+}
+
+// ============================================================
+// Lưu / Duyệt kết quả phân tích sự cố (dangky_phantichsuco)
+// ============================================================
+export async function saveAnalysisIncident(
+  masuco: number,
+  payload: any,
+  isApprove?: boolean,
+): Promise<ActionResult<{ masuco: number }>> {
+  try {
+    const res = await saveAnalysisToDB(masuco, payload, isApprove);
+    if (!res.success) {
+      return {
+        success: false,
+        error: res.error || "Lưu kết quả phân tích không thành công.",
+      };
+    }
+    revalidatePath("/dashboard");
+    revalidatePath("/incidents");
+    return { success: true, data: { masuco } };
+  } catch (error) {
+    console.error("[saveAnalysisIncident] Exception:", error);
+    return {
+      success: false,
+      error: "Không thể lưu kết quả phân tích. Vui lòng thử lại.",
+    };
   }
 }

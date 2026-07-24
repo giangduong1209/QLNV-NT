@@ -13,6 +13,7 @@ interface MultiSelectProps {
   options: MultiSelectOption[];
   totalMax?: number;
   placeholder?: string;
+  disabled?: boolean;
 }
 
 export const MultiSelect = ({
@@ -21,6 +22,7 @@ export const MultiSelect = ({
   options,
   totalMax,
   placeholder = "Không chọn",
+  disabled = false,
 }: MultiSelectProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -81,8 +83,9 @@ export const MultiSelect = ({
       {/* Nút bấm hiển thị Multi Select Box */}
       <button
         type="button"
-        onClick={() => setIsOpen((prev) => !prev)}
-        className="w-36 text-xs pl-2 pr-11 py-1 bg-white border border-[#bbb] rounded cursor-pointer focus:outline-none focus:border-red-500 flex items-center justify-between text-left truncate"
+        disabled={disabled}
+        onClick={() => !disabled && setIsOpen((prev) => !prev)}
+        className="w-36 text-xs pl-2 pr-11 py-1 bg-white border border-[#bbb] rounded cursor-pointer focus:outline-none focus:border-red-500 flex items-center justify-between text-left truncate disabled:bg-slate-200 disabled:opacity-80 disabled:cursor-default disabled:border-slate-400"
         title={displayText}
       >
         <span className="truncate flex-1 text-slate-700">{displayText}</span>
@@ -91,7 +94,6 @@ export const MultiSelect = ({
       {/* Badge đỏ hiển thị chỉ số k/N ở góc phải */}
       <div
         className="absolute right-1.5 pointer-events-none flex items-center gap-0.5 text-xs"
-        onClick={() => setIsOpen((prev) => !prev)}
       >
         <span className="text-red-600 font-bold">
           {selectedCount}/{maxCount}
@@ -100,7 +102,7 @@ export const MultiSelect = ({
       </div>
 
       {/* Dropdown Popover chứa danh sách tùy chọn kèm Checkbox */}
-      {isOpen && (
+      {isOpen && !disabled && (
         <div className="absolute top-full mt-1 right-0 z-50 w-64 bg-white border border-slate-300 rounded shadow-lg p-2 text-xs">
           <div className="flex items-center justify-between pb-1.5 mb-1.5 border-b border-slate-200">
             <span className="font-semibold text-slate-700">Lựa chọn:</span>

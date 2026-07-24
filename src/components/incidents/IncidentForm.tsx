@@ -36,7 +36,7 @@ export function IncidentForm({
 }: IncidentFormProps) {
   const router = useRouter();
   const toast = useToast();
-  const { isEditing, setIsEditing } = useEditMode();
+  const { isEditing, setIsEditing, setDisableEditButton } = useEditMode();
   const [isSaving, setIsSaving] = useState(false);
 
   const canEdit = isNew || isEditing;
@@ -71,6 +71,7 @@ export function IncidentForm({
 
     reset(buildDefaultValues(initialData, lookupData, date, time));
     setIsEditing(isNew);
+    setDisableEditButton(isNew);
 
     if (isNew) {
       getPreviewSoSuCo().then((res) => {
@@ -79,6 +80,10 @@ export function IncidentForm({
         }
       });
     }
+
+    return () => {
+      setDisableEditButton(false);
+    };
   }, [
     initialData?.sucoykhoa?.masuco,
     lookupData,
@@ -86,6 +91,7 @@ export function IncidentForm({
     reset,
     setValue,
     setIsEditing,
+    setDisableEditButton,
   ]);
 
   const onSubmit = async (values: IncidentFormValues) => {
@@ -153,6 +159,7 @@ export function IncidentForm({
               readOnly={!canEdit}
               disabled={!canEdit}
               className="w-32.5 text-center bg-primary-light border border-[rgba(220,38,38,0.15)]"
+              suppressHydrationWarning
             />
             <Controller
               name="ngayLapTime"

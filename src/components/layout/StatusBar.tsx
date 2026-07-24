@@ -6,13 +6,19 @@ import { useEditMode, DASHBOARD_FORM_ID } from "@/lib/edit-mode-context";
 import { useToast } from "@/components/ui/ToastProvider";
 import { ConfirmModal } from "@/components/ui/ConfirmModal";
 import { deleteIncident } from "@/actions/incidents";
+import { checkIsAdmin } from "@/utils";
 
-function StatusBarContent() {
+interface StatusBarProps {
+  userRole?: string;
+}
+
+function StatusBarContent({ userRole }: StatusBarProps) {
   const pathname = usePathname();
   const router = useRouter();
   const searchParams = useSearchParams();
   const toast = useToast();
-  const { isEditing, setIsEditing } = useEditMode();
+  const { isEditing, setIsEditing, disableEditButton, disableApproveButton } =
+    useEditMode();
 
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -27,6 +33,26 @@ function StatusBarContent() {
     ) as HTMLFormElement | null;
     if (form) {
       form.requestSubmit();
+    }
+  };
+
+  const handleApprove = () => {
+    if (disableApproveButton) {
+      toast.error("Sự cố này đã được duyệt.");
+      return;
+    }
+    const form = document.getElementById(
+      DASHBOARD_FORM_ID,
+    ) as HTMLFormElement | null;
+    if (form) {
+      const submitter = document.createElement("button");
+      submitter.name = "action_type";
+      submitter.value = "approve";
+      submitter.type = "submit";
+      submitter.style.display = "none";
+      form.appendChild(submitter);
+      submitter.click();
+      form.removeChild(submitter);
     }
   };
 
@@ -62,37 +88,49 @@ function StatusBarContent() {
     }
   };
 
+  const isAdmin = checkIsAdmin(userRole);
+  const canSave = isEditing || disableEditButton;
+
   return (
     <>
       <div className="ql-status-bar">
         <div className="ql-status-actions">
-          {/* Thêm mới / Duyệt */}
-          <button className="ql-btn-action" onClick={handleNew}>
-            {pathname !== "/incidents" ? (
-              <>
-                <span className="ql-btn-icon-green">&#10010;</span> Thêm mới
-              </>
-            ) : (
-              <>
+          {/* Thêm mới (nếu ở dashboard) / Duyệt (nếu ở incidents & là admin) */}
+          {pathname !== "/incidents" ? (
+            <button className="ql-btn-action" onClick={handleNew}>
+              <span className="ql-btn-icon-green">&#10010;</span> Thêm mới
+            </button>
+          ) : (
+            isAdmin && (
+              <button
+                className="ql-btn-action"
+                onClick={handleApprove}
+                disabled={disableApproveButton}
+                title={
+                  disableApproveButton
+                    ? "Sự cố này đã được duyệt"
+                    : "Duyệt thông tin sự cố"
+                }
+              >
                 <span className="ql-btn-icon-green">&#10003;</span> Duyệt
-              </>
-            )}
-          </button>
+              </button>
+            )
+          )}
 
-          {/* Sửa — disabled khi đang editing */}
+          {/* Sửa — disabled khi đang editing HOẶC khi sự cố chưa phân tích (đã mở sẵn ô nhập) */}
           <button
             className="ql-btn-action"
             onClick={handleEdit}
-            disabled={isEditing}
+            disabled={isEditing || disableEditButton}
           >
             <span className="ql-btn-icon-yellow">&#9999;</span> Sửa
           </button>
 
-          {/* Lưu — chỉ active khi đang editing */}
+          {/* Lưu — chỉ active khi đang ở chế độ sửa, sự cố chưa phân tích, hoặc trang khai báo mới */}
           <button
             className="ql-btn-action"
             onClick={handleSave}
-            disabled={!isEditing}
+            disabled={!canSave}
           >
             <span className="ql-btn-icon-blue">&#128190;</span> Lưu
           </button>
@@ -136,10 +174,10 @@ function StatusBarContent() {
   );
 }
 
-export function StatusBar() {
+export function StatusBar({ userRole }: StatusBarProps) {
   return (
     <Suspense fallback={<div className="ql-status-bar" />}>
-      <StatusBarContent />
+      <StatusBarContent userRole={userRole} />
     </Suspense>
   );
 }

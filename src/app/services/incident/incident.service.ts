@@ -432,3 +432,38 @@ export async function deleteIncidentFromDB(
     };
   }
 }
+
+export async function saveAnalysisToDB(
+  masuco: number,
+  payload: any,
+  isApprove?: boolean,
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    const dataToSave = {
+      ...payload,
+      ...(isApprove !== undefined ? { duyet: isApprove } : {}),
+    };
+
+    await prisma.dangky_phantichsuco.upsert({
+      where: { masuco },
+      create: {
+        masuco,
+        ...dataToSave,
+      },
+      update: dataToSave,
+    });
+
+    await prisma.dangky_sucoykhoa.update({
+      where: { masuco },
+      data: { daphantich: true },
+    });
+
+    return { success: true };
+  } catch (error) {
+    console.error("saveAnalysisToDB error:", error);
+    return {
+      success: false,
+      error: "Không thể lưu kết quả phân tích sự cố. Vui lòng thử lại.",
+    };
+  }
+}

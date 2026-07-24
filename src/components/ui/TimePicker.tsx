@@ -80,6 +80,7 @@ export function TimePicker({
         maxLength={2}
         aria-label="Giờ"
         disabled={disabled}
+        suppressHydrationWarning
       />
       <span className="ql-timepicker-sep">:</span>
       <input
@@ -92,6 +93,7 @@ export function TimePicker({
         maxLength={2}
         aria-label="Phút"
         disabled={disabled}
+        suppressHydrationWarning
       />
     </div>
   );
