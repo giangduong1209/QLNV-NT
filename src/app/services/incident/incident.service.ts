@@ -415,12 +415,14 @@ export async function deleteIncidentFromDB(
   masuco: number,
 ): Promise<{ success: boolean; error?: string }> {
   try {
-    await prisma.dangky_phantichsuco.deleteMany({
-      where: { masuco },
-    });
+    await prisma.$transaction(async (tx) => {
+      await tx.dangky_phantichsuco.deleteMany({
+        where: { masuco },
+      });
 
-    await prisma.dangky_sucoykhoa.delete({
-      where: { masuco },
+      await tx.dangky_sucoykhoa.delete({
+        where: { masuco },
+      });
     });
 
     return { success: true };
@@ -444,18 +446,20 @@ export async function saveAnalysisToDB(
       ...(isApprove !== undefined ? { duyet: isApprove } : {}),
     };
 
-    await prisma.dangky_phantichsuco.upsert({
-      where: { masuco },
-      create: {
-        masuco,
-        ...dataToSave,
-      },
-      update: dataToSave,
-    });
+    await prisma.$transaction(async (tx) => {
+      await tx.dangky_phantichsuco.upsert({
+        where: { masuco },
+        create: {
+          masuco,
+          ...dataToSave,
+        },
+        update: dataToSave,
+      });
 
-    await prisma.dangky_sucoykhoa.update({
-      where: { masuco },
-      data: { daphantich: true },
+      await tx.dangky_sucoykhoa.update({
+        where: { masuco },
+        data: { daphantich: true },
+      });
     });
 
     return { success: true };
