@@ -5,7 +5,7 @@ import type {
   CauseSubItem,
 } from "@/types";
 import { toDateStr, toTimeStr } from "@/utils";
-import type { CauseItem } from "./confirm-incidents.constants";
+import type { CauseItem } from "./incidents.constants";
 
 export interface ResolvedCauseItem {
   causeKey: string;

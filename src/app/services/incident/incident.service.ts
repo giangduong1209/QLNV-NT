@@ -1,7 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { Prisma } from "@prisma/client";
 import { toDate, generateRandomIncidentCodeParts } from "@/utils";
-import type { FilterParams } from "@/types";
+import type { FilterParams, IncidentSavePayload, AnalysisSavePayload } from "@/types";
 
 export async function getCandidateDepartmentIds(selectedId: number): Promise<{
   maphongIds: number[];
@@ -120,11 +120,11 @@ export async function getPreviewIncidentCode(): Promise<{
 
 export async function saveIncidentToDB(
   masuco: number | null,
-  payload: any,
+  payload: IncidentSavePayload,
 ): Promise<{ success: boolean; masuco?: number; error?: string }> {
   try {
     // 1. Kiểm tra không trùng Mã KCB nếu có nhập
-    const trimmedKcb = String(payload.makcb).trim();
+    const trimmedKcb = payload.makcb ? String(payload.makcb).trim() : "";
     if (payload.makcb && trimmedKcb !== "") {
       const existingKcb = await prisma.dangky_sucoykhoa.findFirst({
         where: {
@@ -143,7 +143,7 @@ export async function saveIncidentToDB(
     }
 
     // 2. Kiểm tra không trùng Số bệnh án nếu có nhập
-    const trimmedBenhAn = String(payload.sobenhan).trim();
+    const trimmedBenhAn = payload.sobenhan ? String(payload.sobenhan).trim() : "";
     if (payload.sobenhan && trimmedBenhAn !== "") {
       const existingBenhAn = await prisma.dangky_sucoykhoa.findFirst({
         where: {
@@ -435,7 +435,7 @@ export async function deleteIncidentFromDB(
 
 export async function saveAnalysisToDB(
   masuco: number,
-  payload: any,
+  payload: AnalysisSavePayload,
   isApprove?: boolean,
 ): Promise<{ success: boolean; error?: string }> {
   try {

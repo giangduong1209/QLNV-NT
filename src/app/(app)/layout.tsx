@@ -3,7 +3,7 @@ import { EditModeProvider } from "@/lib/edit-mode-context";
 import { getCurrentUser } from "@/lib/dal";
 import "./dashboard.css";
 
-export default async function DashboardLayout({
+export default async function AppLayout({
   children,
 }: {
   children: React.ReactNode;

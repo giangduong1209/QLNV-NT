@@ -17,7 +17,7 @@ function StatusBarContent({ userRole }: StatusBarProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const toast = useToast();
-  const { isEditing, setIsEditing, disableEditButton, disableApproveButton } =
+  const { isEditing, setIsEditing, disableEditButton, disableApproveButton, triggerSubmit } =
     useEditMode();
 
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -26,14 +26,9 @@ function StatusBarContent({ userRole }: StatusBarProps) {
   const masucoParam = searchParams.get("masuco");
   const activeMasuco = masucoParam ? parseInt(masucoParam, 10) : null;
 
-  // Trigger form submit programmatically
+  // Trigger form submit via React context
   const handleSave = () => {
-    const form = document.getElementById(
-      DASHBOARD_FORM_ID,
-    ) as HTMLFormElement | null;
-    if (form) {
-      form.requestSubmit();
-    }
+    triggerSubmit("save");
   };
 
   const handleApprove = () => {
@@ -41,19 +36,7 @@ function StatusBarContent({ userRole }: StatusBarProps) {
       toast.error("Sự cố này đã được duyệt.");
       return;
     }
-    const form = document.getElementById(
-      DASHBOARD_FORM_ID,
-    ) as HTMLFormElement | null;
-    if (form) {
-      const submitter = document.createElement("button");
-      submitter.name = "action_type";
-      submitter.value = "approve";
-      submitter.type = "submit";
-      submitter.style.display = "none";
-      form.appendChild(submitter);
-      submitter.click();
-      form.removeChild(submitter);
-    }
+    triggerSubmit("approve");
   };
 
   const handleEdit = () => setIsEditing(true);

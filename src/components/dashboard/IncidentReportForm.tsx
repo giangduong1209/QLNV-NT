@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { useForm, Controller, useWatch } from "react-hook-form";
 import { useRouter } from "next/navigation";
 import { TimePicker } from "@/components/ui/TimePicker";
@@ -12,29 +12,29 @@ import type { LookupData } from "@/actions/lookup";
 import {
   CO_KHONG_OPTIONS,
   NOTIFICATION_FIELDS,
-} from "./incident-form.constants";
+} from "./dashboard.constants";
 import {
   buildDefaultValues,
   buildPhongOptions,
   buildPhongNoiOptions,
   buildTenSuCoList,
   buildSavePayload,
-} from "./incident-form.helpers";
+} from "./dashboard.helpers";
 
-interface IncidentFormProps {
+interface IncidentReportFormProps {
   initialData: SuCoDetail | null;
   lookupData: LookupData;
   isNew: boolean;
 }
 
-export function IncidentForm({
+export function IncidentReportForm({
   initialData,
   lookupData,
   isNew,
-}: IncidentFormProps) {
+}: IncidentReportFormProps) {
   const router = useRouter();
   const toast = useToast();
-  const { isEditing, setIsEditing, setDisableEditButton } = useEditMode();
+  const { isEditing, setIsEditing, setDisableEditButton, registerSubmitHandler } = useEditMode();
   const [isSaving, setIsSaving] = useState(false);
 
   const canEdit = isNew || isEditing;
@@ -60,6 +60,34 @@ export function IncidentForm({
     () => buildTenSuCoList(lookupData, selectedLoaiSuCo, currentTenSuCo),
     [lookupData, selectedLoaiSuCo, currentTenSuCo],
   );
+
+  const onSubmit = useCallback(async (values: IncidentFormValues) => {
+    setIsSaving(true);
+
+    const masuco = initialData?.sucoykhoa?.masuco ?? null;
+    const payload = buildSavePayload(values);
+
+    const result = await saveIncident(masuco, payload);
+    setIsSaving(false);
+
+    if (result.success && result.data?.masuco) {
+      toast.success("Lưu thông tin sự cố thành công!");
+      setIsEditing(false);
+      router.push(`/incidents?masuco=${result.data.masuco}`);
+    } else {
+      toast.error(result.error ?? "Lưu không thành công. Vui lòng thử lại.");
+    }
+  }, [initialData, router, setIsEditing, toast]);
+
+  // Đăng ký submit handler với EditModeContext
+  useEffect(() => {
+    registerSubmitHandler(() => {
+      handleSubmit(onSubmit)();
+    });
+    return () => {
+      registerSubmitHandler(null);
+    };
+  }, [registerSubmitHandler, handleSubmit, onSubmit]);
 
   useEffect(() => {
     const now = new Date();
@@ -91,24 +119,6 @@ export function IncidentForm({
     setIsEditing,
     setDisableEditButton,
   ]);
-
-  const onSubmit = async (values: IncidentFormValues) => {
-    setIsSaving(true);
-
-    const masuco = initialData?.sucoykhoa?.masuco ?? null;
-    const payload = buildSavePayload(values);
-
-    const result = await saveIncident(masuco, payload);
-    setIsSaving(false);
-
-    if (result.success && result.data?.masuco) {
-      toast.success("Lưu thông tin sự cố thành công!");
-      setIsEditing(false);
-      router.push(`/incidents?masuco=${result.data.masuco}`);
-    } else {
-      toast.error(result.error ?? "Lưu không thành công. Vui lòng thử lại.");
-    }
-  };
 
   return (
     <form

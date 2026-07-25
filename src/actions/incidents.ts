@@ -9,11 +9,16 @@ import {
   saveAnalysisToDB,
   getPreviewIncidentCode,
 } from "@/app/services/incident/incident.service";
+import {
+  IncidentSavePayloadSchema,
+  AnalysisSavePayloadSchema,
+} from "@/types";
 import type {
   FilterParams,
   SuCoListItem,
   SuCoDetail,
   IncidentSavePayload,
+  AnalysisSavePayload,
   ActionResult,
 } from "@/types";
 
@@ -90,7 +95,12 @@ export async function saveIncident(
   payload: IncidentSavePayload,
 ): Promise<ActionResult<{ masuco?: number }>> {
   try {
-    const res = await saveIncidentToDB(masuco, payload);
+    const parseResult = IncidentSavePayloadSchema.safeParse(payload);
+    if (!parseResult.success) {
+      return { success: false, error: "Dữ liệu sự cố không hợp lệ." };
+    }
+
+    const res = await saveIncidentToDB(masuco, parseResult.data);
     if (!res.success) {
       return { success: false, error: res.error || "Lưu sự cố không thành công." };
     }
@@ -128,11 +138,16 @@ export async function deleteIncident(
 // ============================================================
 export async function saveAnalysisIncident(
   masuco: number,
-  payload: any,
+  payload: AnalysisSavePayload,
   isApprove?: boolean,
 ): Promise<ActionResult<{ masuco: number }>> {
   try {
-    const res = await saveAnalysisToDB(masuco, payload, isApprove);
+    const parseResult = AnalysisSavePayloadSchema.safeParse(payload);
+    if (!parseResult.success) {
+      return { success: false, error: "Dữ liệu phân tích không hợp lệ." };
+    }
+
+    const res = await saveAnalysisToDB(masuco, parseResult.data, isApprove);
     if (!res.success) {
       return {
         success: false,
