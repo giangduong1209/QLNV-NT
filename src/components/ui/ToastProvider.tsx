@@ -1,98 +1,24 @@
 "use client";
 
-import React, {
-  createContext,
-  useContext,
-  useState,
-  useCallback,
-  useEffect,
-} from "react";
+import React, { useState, useEffect } from "react";
+import {
+  useToastStore,
+  useToast,
+  type ToastType,
+  type ToastItem,
+  type ToastOptions,
+} from "@/store/use-toast-store";
 
-export type ToastType = "success" | "error" | "warning" | "info";
-
-export interface ToastItem {
-  id: string;
-  type: ToastType;
-  title?: string;
-  message: string;
-  duration?: number;
-}
-
-export interface ToastOptions {
-  title?: string;
-  duration?: number;
-}
-
-interface ToastContextType {
-  toasts: ToastItem[];
-  showToast: (type: ToastType, message: string, options?: ToastOptions) => void;
-  success: (message: string, options?: ToastOptions) => void;
-  error: (message: string, options?: ToastOptions) => void;
-  warning: (message: string, options?: ToastOptions) => void;
-  info: (message: string, options?: ToastOptions) => void;
-  removeToast: (id: string) => void;
-}
-
-const ToastContext = createContext<ToastContextType | undefined>(undefined);
-
-export function useToast() {
-  const context = useContext(ToastContext);
-  if (!context) {
-    throw new Error("useToast must be used within a ToastProvider");
-  }
-  return context;
-}
+export { useToast, type ToastType, type ToastItem, type ToastOptions };
 
 export function ToastProvider({ children }: { children: React.ReactNode }) {
-  const [toasts, setToasts] = useState<ToastItem[]>([]);
-
-  const removeToast = useCallback((id: string) => {
-    setToasts((prev) => prev.filter((t) => t.id !== id));
-  }, []);
-
-  const showToast = useCallback(
-    (type: ToastType, message: string, options?: ToastOptions) => {
-      const id = Math.random().toString(36).substring(2, 9);
-      const newToast: ToastItem = {
-        id,
-        type,
-        message,
-        title: options?.title,
-        duration: options?.duration ?? 4000,
-      };
-
-      setToasts((prev) => [...prev, newToast]);
-    },
-    [],
-  );
-
-  const success = useCallback(
-    (message: string, options?: ToastOptions) => showToast("success", message, options),
-    [showToast],
-  );
-
-  const error = useCallback(
-    (message: string, options?: ToastOptions) => showToast("error", message, options),
-    [showToast],
-  );
-
-  const warning = useCallback(
-    (message: string, options?: ToastOptions) => showToast("warning", message, options),
-    [showToast],
-  );
-
-  const info = useCallback(
-    (message: string, options?: ToastOptions) => showToast("info", message, options),
-    [showToast],
-  );
-
+  const toasts = useToastStore((state) => state.toasts);
+  const removeToast = useToastStore((state) => state.removeToast);
   return (
-    <ToastContext.Provider
-      value={{ toasts, showToast, success, error, warning, info, removeToast }}
-    >
+    <>
       {children}
       <ToastContainer toasts={toasts} removeToast={removeToast} />
-    </ToastContext.Provider>
+    </>
   );
 }
 
@@ -106,7 +32,7 @@ function ToastContainer({
   return (
     <div
       aria-live="polite"
-      className="fixed top-5 right-5 z-[9999] flex flex-col gap-3 max-w-sm w-full pointer-events-none px-3"
+      className="fixed top-5 right-5 z-9999 flex flex-col gap-3 max-w-sm w-full pointer-events-none px-3"
     >
       {toasts.map((t) => (
         <ToastSingle key={t.id} toast={t} onClose={() => removeToast(t.id)} />
@@ -153,8 +79,18 @@ function ToastSingle({
       iconColor: "text-emerald-600",
       defaultTitle: "Thành công",
       icon: (
-        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-          <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+        <svg
+          className="w-5 h-5"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+          strokeWidth="2"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+          />
         </svg>
       ),
     },
@@ -164,8 +100,18 @@ function ToastSingle({
       iconColor: "text-rose-600",
       defaultTitle: "Thất bại",
       icon: (
-        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-          <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        <svg
+          className="w-5 h-5"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+          strokeWidth="2"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+          />
         </svg>
       ),
     },
@@ -175,8 +121,18 @@ function ToastSingle({
       iconColor: "text-amber-600",
       defaultTitle: "Cảnh báo",
       icon: (
-        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-          <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+        <svg
+          className="w-5 h-5"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+          strokeWidth="2"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+          />
         </svg>
       ),
     },
@@ -186,8 +142,18 @@ function ToastSingle({
       iconColor: "text-sky-600",
       defaultTitle: "Thông báo",
       icon: (
-        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-          <path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        <svg
+          className="w-5 h-5"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+          strokeWidth="2"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+          />
         </svg>
       ),
     },
@@ -215,8 +181,18 @@ function ToastSingle({
         type="button"
         className="shrink-0 p-1 rounded-md opacity-60 hover:opacity-100 hover:bg-black/5 transition-opacity"
       >
-        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-          <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+        <svg
+          className="w-4 h-4"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+          strokeWidth="2"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            d="M6 18L18 6M6 6l12 12"
+          />
         </svg>
       </button>
 

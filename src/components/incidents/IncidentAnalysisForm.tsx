@@ -161,7 +161,7 @@ export function IncidentAnalysisForm({
     performSubmit(values, isApprove);
   };
 
-  // Đăng ký submit handler với EditModeContext
+  // Đăng ký submit handler với Zustand Store
   useEffect(() => {
     registerSubmitHandler((actionType?: FormSubmitAction) => {
       const values = getValues();
