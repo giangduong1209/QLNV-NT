@@ -1,7 +1,11 @@
 import { prisma } from "@/lib/prisma";
 import { Prisma } from "@prisma/client";
 import { toDate, generateRandomIncidentCodeParts } from "@/utils";
-import type { FilterParams, IncidentSavePayload, AnalysisSavePayload } from "@/types";
+import type {
+  FilterParams,
+  IncidentSavePayload,
+  AnalysisSavePayload,
+} from "@/types";
 
 export async function getCandidateDepartmentIds(selectedId: number): Promise<{
   maphongIds: number[];
@@ -114,6 +118,7 @@ export async function getPreviewIncidentCode(): Promise<{
       return candidate;
     }
   }
+
   const fallbackMasuco = parseInt(String(Date.now()).slice(-9), 10);
   return { sosuco: `SC${fallbackMasuco}`, masuco: fallbackMasuco };
 }
@@ -143,7 +148,9 @@ export async function saveIncidentToDB(
     }
 
     // 2. Kiểm tra không trùng Số bệnh án nếu có nhập
-    const trimmedBenhAn = payload.sobenhan ? String(payload.sobenhan).trim() : "";
+    const trimmedBenhAn = payload.sobenhan
+      ? String(payload.sobenhan).trim()
+      : "";
     if (payload.sobenhan && trimmedBenhAn !== "") {
       const existingBenhAn = await prisma.dangky_sucoykhoa.findFirst({
         where: {
@@ -173,10 +180,12 @@ export async function saveIncidentToDB(
         const candidateIncidentCode = generateRandomIncidentCodeParts();
 
         // Kiểm tra xem mã sự cố đã tồn tại trong CSDL chưa
-        const existingIncidentRecord = await prisma.dangky_sucoykhoa.findUnique({
-          where: { masuco: candidateIncidentCode.masuco },
-          select: { masuco: true },
-        });
+        const existingIncidentRecord = await prisma.dangky_sucoykhoa.findUnique(
+          {
+            where: { masuco: candidateIncidentCode.masuco },
+            select: { masuco: true },
+          },
+        );
 
         if (existingIncidentRecord) {
           continue;

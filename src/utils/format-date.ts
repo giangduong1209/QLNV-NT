@@ -25,3 +25,10 @@ export function toDate(dateStr: string, timeStr: string): Date | null {
   const [hh, mm] = timeStr ? timeStr.split(":").map(Number) : [0, 0];
   return new Date(y, m - 1, d, hh, mm);
 }
+
+export function todayStr(): string {
+  const now = new Date();
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
+}
+

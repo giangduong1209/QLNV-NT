@@ -13,7 +13,7 @@ export default async function AppLayout({
 
   return (
     <EditModeProvider>
-      <div className="ql-app-shell">
+      <div className="ql-app-shell" suppressHydrationWarning>
         <TabBar />
         <div className="ql-workspace">
           <Sidebar />
