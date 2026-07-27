@@ -5,7 +5,7 @@ import { useForm, Controller } from "react-hook-form";
 import { useRouter } from "next/navigation";
 import { TimePicker } from "../ui/TimePicker";
 import { useToast } from "../ui/ToastProvider";
-import { useEditMode, DASHBOARD_FORM_ID, type FormSubmitAction } from "@/lib/edit-mode-context";
+import { useEditMode, DASHBOARD_FORM_ID, type FormSubmitAction } from "@/store/use-edit-mode-store";
 import { saveAnalysisIncident } from "@/actions/incidents";
 import type { LookupData, SuCoDetail, ConfirmForm } from "@/types";
 import { buildPhongOptions } from "../dashboard/dashboard.helpers";

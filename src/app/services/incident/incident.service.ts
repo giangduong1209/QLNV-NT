@@ -168,6 +168,7 @@ export async function saveIncidentToDB(
       }
     }
 
+    console.log({ masuco });
     if (masuco) {
       await prisma.dangky_sucoykhoa.update({
         where: { masuco },

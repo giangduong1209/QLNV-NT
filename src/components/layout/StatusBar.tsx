@@ -2,7 +2,7 @@
 
 import { useState, Suspense } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useEditMode, DASHBOARD_FORM_ID } from "@/lib/edit-mode-context";
+import { useEditMode } from "@/store/use-edit-mode-store";
 import { useToast } from "@/components/ui/ToastProvider";
 import { ConfirmModal } from "@/components/ui/ConfirmModal";
 import { deleteIncident } from "@/actions/incidents";
@@ -17,8 +17,13 @@ function StatusBarContent({ userRole }: StatusBarProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const toast = useToast();
-  const { isEditing, setIsEditing, disableEditButton, disableApproveButton, triggerSubmit } =
-    useEditMode();
+  const {
+    isEditing,
+    setIsEditing,
+    disableEditButton,
+    disableApproveButton,
+    triggerSubmit,
+  } = useEditMode();
 
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -44,7 +49,7 @@ function StatusBarContent({ userRole }: StatusBarProps) {
   const handleExit = () => setIsEditing(false);
 
   const handleNew = () => {
-    setIsEditing(false);
+    setIsEditing(true);
     router.push("/dashboard");
   };
 
@@ -164,4 +169,3 @@ export function StatusBar({ userRole }: StatusBarProps) {
     </Suspense>
   );
 }
-

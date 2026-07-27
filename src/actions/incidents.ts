@@ -9,10 +9,7 @@ import {
   saveAnalysisToDB,
   getPreviewIncidentCode,
 } from "@/app/services/incident/incident.service";
-import {
-  IncidentSavePayloadSchema,
-  AnalysisSavePayloadSchema,
-} from "@/types";
+import { IncidentSavePayloadSchema, AnalysisSavePayloadSchema } from "@/types";
 import type {
   FilterParams,
   SuCoListItem,
@@ -39,7 +36,6 @@ export async function getPreviewSoSuCo(): Promise<
     };
   }
 }
-
 
 // ============================================================
 // Lấy danh sách sự cố theo bộ lọc
@@ -102,7 +98,10 @@ export async function saveIncident(
 
     const res = await saveIncidentToDB(masuco, parseResult.data);
     if (!res.success) {
-      return { success: false, error: res.error || "Lưu sự cố không thành công." };
+      return {
+        success: false,
+        error: res.error || "Lưu sự cố không thành công.",
+      };
     }
     revalidatePath("/dashboard");
     revalidatePath("/incidents");
@@ -122,7 +121,10 @@ export async function deleteIncident(
   try {
     const res = await deleteIncidentFromDB(masuco);
     if (!res.success) {
-      return { success: false, error: res.error || "Xóa sự cố không thành công." };
+      return {
+        success: false,
+        error: res.error || "Xóa sự cố không thành công.",
+      };
     }
     revalidatePath("/dashboard");
     revalidatePath("/incidents");
@@ -141,6 +143,7 @@ export async function saveAnalysisIncident(
   payload: AnalysisSavePayload,
   isApprove?: boolean,
 ): Promise<ActionResult<{ masuco: number }>> {
+  console.log({ isApprove });
   try {
     const parseResult = AnalysisSavePayloadSchema.safeParse(payload);
     if (!parseResult.success) {

@@ -109,14 +109,8 @@ function SidebarContent() {
           const list = result.data ?? [];
           setSuCoList(list);
 
-          if (list.length === 0) {
-            // Không tìm thấy dữ liệu trong khoảng ngày chọn -> xóa param masuco
-            router.push(pathname);
-          } else if (
-            activeMasuco &&
-            !list.some((item) => item.masuco === activeMasuco)
-          ) {
-            // Có dữ liệu nhưng masuco hiện tại không nằm trong danh sách mới -> chọn item đầu tiên
+          if (pathname === "/incidents" && list.length > 0 && !activeMasuco) {
+            // Chỉ trên trang Duyệt (/incidents) mới mặc định chọn item đầu tiên nếu URL chưa có masuco
             router.push(`${pathname}?masuco=${list[0].masuco}`);
           }
         }

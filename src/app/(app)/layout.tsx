@@ -1,5 +1,4 @@
 import { TabBar, Sidebar, StatusBar } from "@/components/layout";
-import { EditModeProvider } from "@/lib/edit-mode-context";
 import { getCurrentUser } from "@/lib/dal";
 import "./dashboard.css";
 
@@ -12,15 +11,13 @@ export default async function AppLayout({
   const userRole = user?.quyen ?? "user";
 
   return (
-    <EditModeProvider>
-      <div className="ql-app-shell" suppressHydrationWarning>
-        <TabBar />
-        <div className="ql-workspace">
-          <Sidebar />
-          <main className="ql-main-content">{children}</main>
-        </div>
-        <StatusBar userRole={userRole} />
+    <div className="ql-app-shell" suppressHydrationWarning>
+      <TabBar />
+      <div className="ql-workspace">
+        <Sidebar />
+        <main className="ql-main-content">{children}</main>
       </div>
-    </EditModeProvider>
+      <StatusBar userRole={userRole} />
+    </div>
   );
 }
