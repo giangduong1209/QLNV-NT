@@ -1,4 +1,4 @@
-import { IncidentForm } from "@/components/incidents/IncidentForm";
+import { IncidentReportForm } from "@/components/dashboard/IncidentReportForm";
 import { getSuCoDetail } from "@/actions/incidents";
 import { getLookupData } from "@/actions/lookup";
 
@@ -23,7 +23,7 @@ export default async function DashboardPage({
   }
 
   return (
-    <IncidentForm
+    <IncidentReportForm
       initialData={initialData}
       lookupData={lookupData}
       isNew={!masuco}

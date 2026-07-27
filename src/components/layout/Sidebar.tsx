@@ -1,6 +1,12 @@
 "use client";
 
-import { useState, useEffect, useCallback, useTransition, Suspense } from "react";
+import {
+  useState,
+  useEffect,
+  useCallback,
+  useTransition,
+  Suspense,
+} from "react";
 import { useForm } from "react-hook-form";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { TimePicker } from "@/components/ui/TimePicker";
@@ -54,15 +60,17 @@ function SidebarContent() {
   const [suCoList, setSuCoList] = useState<SuCoListItem[]>([]);
   const [hasSearched, setHasSearched] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
-  const [departmentOptions, setDepartmentOptions] = useState<SelectOption[]>([]);
+  const [departmentOptions, setDepartmentOptions] = useState<SelectOption[]>(
+    [],
+  );
 
   const { register, handleSubmit, watch, setValue, getValues, reset } =
     useForm<SidebarFilterFormValues>({
       defaultValues: {
         trangThai: "TAT_CA",
-        tuNgayDate: todayStr(),
+        tuNgayDate: "", // Đặt rỗng cho SSR để tránh hydration mismatch; useEffect sẽ gán ngày hôm nay sau khi mount
         tuNgayTime: "00:00",
-        denNgayDate: todayStr(),
+        denNgayDate: "", // Đặt rỗng cho SSR để tránh hydration mismatch; useEffect sẽ gán ngày hôm nay sau khi mount
         denNgayTime: "23:59",
         maphong: "",
       },
@@ -101,11 +109,8 @@ function SidebarContent() {
           const list = result.data ?? [];
           setSuCoList(list);
 
-          if (list.length === 0) {
-            // Không tìm thấy dữ liệu trong khoảng ngày chọn -> xóa param masuco
-            router.push(pathname);
-          } else if (activeMasuco && !list.some((item) => item.masuco === activeMasuco)) {
-            // Có dữ liệu nhưng masuco hiện tại không nằm trong danh sách mới -> chọn item đầu tiên
+          if (pathname === "/incidents" && list.length > 0 && !activeMasuco) {
+            // Chỉ trên trang Duyệt (/incidents) mới mặc định chọn item đầu tiên nếu URL chưa có masuco
             router.push(`${pathname}?masuco=${list[0].masuco}`);
           }
         }
@@ -118,20 +123,25 @@ function SidebarContent() {
   useEffect(() => {
     let isMounted = true;
 
-    // Khôi phục bộ lọc đã lưu từ sessionStorage (nếu có)
-    let initialValues: SidebarFilterFormValues = getValues();
+    // Đặt ngày hôm nay làm mặc định (chỉ chạy ở phía Client sau mount -> tránh hydration mismatch)
+    // Khôi phục bộ lọc đã lưu từ sessionStorage (nếu có sẽ ghi đè)
+    let initialValues: SidebarFilterFormValues = {
+      ...getValues(),
+      tuNgayDate: todayStr(),
+      denNgayDate: todayStr(),
+    };
     try {
       const saved = sessionStorage.getItem(FILTER_STORAGE_KEY);
       if (saved) {
         const parsed = JSON.parse(saved);
         if (parsed && typeof parsed === "object") {
           initialValues = { ...initialValues, ...parsed };
-          reset(initialValues);
         }
       }
     } catch (e) {
       console.error("Lỗi khi đọc bộ lọc từ sessionStorage:", e);
     }
+    reset(initialValues);
 
     getLookupData()
       .then((data) => {
@@ -221,11 +231,7 @@ function SidebarContent() {
         </div>
 
         <div className="ql-sidebar-btn-row">
-          <button
-            type="submit"
-            className="ql-sidebar-btn"
-            disabled={isPending}
-          >
+          <button type="submit" className="ql-sidebar-btn" disabled={isPending}>
             {isPending ? "Đang tải..." : "Nạp"}
           </button>
         </div>
@@ -256,8 +262,8 @@ function SidebarContent() {
                   {isPending
                     ? "Đang tải..."
                     : hasSearched
-                    ? "Không tìm thấy dữ liệu"
-                    : "Nhấn Nạp để tìm kiếm"}
+                      ? "Không tìm thấy dữ liệu"
+                      : "Nhấn Nạp để tìm kiếm"}
                 </td>
               </tr>
             ) : (
@@ -287,7 +293,9 @@ export function Sidebar() {
     <Suspense
       fallback={
         <div className="ql-sidebar">
-          <div className="text-slate-400 text-xs py-4">Đang tải danh sách...</div>
+          <div className="text-slate-400 text-xs py-4">
+            Đang tải danh sách...
+          </div>
         </div>
       }
     >

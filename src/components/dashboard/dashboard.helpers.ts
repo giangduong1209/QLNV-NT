@@ -107,12 +107,10 @@ export function buildPhongNoiOptions(
   const filterMaphong = safeParseInt(selectedMaphong);
 
   if (lookupData.phongNoi?.length) {
-    // Nếu có chọn maphong, lọc danh sách phòng nội thuộc maphong đó
     let filteredList = filterMaphong
       ? lookupData.phongNoi.filter((pn) => pn.maphong === filterMaphong)
       : lookupData.phongNoi;
 
-    // Nếu lọc xong mà rỗng (hoặc chưa chọn maphong), hiển thị tất cả
     if (filteredList.length === 0 && filterMaphong) {
       filteredList = lookupData.phongNoi;
     }

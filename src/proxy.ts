@@ -6,7 +6,7 @@ const secretKey = process.env.SESSION_SECRET;
 const encodedKey = new TextEncoder().encode(secretKey);
 
 // Routes that require authentication
-const protectedRoutes = ["/dashboard"];
+const protectedRoutes = ["/dashboard", "/incidents"];
 // Routes accessible only when NOT authenticated
 const publicOnlyRoutes = ["/login"];
 

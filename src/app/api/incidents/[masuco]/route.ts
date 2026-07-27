@@ -5,7 +5,8 @@ import {
   saveIncidentToDB,
   deleteIncidentFromDB,
 } from "@/app/services/incident/incident.service";
-import { handleError } from "@/utils";
+import { handleError, parseMasucoFromRequest } from "@/utils";
+import { IncidentSavePayloadSchema } from "@/types";
 
 export const dynamic = "force-dynamic";
 
@@ -18,10 +19,8 @@ export async function GET(
   { params }: { params: Promise<{ masuco: string }> | { masuco: string } },
 ) {
   try {
-    const resolvedParams = await params;
-    const masucoStr = resolvedParams?.masuco;
-    const masuco = masucoStr ? parseInt(masucoStr, 10) : NaN;
-    if (isNaN(masuco)) {
+    const masuco = await parseMasucoFromRequest(request, params);
+    if (!masuco) {
       return handleError("Mã sự cố không hợp lệ", 400);
     }
 
@@ -46,15 +45,18 @@ export async function PUT(
   { params }: { params: Promise<{ masuco: string }> | { masuco: string } },
 ) {
   try {
-    const resolvedParams = await params;
-    const masucoStr = resolvedParams?.masuco;
-    const masuco = masucoStr ? parseInt(masucoStr, 10) : NaN;
-    if (isNaN(masuco)) {
+    const masuco = await parseMasucoFromRequest(request, params);
+    if (!masuco) {
       return handleError("Mã sự cố không hợp lệ", 400);
     }
 
     const body = await request.json().catch(() => ({}));
-    const result = await saveIncidentToDB(masuco, body);
+    const parseResult = IncidentSavePayloadSchema.safeParse(body);
+    if (!parseResult.success) {
+      return handleError("Dữ liệu sự cố không đúng cấu trúc schema", 400);
+    }
+
+    const result = await saveIncidentToDB(masuco, parseResult.data);
     if (!result.success) {
       return handleError(result.error || "Cập nhật sự cố thất bại", 400);
     }
@@ -82,10 +84,8 @@ export async function DELETE(
   { params }: { params: Promise<{ masuco: string }> | { masuco: string } },
 ) {
   try {
-    const resolvedParams = await params;
-    const masucoStr = resolvedParams?.masuco;
-    const masuco = masucoStr ? parseInt(masucoStr, 10) : NaN;
-    if (isNaN(masuco)) {
+    const masuco = await parseMasucoFromRequest(request, params);
+    if (!masuco) {
       return handleError("Mã sự cố không hợp lệ", 400);
     }
 

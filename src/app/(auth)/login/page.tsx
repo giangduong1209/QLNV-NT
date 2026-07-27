@@ -2,7 +2,6 @@
 
 import { login } from "@/actions/auth";
 import { useActionState } from "react";
-import NhatTanLogo from "../../../static/nhat_tan_logo.png";
 import Image from "next/image";
 import "./styles.css";
 
@@ -15,7 +14,12 @@ export default function LoginPage() {
         {/* Logo / Header */}
         <div className="login-header">
           <div className="login-icon">
-            <Image src={NhatTanLogo} alt="Logo" width={500} height={500} />
+            <Image
+              src="/nhat_tan_logo.png"
+              alt="Logo"
+              width={500}
+              height={500}
+            />
           </div>
           <h1 className="login-title">
             Bệnh viện đa khoa <br /> NHẬT TÂN

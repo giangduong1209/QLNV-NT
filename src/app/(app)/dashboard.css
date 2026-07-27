@@ -277,13 +277,10 @@
 
 .ql-sidebar-list-table tr.active {
   background-color: var(--color-primary-light);
-  /* border-left: 3px solid var(--color-primary); */
-  /* font-weight: 700; */
 }
 
 .ql-sidebar-list-table tr.active td {
   color: var(--color-primary-dark);
-  /* font-weight: 600; */
 }
 
 /* Main form content area */
@@ -385,7 +382,6 @@
   border-color: #94a3b8;
 }
 
-/* Readonly & disabled fields — visual style tương đồng đồng nhất, màu đậm và rõ nét hơn */
 .ql-field-control input[readonly],
 .ql-field-control textarea[readonly],
 .ql-field-control input[type="date"]:disabled,
@@ -426,7 +422,6 @@
   padding: 10px 12px;
 }
 
-/* Date + Time row — overrides width:100% so flex sizing works */
 .ql-datetime-row {
   display: flex;
   align-items: center;
@@ -436,7 +431,7 @@
 .ql-datetime-row input[type="date"] {
   flex: 1;
   min-width: 0;
-  width: auto !important; /* override the width:100% from .ql-field-control rule */
+  width: auto !important;
   font-size: 13px;
   height: 40px;
   padding: 8px 10px;
@@ -454,9 +449,6 @@
   outline: none;
 }
 
-/* ============================================================
-   TimePicker — 24h format (00:00 – 23:59)
-   ============================================================ */
 .ql-timepicker {
   display: inline-flex;
   align-items: center;
@@ -527,13 +519,11 @@
 .ql-timepicker-sep {
   color: var(--color-text-muted);
   font-weight: 700;
-  /* font-size: 15px; */
   line-height: 1;
   user-select: none;
   padding: 0 1px;
 }
 
-/* Size variants */
 .ql-timepicker--sm {
   height: 32px;
   padding: 0 6px;
@@ -552,7 +542,6 @@
   font-size: 13px;
 }
 
-/* Double arrow select button in screenshot */
 .ql-field-control-wrapper {
   display: flex;
   width: 100%;
@@ -582,7 +571,6 @@
   border-bottom-right-radius: 0 !important;
 }
 
-/* Header line styles of the form */
 .ql-form-header-line {
   display: flex;
   flex-wrap: wrap;
@@ -625,7 +613,6 @@
   outline: none;
 }
 
-/* Bottom Status Bar */
 .ql-status-bar {
   height: 56px;
   background-color: #ffffff;
@@ -683,7 +670,6 @@
   transform: scale(0.98);
 }
 
-/* Action button variations for modern look */
 .ql-btn-action:has(.ql-btn-icon-green):hover {
   background-color: #f0fdf4;
   border-color: #22c55e;
@@ -728,7 +714,6 @@
   font-size: 14px;
 }
 
-/* Thin Scrollbars for beautiful look */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
@@ -744,9 +729,6 @@
   background: var(--color-text-muted);
 }
 
-/* ============================================================
-   TimePicker disabled state
-   ============================================================ */
 .ql-timepicker--disabled {
   background-color: #e2e8f0 !important;
   border-color: #94a3b8 !important;
@@ -761,18 +743,12 @@
   cursor: default;
 }
 
-/* ============================================================
-   StatusBar button disabled state
-   ============================================================ */
 .ql-btn-action:disabled {
   opacity: 0.4;
   cursor: not-allowed;
   pointer-events: none;
 }
 
-/* ============================================================
-   Header form inputs readonly state
-   ============================================================ */
 .ql-form-header-field input[readonly] {
   background-color: #e2e8f0;
   color: #0f172a;

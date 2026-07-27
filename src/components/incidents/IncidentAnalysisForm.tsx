@@ -1,38 +1,38 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { useRouter } from "next/navigation";
 import { TimePicker } from "../ui/TimePicker";
 import { useToast } from "../ui/ToastProvider";
-import { useEditMode, DASHBOARD_FORM_ID } from "@/lib/edit-mode-context";
+import { useEditMode, DASHBOARD_FORM_ID, type FormSubmitAction } from "@/store/use-edit-mode-store";
 import { saveAnalysisIncident } from "@/actions/incidents";
 import type { LookupData, SuCoDetail, ConfirmForm } from "@/types";
-import { buildPhongOptions } from "../incidents/incident-form.helpers";
+import { buildPhongOptions } from "../dashboard/dashboard.helpers";
 import { MultiSelect } from "../ui/MultiSelect";
 import { toDate, toNullableString, checkIsAdmin } from "@/utils";
 import {
   CAUSES_LEFT_DEFAULT,
   CAUSES_RIGHT_DEFAULT,
   INJURY_FIELDS,
-} from "./confirm-incidents.constants";
+} from "./incidents.constants";
 import {
   buildDefaultValues,
   buildCauseItemsFromLookup,
   type ResolvedCauseItem,
-} from "./confirm-incidents.helpers";
+} from "./incidents.helpers";
 
-interface ConfirmIncidentsProps {
+interface IncidentAnalysisFormProps {
   initialData: SuCoDetail | null;
   lookupData: LookupData;
   userRole?: string;
 }
 
-export const ConfirmIncidents = ({
+export function IncidentAnalysisForm({
   initialData,
   lookupData,
   userRole,
-}: ConfirmIncidentsProps) => {
+}: IncidentAnalysisFormProps) {
   const router = useRouter();
   const toast = useToast();
   const {
@@ -40,13 +40,14 @@ export const ConfirmIncidents = ({
     setIsEditing,
     setDisableEditButton,
     setDisableApproveButton,
+    registerSubmitHandler,
   } = useEditMode();
   const [isSaving, setIsSaving] = useState(false);
 
   const suco = initialData?.sucoykhoa;
   const phanTich = initialData?.phantichsuco;
 
-  const { control, register, reset, handleSubmit } = useForm<ConfirmForm>({
+  const { control, register, reset, handleSubmit, getValues } = useForm<ConfirmForm>({
     defaultValues: buildDefaultValues(suco, phanTich),
   });
 
@@ -65,43 +66,37 @@ export const ConfirmIncidents = ({
     [lookupData],
   );
 
-  // Reset form khi initialData thay đổi
+  // Reset form và chế độ sửa khi initialData thay đổi (chọn sự cố khác)
   useEffect(() => {
     reset(buildDefaultValues(suco, phanTich));
-  }, [initialData, reset, suco, phanTich]);
+    setIsEditing(false);
+  }, [initialData, reset, suco, phanTich, setIsEditing]);
 
   const daPhanTich = !!phanTich;
   const daDuyet = !!phanTich?.duyet;
   const isAdmin = checkIsAdmin(userRole);
 
-  // Sự cố chưa phân tích (!daPhanTich) -> disable nút "Sửa"
-  // Sự cố đã duyệt (daDuyet) -> disable nút "Duyệt"
   useEffect(() => {
     setDisableEditButton(!daPhanTich);
     setDisableApproveButton(daDuyet);
     return () => {
+      setIsEditing(false);
       setDisableEditButton(false);
       setDisableApproveButton(false);
     };
-  }, [daPhanTich, daDuyet, setDisableEditButton, setDisableApproveButton]);
+  }, [daPhanTich, daDuyet, setIsEditing, setDisableEditButton, setDisableApproveButton]);
 
-  // Khi sự cố chưa phân tích (!daPhanTich): tự động enable ô nhập sẵn theo quyền mà không cần bấm Sửa trước
-  // Khi sự cố đã phân tích (daPhanTich): disable theo mặc định, bấm Sửa (isEditing) mới enable
   const canEditGeneral = !daPhanTich || isEditing;
   const canEditExpert = isAdmin && (!daPhanTich || isEditing);
 
-  const onSubmit = async (
+  const performSubmit = useCallback(async (
     values: ConfirmForm,
-    e?: React.BaseSyntheticEvent,
+    isApprove?: boolean,
   ) => {
     if (!suco?.masuco) {
       toast.error("Vui lòng chọn một sự cố để thực hiện phân tích/duyệt.");
       return;
     }
-
-    const nativeEvent = e?.nativeEvent as SubmitEvent | undefined;
-    const submitter = nativeEvent?.submitter as HTMLButtonElement | undefined;
-    const isApprove = submitter?.value === "approve";
 
     setIsSaving(true);
 
@@ -157,9 +152,26 @@ export const ConfirmIncidents = ({
         result.error ?? "Thao tác không thành công. Vui lòng thử lại.",
       );
     }
+  }, [suco?.masuco, setIsEditing, router, toast]);
+
+  const onSubmit = (values: ConfirmForm, e?: React.BaseSyntheticEvent) => {
+    const nativeEvent = e?.nativeEvent as SubmitEvent | undefined;
+    const submitter = nativeEvent?.submitter as HTMLButtonElement | undefined;
+    const isApprove = submitter?.value === "approve";
+    performSubmit(values, isApprove);
   };
 
-  // ── Render nguyên nhân ─────────────────────────────────────────────────────
+  // Đăng ký submit handler với EditModeContext
+  useEffect(() => {
+    registerSubmitHandler((actionType?: FormSubmitAction) => {
+      const values = getValues();
+      performSubmit(values, actionType === "approve");
+    });
+    return () => {
+      registerSubmitHandler(null);
+    };
+  }, [registerSubmitHandler, getValues, performSubmit]);
+
   const renderCauseRow = (causeItem: ResolvedCauseItem) => (
     <div
       key={causeItem.causeKey}
@@ -211,7 +223,6 @@ export const ConfirmIncidents = ({
     </div>
   );
 
-  // ── JSX ────────────────────────────────────────────────────────────────────
   return (
     <form
       id={DASHBOARD_FORM_ID}
@@ -240,7 +251,6 @@ export const ConfirmIncidents = ({
       {/* ── Thông tin chung ────────────────────────────────────────────────── */}
       <div className="ql-form-section">
         <div className="ql-form-section-body">
-          {/* Mã sự cố */}
           <div className="grid grid-cols-12 gap-4 mb-4">
             <div className="col-span-3">
               <div className="ql-field">
@@ -254,7 +264,6 @@ export const ConfirmIncidents = ({
             </div>
           </div>
 
-          {/* Tên sự cố + Ngày sự cố */}
           <div className="grid grid-cols-12 gap-4 mb-4">
             <div className="col-span-5">
               <div className="ql-field">
@@ -300,7 +309,6 @@ export const ConfirmIncidents = ({
             </div>
           </div>
 
-          {/* Mã KCB + Họ và tên */}
           <div className="grid grid-cols-12 gap-4 mb-4">
             <div className="col-span-3">
               <div className="ql-field">
@@ -320,7 +328,6 @@ export const ConfirmIncidents = ({
             </div>
           </div>
 
-          {/* Khoa/phòng + Vị trí cụ thể */}
           <div className="grid grid-cols-12 gap-4 mb-4">
             <div className="col-span-8">
               <div className="ql-field">
@@ -362,7 +369,6 @@ export const ConfirmIncidents = ({
           )}
         </div>
         <div className="ql-form-section-body">
-          {/* Ngày phân tích */}
           <div className="grid grid-cols-12 gap-4 mb-4">
             <div className="col-span-6">
               <div className="ql-field">
@@ -390,7 +396,6 @@ export const ConfirmIncidents = ({
             </div>
           </div>
 
-          {/* Mô tả */}
           <div className="grid grid-cols-12 gap-4 mb-4">
             <div className="col-span-6">
               <div className="ql-field-label">Mô tả:</div>
@@ -404,9 +409,7 @@ export const ConfirmIncidents = ({
             </div>
           </div>
 
-          {/* Bảng nguyên nhân */}
           <div className="grid grid-cols-12 gap-2">
-            {/* Cột trái */}
             <div className="col-span-6">
               {causesLeft.map((causeItem) => renderCauseRow(causeItem))}
               <div className="ql-field">
@@ -421,7 +424,6 @@ export const ConfirmIncidents = ({
               </div>
             </div>
 
-            {/* Cột phải */}
             <div className="col-span-6">
               <div className="ql-field mb-2">
                 <span className="ql-field-label w-10 font-bold">Y lệnh:</span>
@@ -498,7 +500,7 @@ export const ConfirmIncidents = ({
               </div>
             </div>
           </div>
-          {/* Thảo luận / Phù hợp */}
+
           <div className="grid grid-cols-12 gap-4 mb-4">
             <div className="col-span-8">
               <div className="ql-field">
@@ -548,7 +550,6 @@ export const ConfirmIncidents = ({
             </div>
           </div>
 
-          {/* Tổn thương NC0 */}
           <div className="grid grid-cols-12 gap-4 mb-4">
             <div className="col-span-12">
               <div className="ql-field">
@@ -568,7 +569,6 @@ export const ConfirmIncidents = ({
             </div>
           </div>
 
-          {/* NC1, NC2, NC3, Tổ chức */}
           {INJURY_FIELDS.map(({ field, label }) => (
             <div key={field} className="grid grid-cols-12 gap-4 mb-4">
               <div className="col-span-8">
@@ -591,4 +591,4 @@ export const ConfirmIncidents = ({
       </div>
     </form>
   );
-};
+}
