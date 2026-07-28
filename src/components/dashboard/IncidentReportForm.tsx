@@ -166,26 +166,26 @@ export function IncidentReportForm({
 
       {/* ── Header bar ─────────────────────────────────────────────────────── */}
       <div className="ql-form-header-line">
-        <div className="ql-form-header-field">
+        <div className="ql-form-header-field col-span-3">
           <span className="ql-field-label">Mã sự cố:</span>
           <input
             type="text"
             {...register("sosuco")}
             readOnly
             placeholder={isNew ? "Tự động" : ""}
-            className="w-32.5 text-center font-bold bg-primary-light border border-[rgba(220,38,38,0.2)] text-primary-dark"
+            className="w-full font-bold bg-primary-light border border-[rgba(220,38,38,0.2)] text-primary-dark"
           />
         </div>
 
-        <div className="ql-form-header-field">
+        <div className="ql-form-header-field col-span-5">
           <span className="ql-field-label">Ngày lập:</span>
-          <div className="flex gap-1.5 items-center">
+          <div className="flex gap-1.5 items-center flex-1">
             <input
               type="date"
               {...register("ngayLapDate")}
               readOnly={!canEdit}
               disabled={!canEdit}
-              className="w-32.5 text-center bg-primary-light border border-[rgba(220,38,38,0.15)]"
+              className="w-full text-center bg-primary-light border border-[rgba(220,38,38,0.15)]"
               suppressHydrationWarning
             />
             <Controller
@@ -195,7 +195,6 @@ export function IncidentReportForm({
                 <TimePicker
                   value={field.value}
                   onChange={field.onChange}
-                  size="sm"
                   disabled={!canEdit}
                 />
               )}
@@ -203,12 +202,12 @@ export function IncidentReportForm({
           </div>
         </div>
 
-        <div className="ql-form-header-field">
+        <div className="ql-form-header-field col-span-4">
           <span className="ql-field-label">Hình thức:</span>
           <select
             {...register("mahinhthuc")}
             disabled={!canEdit}
-            className="w-40"
+            className="w-full"
           >
             {lookupData.hinhThuc.map((o) => (
               <option key={o.mahinhthuc} value={o.mahinhthuc.toString()}>
@@ -218,7 +217,7 @@ export function IncidentReportForm({
           </select>
         </div>
 
-        <div className="ql-form-header-field">
+        <div className="ql-form-header-field col-span-12">
           <span className="ql-field-label">
             Loại sự cố <span className="text-red-500 font-bold">*</span>:
           </span>
@@ -630,7 +629,8 @@ export function IncidentReportForm({
 
               <div className="ql-field">
                 <span className="ql-field-label w-85 text-xs">
-                  Phân loại ban đầu về sự cố <span className="text-red-500 font-bold">*</span>:
+                  Phân loại ban đầu về sự cố{" "}
+                  <span className="text-red-500 font-bold">*</span>:
                 </span>
                 <div className="ql-field-control">
                   <FormFieldControl error={errors.phanloaibandau}>
@@ -657,20 +657,25 @@ export function IncidentReportForm({
 
               <div className="ql-field">
                 <span className="ql-field-label w-85 text-xs">
-                  Đánh giá ban đầu về mức độ ảnh hưởng của sự cố <span className="text-red-500 font-bold">*</span>:
+                  Đánh giá ban đầu về mức độ ảnh hưởng của sự cố{" "}
+                  <span className="text-red-500 font-bold">*</span>:
                 </span>
                 <div className="ql-field-control">
                   <FormFieldControl error={errors.danhgiabandau}>
                     <select
                       {...register("danhgiabandau", {
-                        required: "Vui lòng chọn đánh giá ban đầu về mức độ ảnh hưởng",
+                        required:
+                          "Vui lòng chọn đánh giá ban đầu về mức độ ảnh hưởng",
                       })}
                       disabled={!canEdit}
                       className={errors.danhgiabandau ? "ql-input-error" : ""}
                     >
                       <option value=""></option>
                       {lookupData.danhGiaBanDau?.map((o) => (
-                        <option key={o.madanhgia} value={o.madanhgia.toString()}>
+                        <option
+                          key={o.madanhgia}
+                          value={o.madanhgia.toString()}
+                        >
                           {o.mamucdo
                             ? `${o.mamucdo} - ${o.tendanhgia}`
                             : o.tendanhgia}
