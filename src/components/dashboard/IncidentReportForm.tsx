@@ -4,6 +4,7 @@ import { useState, useEffect, useMemo, useCallback } from "react";
 import { useForm, Controller, useWatch } from "react-hook-form";
 import { useRouter } from "next/navigation";
 import { TimePicker } from "@/components/ui/TimePicker";
+import { FormFieldControl } from "@/components/ui/FormFieldControl";
 import { useToast } from "@/components/ui/ToastProvider";
 import { useEditMode, DASHBOARD_FORM_ID } from "@/store/use-edit-mode-store";
 import { saveIncident, getPreviewSoSuCo } from "@/actions/incidents";
@@ -41,10 +42,17 @@ export function IncidentReportForm({
 
   const canEdit = isNew || isEditing;
 
-  const { register, control, handleSubmit, reset, setValue } =
-    useForm<IncidentFormValues>({
-      defaultValues: buildDefaultValues(initialData, lookupData, "", ""),
-    });
+  const {
+    register,
+    control,
+    handleSubmit,
+    reset,
+    setValue,
+    formState: { errors },
+  } = useForm<IncidentFormValues>({
+    defaultValues: buildDefaultValues(initialData, lookupData, "", ""),
+    mode: "onTouched",
+  });
 
   const selectedLoaiSuCo = useWatch({ control, name: "maloaiscyk" });
   const currentTenSuCo = useWatch({ control, name: "tensuco" });
@@ -86,15 +94,19 @@ export function IncidentReportForm({
     [initialData, router, setIsEditing, toast],
   );
 
+  const onError = useCallback(() => {
+    toast.error("Vui lòng kiểm tra và nhập đầy đủ các thông tin bắt buộc!");
+  }, [toast]);
+
   // Đăng ký submit handler với Zustand Store
   useEffect(() => {
     registerSubmitHandler(() => {
-      handleSubmit(onSubmit)();
+      handleSubmit(onSubmit, onError)();
     });
     return () => {
       registerSubmitHandler(null);
     };
-  }, [registerSubmitHandler, handleSubmit, onSubmit]);
+  }, [registerSubmitHandler, handleSubmit, onSubmit, onError]);
 
   useEffect(() => {
     const now = new Date();
@@ -130,7 +142,7 @@ export function IncidentReportForm({
   return (
     <form
       id={DASHBOARD_FORM_ID}
-      onSubmit={handleSubmit(onSubmit)}
+      onSubmit={handleSubmit(onSubmit, onError)}
       className="ql-form-container"
     >
       {isSaving && (
@@ -207,19 +219,28 @@ export function IncidentReportForm({
         </div>
 
         <div className="ql-form-header-field">
-          <span className="ql-field-label">Loại sự cố:</span>
-          <select
-            {...register("maloaiscyk")}
-            disabled={!canEdit}
-            className="w-full"
-          >
-            <option value=""></option>
-            {lookupData.loaiSuCo.map((item) => (
-              <option key={item.maloaiscyk} value={item.maloaiscyk.toString()}>
-                {item.tenloaiscyk}
-              </option>
-            ))}
-          </select>
+          <span className="ql-field-label">
+            Loại sự cố <span className="text-red-500 font-bold">*</span>:
+          </span>
+          <FormFieldControl error={errors.maloaiscyk}>
+            <select
+              {...register("maloaiscyk", {
+                required: "Vui lòng chọn loại sự cố",
+              })}
+              disabled={!canEdit}
+              className={`w-full ${errors.maloaiscyk ? "ql-input-error" : ""}`}
+            >
+              <option value=""></option>
+              {lookupData.loaiSuCo.map((item) => (
+                <option
+                  key={item.maloaiscyk}
+                  value={item.maloaiscyk.toString()}
+                >
+                  {item.tenloaiscyk}
+                </option>
+              ))}
+            </select>
+          </FormFieldControl>
         </div>
       </div>
 
@@ -232,39 +253,63 @@ export function IncidentReportForm({
           <div className="grid grid-cols-12 gap-4 mb-4">
             <div className="col-span-3">
               <div className="ql-field">
-                <span className="ql-field-label w-15">Mã KCB:</span>
+                <span className="ql-field-label w-15">
+                  Mã KCB <span className="text-red-500 font-bold">*</span>:
+                </span>
                 <div className="ql-field-control">
-                  <input
-                    type="text"
-                    {...register("makcb")}
-                    readOnly={!canEdit}
-                  />
+                  <FormFieldControl error={errors.makcb}>
+                    <input
+                      type="text"
+                      {...register("makcb", {
+                        required: "Vui lòng nhập mã KCB",
+                      })}
+                      readOnly={!canEdit}
+                      className={errors.makcb ? "ql-input-error" : ""}
+                    />
+                  </FormFieldControl>
                 </div>
               </div>
             </div>
             <div className="col-span-4">
               <div className="ql-field">
-                <span className="ql-field-label w-17.5">Họ và tên:</span>
+                <span className="ql-field-label w-17.5">
+                  Họ và tên <span className="text-red-500 font-bold">*</span>:
+                </span>
                 <div className="ql-field-control">
-                  <input
-                    type="text"
-                    {...register("hoten")}
-                    readOnly={!canEdit}
-                  />
+                  <FormFieldControl error={errors.hoten}>
+                    <input
+                      type="text"
+                      {...register("hoten", {
+                        required: "Vui lòng nhập họ và tên",
+                      })}
+                      readOnly={!canEdit}
+                      className={errors.hoten ? "ql-input-error" : ""}
+                    />
+                  </FormFieldControl>
                 </div>
               </div>
             </div>
             <div className="col-span-5">
               <div className="ql-field">
-                <span className="ql-field-label w-20">Khoa/phòng:</span>
+                <span className="ql-field-label w-20">
+                  Khoa/phòng <span className="text-red-500 font-bold">*</span>:
+                </span>
                 <div className="ql-field-control">
-                  <select {...register("maphong")} disabled={!canEdit}>
-                    {phongOptions.map((o) => (
-                      <option key={o.value} value={o.value}>
-                        {o.label}
-                      </option>
-                    ))}
-                  </select>
+                  <FormFieldControl error={errors.maphong}>
+                    <select
+                      {...register("maphong", {
+                        required: "Vui lòng chọn khoa/phòng",
+                      })}
+                      disabled={!canEdit}
+                      className={errors.maphong ? "ql-input-error" : ""}
+                    >
+                      {phongOptions.map((o) => (
+                        <option key={o.value} value={o.value}>
+                          {o.label}
+                        </option>
+                      ))}
+                    </select>
+                  </FormFieldControl>
                 </div>
               </div>
             </div>
@@ -273,41 +318,65 @@ export function IncidentReportForm({
           <div className="grid grid-cols-12 gap-4 mb-4">
             <div className="col-span-3">
               <div className="ql-field">
-                <span className="ql-field-label w-15">Ngày sinh:</span>
+                <span className="ql-field-label w-15">
+                  Ngày sinh <span className="text-red-500 font-bold">*</span>:
+                </span>
                 <div className="ql-field-control">
-                  <input
-                    type="date"
-                    {...register("ngaysinh")}
-                    readOnly={!canEdit}
-                    disabled={!canEdit}
-                  />
+                  <FormFieldControl error={errors.ngaysinh}>
+                    <input
+                      type="date"
+                      {...register("ngaysinh", {
+                        required: "Vui lòng chọn ngày sinh",
+                      })}
+                      readOnly={!canEdit}
+                      disabled={!canEdit}
+                      className={errors.ngaysinh ? "ql-input-error" : ""}
+                    />
+                  </FormFieldControl>
                 </div>
               </div>
             </div>
             <div className="col-span-4">
               <div className="ql-field">
-                <span className="ql-field-label w-17.5">Số bệnh án:</span>
+                <span className="ql-field-label w-17.5">
+                  Số bệnh án <span className="text-red-500 font-bold">*</span>:
+                </span>
                 <div className="ql-field-control">
-                  <input
-                    type="text"
-                    {...register("sobenhan")}
-                    readOnly={!canEdit}
-                  />
+                  <FormFieldControl error={errors.sobenhan}>
+                    <input
+                      type="text"
+                      {...register("sobenhan", {
+                        required: "Vui lòng nhập số bệnh án",
+                      })}
+                      readOnly={!canEdit}
+                      className={errors.sobenhan ? "ql-input-error" : ""}
+                    />
+                  </FormFieldControl>
                 </div>
               </div>
             </div>
             <div className="col-span-3">
               <div className="ql-field">
-                <span className="ql-field-label w-20">Giới tính:</span>
+                <span className="ql-field-label w-20">
+                  Giới tính <span className="text-red-500 font-bold">*</span>:
+                </span>
                 <div className="ql-field-control">
-                  <select {...register("maphai")} disabled={!canEdit}>
-                    <option value=""></option>
-                    {lookupData.phai.map((o) => (
-                      <option key={o.maphai} value={o.maphai.toString()}>
-                        {o.phai}
-                      </option>
-                    ))}
-                  </select>
+                  <FormFieldControl error={errors.maphai}>
+                    <select
+                      {...register("maphai", {
+                        required: "Vui lòng chọn giới tính",
+                      })}
+                      disabled={!canEdit}
+                      className={errors.maphai ? "ql-input-error" : ""}
+                    >
+                      <option value=""></option>
+                      {lookupData.phai.map((o) => (
+                        <option key={o.maphai} value={o.maphai.toString()}>
+                          {o.phai}
+                        </option>
+                      ))}
+                    </select>
+                  </FormFieldControl>
                 </div>
               </div>
             </div>
@@ -316,19 +385,29 @@ export function IncidentReportForm({
           <div className="grid grid-cols-12 gap-4">
             <div className="col-span-3">
               <div className="ql-field">
-                <span className="ql-field-label w-15">Đối tượng:</span>
+                <span className="ql-field-label w-15">
+                  Đối tượng <span className="text-red-500 font-bold">*</span>:
+                </span>
                 <div className="ql-field-control">
-                  <select {...register("madoituongsc")} disabled={!canEdit}>
-                    <option value=""></option>
-                    {lookupData.doiTuong.map((o) => (
-                      <option
-                        key={o.madoituongsc}
-                        value={o.madoituongsc.toString()}
-                      >
-                        {o.doituongsc}
-                      </option>
-                    ))}
-                  </select>
+                  <FormFieldControl error={errors.madoituongsc}>
+                    <select
+                      {...register("madoituongsc", {
+                        required: "Vui lòng chọn đối tượng",
+                      })}
+                      disabled={!canEdit}
+                      className={errors.madoituongsc ? "ql-input-error" : ""}
+                    >
+                      <option value=""></option>
+                      {lookupData.doiTuong.map((o) => (
+                        <option
+                          key={o.madoituongsc}
+                          value={o.madoituongsc.toString()}
+                        >
+                          {o.doituongsc}
+                        </option>
+                      ))}
+                    </select>
+                  </FormFieldControl>
                 </div>
               </div>
             </div>
@@ -345,20 +424,26 @@ export function IncidentReportForm({
           <div className="grid grid-cols-12 gap-4 mb-4">
             <div className="col-span-8">
               <div className="ql-field">
-                <span className="ql-field-label">Tên sự cố:</span>
+                <span className="ql-field-label">
+                  Tên sự cố <span className="text-red-500 font-bold">*</span>:
+                </span>
                 <div className="ql-field-control">
-                  <select
-                    {...register("tensuco")}
-                    disabled={!canEdit}
-                    className="w-full"
-                  >
-                    <option value=""></option>
-                    {tenSuCoList.map((item) => (
-                      <option key={item.idscyk} value={item.tensucoyk ?? ""}>
-                        {item.tensucoyk}
-                      </option>
-                    ))}
-                  </select>
+                  <FormFieldControl error={errors.tensuco}>
+                    <select
+                      {...register("tensuco", {
+                        required: "Vui lòng chọn tên sự cố",
+                      })}
+                      disabled={!canEdit}
+                      className={`w-full ${errors.tensuco ? "ql-input-error" : ""}`}
+                    >
+                      <option value=""></option>
+                      {tenSuCoList.map((item) => (
+                        <option key={item.idscyk} value={item.tensucoyk ?? ""}>
+                          {item.tensucoyk}
+                        </option>
+                      ))}
+                    </select>
+                  </FormFieldControl>
                 </div>
               </div>
             </div>
@@ -391,15 +476,25 @@ export function IncidentReportForm({
           <div className="grid grid-cols-12 gap-4 mb-4">
             <div className="col-span-8">
               <div className="ql-field">
-                <span className="ql-field-label">Khoa/phòng:</span>
+                <span className="ql-field-label">
+                  Khoa/phòng <span className="text-red-500 font-bold">*</span>:
+                </span>
                 <div className="ql-field-control">
-                  <select {...register("maphongnoi")} disabled={!canEdit}>
-                    {phongNoiOptions.map((o) => (
-                      <option key={o.value} value={o.value}>
-                        {o.label}
-                      </option>
-                    ))}
-                  </select>
+                  <FormFieldControl error={errors.maphongnoi}>
+                    <select
+                      {...register("maphongnoi", {
+                        required: "Vui lòng chọn khoa/phòng nơi xảy ra sự cố",
+                      })}
+                      disabled={!canEdit}
+                      className={errors.maphongnoi ? "ql-input-error" : ""}
+                    >
+                      {phongNoiOptions.map((o) => (
+                        <option key={o.value} value={o.value}>
+                          {o.label}
+                        </option>
+                      ))}
+                    </select>
+                  </FormFieldControl>
                 </div>
               </div>
             </div>
@@ -419,32 +514,58 @@ export function IncidentReportForm({
 
           <div className="grid grid-cols-12 gap-4 mb-4">
             <div className="col-span-6">
-              <div className="ql-field-label mb-1">Mô tả:</div>
+              <div className="ql-field-label mb-1">
+                Mô tả <span className="text-red-500 font-bold">*</span>:
+              </div>
               <div className="ql-field-control">
-                <textarea rows={5} {...register("mota")} readOnly={!canEdit} />
+                <FormFieldControl error={errors.mota}>
+                  <textarea
+                    rows={5}
+                    {...register("mota", {
+                      required: "Vui lòng nhập mô tả sự cố",
+                    })}
+                    readOnly={!canEdit}
+                    className={errors.mota ? "ql-input-error" : ""}
+                  />
+                </FormFieldControl>
               </div>
             </div>
             <div className="col-span-6">
-              <div className="ql-field-label mb-1">Đề xuất giải pháp:</div>
+              <div className="ql-field-label mb-1">
+                Đề xuất giải pháp{" "}
+                <span className="text-red-500 font-bold">*</span>:
+              </div>
               <div className="ql-field-control">
-                <textarea
-                  rows={5}
-                  {...register("giaiphapdexuat")}
-                  readOnly={!canEdit}
-                />
+                <FormFieldControl error={errors.giaiphapdexuat}>
+                  <textarea
+                    rows={5}
+                    {...register("giaiphapdexuat", {
+                      required: "Vui lòng nhập đề xuất giải pháp",
+                    })}
+                    readOnly={!canEdit}
+                    className={errors.giaiphapdexuat ? "ql-input-error" : ""}
+                  />
+                </FormFieldControl>
               </div>
             </div>
           </div>
 
           <div className="grid grid-cols-12 gap-4 mb-4">
             <div className="col-span-12">
-              <div className="ql-field-label mb-1">Xử lý ban đầu:</div>
+              <div className="ql-field-label mb-1">
+                Xử lý ban đầu <span className="text-red-500 font-bold">*</span>:
+              </div>
               <div className="ql-field-control">
-                <textarea
-                  rows={4}
-                  {...register("xulybandau")}
-                  readOnly={!canEdit}
-                />
+                <FormFieldControl error={errors.xulybandau}>
+                  <textarea
+                    rows={4}
+                    {...register("xulybandau", {
+                      required: "Vui lòng nhập xử lý ban đầu",
+                    })}
+                    readOnly={!canEdit}
+                    className={errors.xulybandau ? "ql-input-error" : ""}
+                  />
+                </FormFieldControl>
               </div>
             </div>
           </div>
@@ -509,38 +630,54 @@ export function IncidentReportForm({
 
               <div className="ql-field">
                 <span className="ql-field-label w-85 text-xs">
-                  Phân loại ban đầu về sự cố (**):
+                  Phân loại ban đầu về sự cố <span className="text-red-500 font-bold">*</span>:
                 </span>
                 <div className="ql-field-control">
-                  <select {...register("phanloaibandau")} disabled={!canEdit}>
-                    <option value=""></option>
-                    {lookupData.phanLoaiBanDau?.map((o) => (
-                      <option
-                        key={o.maphanloai}
-                        value={o.maphanloai.toString()}
-                      >
-                        {o.tenphanloai}
-                      </option>
-                    ))}
-                  </select>
+                  <FormFieldControl error={errors.phanloaibandau}>
+                    <select
+                      {...register("phanloaibandau", {
+                        required: "Vui lòng chọn phân loại ban đầu về sự cố",
+                      })}
+                      disabled={!canEdit}
+                      className={errors.phanloaibandau ? "ql-input-error" : ""}
+                    >
+                      <option value=""></option>
+                      {lookupData.phanLoaiBanDau?.map((o) => (
+                        <option
+                          key={o.maphanloai}
+                          value={o.maphanloai.toString()}
+                        >
+                          {o.tenphanloai}
+                        </option>
+                      ))}
+                    </select>
+                  </FormFieldControl>
                 </div>
               </div>
 
               <div className="ql-field">
                 <span className="ql-field-label w-85 text-xs">
-                  Đánh giá ban đầu về mức độ ảnh hưởng của sự cố (**):
+                  Đánh giá ban đầu về mức độ ảnh hưởng của sự cố <span className="text-red-500 font-bold">*</span>:
                 </span>
                 <div className="ql-field-control">
-                  <select {...register("danhgiabandau")} disabled={!canEdit}>
-                    <option value=""></option>
-                    {lookupData.danhGiaBanDau?.map((o) => (
-                      <option key={o.madanhgia} value={o.madanhgia.toString()}>
-                        {o.mamucdo
-                          ? `${o.mamucdo} - ${o.tendanhgia}`
-                          : o.tendanhgia}
-                      </option>
-                    ))}
-                  </select>
+                  <FormFieldControl error={errors.danhgiabandau}>
+                    <select
+                      {...register("danhgiabandau", {
+                        required: "Vui lòng chọn đánh giá ban đầu về mức độ ảnh hưởng",
+                      })}
+                      disabled={!canEdit}
+                      className={errors.danhgiabandau ? "ql-input-error" : ""}
+                    >
+                      <option value=""></option>
+                      {lookupData.danhGiaBanDau?.map((o) => (
+                        <option key={o.madanhgia} value={o.madanhgia.toString()}>
+                          {o.mamucdo
+                            ? `${o.mamucdo} - ${o.tendanhgia}`
+                            : o.tendanhgia}
+                        </option>
+                      ))}
+                    </select>
+                  </FormFieldControl>
                 </div>
               </div>
             </div>
