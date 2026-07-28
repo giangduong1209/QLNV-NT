@@ -766,3 +766,22 @@
   -webkit-text-fill-color: #0f172a;
   font-weight: 600;
 }
+
+/* Validation Error Styles */
+.ql-field-control input.ql-input-error,
+.ql-field-control select.ql-input-error,
+.ql-field-control textarea.ql-input-error,
+.ql-form-header-field select.ql-input-error {
+  border-color: #ef4444 !important;
+  box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.2) !important;
+}
+
+.ql-field-error-text {
+  font-size: 11px;
+  color: #ef4444;
+  margin-top: 3px;
+  font-weight: 500;
+  display: block;
+  line-height: 1.2;
+}
+
