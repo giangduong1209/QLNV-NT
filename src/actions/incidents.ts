@@ -143,7 +143,6 @@ export async function saveAnalysisIncident(
   payload: AnalysisSavePayload,
   isApprove?: boolean,
 ): Promise<ActionResult<{ masuco: number }>> {
-  console.log({ isApprove });
   try {
     const parseResult = AnalysisSavePayloadSchema.safeParse(payload);
     if (!parseResult.success) {

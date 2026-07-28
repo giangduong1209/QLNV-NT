@@ -54,10 +54,12 @@ export function IncidentReportForm({
     () => buildPhongOptions(lookupData),
     [lookupData],
   );
+
   const phongNoiOptions = useMemo(
     () => buildPhongNoiOptions(lookupData, selectedMaphong),
     [lookupData, selectedMaphong],
   );
+
   const tenSuCoList = useMemo(
     () => buildTenSuCoList(lookupData, selectedLoaiSuCo, currentTenSuCo),
     [lookupData, selectedLoaiSuCo, currentTenSuCo],
@@ -70,13 +72,10 @@ export function IncidentReportForm({
       const masuco = initialData?.sucoykhoa?.masuco ?? null;
       const payload = buildSavePayload(values);
 
-      console.log({ payload });
-
       const result = await saveIncident(masuco, payload);
       setIsSaving(false);
 
       if (result.success && result.data?.masuco) {
-        console.log("result.data.masuco", result.data.masuco);
         toast.success("Lưu thông tin sự cố thành công!");
         setIsEditing(false);
         router.push(`/incidents?masuco=${result.data.masuco}`);
@@ -87,7 +86,7 @@ export function IncidentReportForm({
     [initialData, router, setIsEditing, toast],
   );
 
-  // Đăng ký submit handler với EditModeContext
+  // Đăng ký submit handler với Zustand Store
   useEffect(() => {
     registerSubmitHandler(() => {
       handleSubmit(onSubmit)();
