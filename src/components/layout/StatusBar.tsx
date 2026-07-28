@@ -134,7 +134,7 @@ function StatusBarContent({ userRole }: StatusBarProps) {
           </button>
 
           {/* In phiếu — chưa implement */}
-          <button className="ql-btn-action" disabled>
+          <button className="ql-btn-action" disabled={!activeMasuco}>
             <span className="ql-btn-icon-blue">&#128427;</span> In phiếu{" "}
             <small>▼</small>
           </button>

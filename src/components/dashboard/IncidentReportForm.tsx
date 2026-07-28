@@ -54,10 +54,12 @@ export function IncidentReportForm({
     () => buildPhongOptions(lookupData),
     [lookupData],
   );
+
   const phongNoiOptions = useMemo(
     () => buildPhongNoiOptions(lookupData, selectedMaphong),
     [lookupData, selectedMaphong],
   );
+
   const tenSuCoList = useMemo(
     () => buildTenSuCoList(lookupData, selectedLoaiSuCo, currentTenSuCo),
     [lookupData, selectedLoaiSuCo, currentTenSuCo],
