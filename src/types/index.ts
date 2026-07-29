@@ -140,11 +140,11 @@ export interface LookupData {
 }
 
 export interface FilterParams {
-  trangThai: AnalysisStatus;
-  tuNgay: string; // "YYYY-MM-DD"
-  tuNgayTime: string;
-  denNgay: string; // "YYYY-MM-DD"
-  denNgayTime: string;
+  trangThai?: AnalysisStatus;
+  tuNgay?: string; // "YYYY-MM-DD"
+  tuNgayTime?: string;
+  denNgay?: string; // "YYYY-MM-DD"
+  denNgayTime?: string;
   maphong?: number;
 }
 

@@ -5,7 +5,13 @@ import type {
   FilterParams,
   IncidentSavePayload,
   AnalysisSavePayload,
+  PhaiItem,
 } from "@/types";
+
+export const DANH_MUC_PHAI: PhaiItem[] = [
+  { maphai: 0, phai: "Nam" },
+  { maphai: 1, phai: "Nữ" },
+];
 
 export async function getCandidateDepartmentIds(selectedId: number): Promise<{
   maphongIds: number[];
@@ -32,16 +38,30 @@ export async function getIncidentList(
   params?: FilterParams | Prisma.dangky_sucoykhoaWhereInput,
 ) {
   if (!params) {
-    return prisma.dangky_sucoykhoa.findMany({
+    const list = await prisma.dangky_sucoykhoa.findMany({
+      include: {
+        phantichsuco: { select: { masuco: true } },
+      },
       orderBy: { ngaysuco: "desc" },
     });
+    return list.map(({ phantichsuco, ...item }) => ({
+      ...item,
+      daPhanTich: !!phantichsuco,
+    }));
   }
 
   if (!isFilterParams(params)) {
-    return prisma.dangky_sucoykhoa.findMany({
+    const list = await prisma.dangky_sucoykhoa.findMany({
       where: params,
+      include: {
+        phantichsuco: { select: { masuco: true } },
+      },
       orderBy: { ngaysuco: "desc" },
     });
+    return list.map(({ phantichsuco, ...item }) => ({
+      ...item,
+      daPhanTich: !!phantichsuco,
+    }));
   }
 
   const { trangThai, tuNgay, tuNgayTime, denNgay, denNgayTime, maphong } =
@@ -61,10 +81,11 @@ export async function getIncidentList(
     });
   }
 
+  // Kết hợp lọc dữ liệu giữa hai bảng dangky_sucoykhoa và dangky_phantichsuco theo masuco
   if (trangThai === "DA_PHAN_TICH") {
-    conditions.push({ daphantich: true });
+    conditions.push({ phantichsuco: { isNot: null } });
   } else if (trangThai === "CHUA_PHAN_TICH") {
-    conditions.push({ daphantich: false });
+    conditions.push({ phantichsuco: { is: null } });
   }
 
   if (maphong) {
@@ -83,10 +104,18 @@ export async function getIncidentList(
   const where: Prisma.dangky_sucoykhoaWhereInput =
     conditions.length > 0 ? { AND: conditions } : {};
 
-  return prisma.dangky_sucoykhoa.findMany({
+  const list = await prisma.dangky_sucoykhoa.findMany({
     where,
+    include: {
+      phantichsuco: { select: { masuco: true } },
+    },
     orderBy: { ngaysuco: "desc" },
   });
+
+  return list.map(({ phantichsuco, ...item }) => ({
+    ...item,
+    daPhanTich: !!phantichsuco,
+  }));
 }
 
 export async function getIncidentDetail(masuco: number) {
@@ -196,7 +225,6 @@ export async function saveIncidentToDB(
             data: {
               masuco: candidateIncidentCode.masuco,
               sosuco: candidateIncidentCode.sosuco,
-              daphantich: false,
               ...payload,
             },
           });
@@ -220,11 +248,11 @@ export async function saveIncidentToDB(
 }
 
 export async function getLookupDataFromDB() {
+  const phai = DANH_MUC_PHAI;
   const [
     loaiSuCo,
     tenSuCo,
     hinhThuc,
-    phai,
     doiTuong,
     phong,
     phongNoi,
@@ -258,9 +286,6 @@ export async function getLookupDataFromDB() {
     }),
     prisma.dmhinhthuc_scyk.findMany({
       select: { mahinhthuc: true, tenhinhthuc: true },
-    }),
-    prisma.dmphai_scyk.findMany({
-      select: { maphai: true, phai: true },
     }),
     prisma.dmdoituongsc_scyk.findMany({
       select: { madoituongsc: true, doituongsc: true },
@@ -455,20 +480,13 @@ export async function saveAnalysisToDB(
       ...(isApprove !== undefined ? { duyet: isApprove } : {}),
     };
 
-    await prisma.$transaction(async (tx) => {
-      await tx.dangky_phantichsuco.upsert({
-        where: { masuco },
-        create: {
-          masuco,
-          ...dataToSave,
-        },
-        update: dataToSave,
-      });
-
-      await tx.dangky_sucoykhoa.update({
-        where: { masuco },
-        data: { daphantich: true },
-      });
+    await prisma.dangky_phantichsuco.upsert({
+      where: { masuco },
+      create: {
+        masuco,
+        ...dataToSave,
+      },
+      update: dataToSave,
     });
 
     return { success: true };

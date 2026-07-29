@@ -108,15 +108,10 @@ function SidebarContent() {
         } else {
           const list = result.data ?? [];
           setSuCoList(list);
-
-          if (pathname === "/incidents" && list.length > 0 && !activeMasuco) {
-            // Chỉ trên trang Duyệt (/incidents) mới mặc định chọn item đầu tiên nếu URL chưa có masuco
-            router.push(`${pathname}?masuco=${list[0].masuco}`);
-          }
         }
       });
     },
-    [activeMasuco, pathname, router],
+    [],
   );
 
   // Nạp danh mục Khoa & Phòng động và khôi phục bộ lọc từ sessionStorage khi mount

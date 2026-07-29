@@ -5,7 +5,11 @@ import { useForm, Controller } from "react-hook-form";
 import { useRouter } from "next/navigation";
 import { TimePicker } from "../ui/TimePicker";
 import { useToast } from "../ui/ToastProvider";
-import { useEditMode, DASHBOARD_FORM_ID, type FormSubmitAction } from "@/store/use-edit-mode-store";
+import {
+  useEditMode,
+  DASHBOARD_FORM_ID,
+  type FormSubmitAction,
+} from "@/store/use-edit-mode-store";
 import { saveAnalysisIncident } from "@/actions/incidents";
 import type { LookupData, SuCoDetail, ConfirmForm } from "@/types";
 import { buildPhongOptions } from "../dashboard/dashboard.helpers";
@@ -47,9 +51,10 @@ export function IncidentAnalysisForm({
   const suco = initialData?.sucoykhoa;
   const phanTich = initialData?.phantichsuco;
 
-  const { control, register, reset, handleSubmit, getValues } = useForm<ConfirmForm>({
-    defaultValues: buildDefaultValues(suco, phanTich),
-  });
+  const { control, register, reset, handleSubmit, getValues } =
+    useForm<ConfirmForm>({
+      defaultValues: buildDefaultValues(suco, phanTich),
+    });
 
   const phongOptions = useMemo(
     () => buildPhongOptions(lookupData),
@@ -77,82 +82,98 @@ export function IncidentAnalysisForm({
   const isAdmin = checkIsAdmin(userRole);
 
   useEffect(() => {
-    setDisableEditButton(!daPhanTich);
-    setDisableApproveButton(daDuyet);
+    if (!suco) {
+      setDisableEditButton(true);
+      setDisableApproveButton(true);
+    } else {
+      setDisableEditButton(!daPhanTich);
+      setDisableApproveButton(daDuyet);
+    }
     return () => {
       setIsEditing(false);
       setDisableEditButton(false);
       setDisableApproveButton(false);
     };
-  }, [daPhanTich, daDuyet, setIsEditing, setDisableEditButton, setDisableApproveButton]);
+  }, [
+    suco,
+    daPhanTich,
+    daDuyet,
+    setIsEditing,
+    setDisableEditButton,
+    setDisableApproveButton,
+  ]);
 
-  const canEditGeneral = !daPhanTich || isEditing;
-  const canEditExpert = isAdmin && (!daPhanTich || isEditing);
+  const canEditGeneral = Boolean(suco) && (!daPhanTich || isEditing);
+  const canEditExpert = Boolean(suco) && isAdmin && (!daPhanTich || isEditing);
 
-  const performSubmit = useCallback(async (
-    values: ConfirmForm,
-    isApprove?: boolean,
-  ) => {
-    if (!suco?.masuco) {
-      toast.error("Vui lòng chọn một sự cố để thực hiện phân tích/duyệt.");
-      return;
-    }
+  const performSubmit = useCallback(
+    async (values: ConfirmForm, isApprove?: boolean) => {
+      if (!suco?.masuco) {
+        toast.error("Vui lòng chọn một sự cố để thực hiện phân tích/duyệt.");
+        return;
+      }
 
-    setIsSaving(true);
+      setIsSaving(true);
 
-    const ptNgay = toDate(values.pt_ngayDate, values.pt_ngayTime);
+      const ptNgay = toDate(values.pt_ngayDate, values.pt_ngayTime);
 
-    const payload = {
-      ngay: ptNgay,
-      mota: toNullableString(values.pt_mota),
-      kythuat: toNullableString(values.kythuat),
-      nhiemkhuan: toNullableString(values.nhiemkhuan),
-      thuoc: toNullableString(values.thuoc),
-      mau: toNullableString(values.mau),
-      thietbiyte: toNullableString(values.thietbiyte),
-      hanhvi: toNullableString(values.hanhvi),
-      tainan: toNullableString(values.tainan),
-      hatang: toNullableString(values.hatang),
-      nguonluc: toNullableString(values.nguonluc),
-      tailieu: toNullableString(values.tailieu),
-      ptkhac: toNullableString(values.ptkhac),
-      ylenh: toNullableString(values.ylenh),
-      nnnnhanvien: toNullableString(values.nnnnhanvien),
-      nnnnguoibenh: toNullableString(values.nnnnguoibenh),
-      nnnmoitruong: toNullableString(values.nnnmoitruong),
-      nnntochuc: toNullableString(values.nnntochuc),
-      nnnbenngoai: toNullableString(values.nnnbenngoai),
-      nnnkhac: toNullableString(values.nnnkhac),
-      khacphucsuco: toNullableString(values.khacphucsuco),
-      dexuat: toNullableString(values.dexuat),
-      chuyengiadanhgia: toNullableString(values.chuyengiadanhgia),
-      cgthaoluan: toNullableString(values.cgthaoluan),
-      phuhop: toNullableString(values.phuhop),
-      khuyencao: toNullableString(values.khuyencao),
-      tt_NC0: values.tt_NC0,
-      tt_NC1: toNullableString(values.tt_NC1),
-      tt_NC2: toNullableString(values.tt_NC2),
-      tt_NC3: toNullableString(values.tt_NC3),
-      tttochuc: toNullableString(values.tttochuc),
-    };
+      const payload = {
+        ngay: ptNgay,
+        mota: toNullableString(values.pt_mota),
+        kythuat: toNullableString(values.kythuat),
+        nhiemkhuan: toNullableString(values.nhiemkhuan),
+        thuoc: toNullableString(values.thuoc),
+        mau: toNullableString(values.mau),
+        thietbiyte: toNullableString(values.thietbiyte),
+        hanhvi: toNullableString(values.hanhvi),
+        tainan: toNullableString(values.tainan),
+        hatang: toNullableString(values.hatang),
+        nguonluc: toNullableString(values.nguonluc),
+        tailieu: toNullableString(values.tailieu),
+        ptkhac: toNullableString(values.ptkhac),
+        ylenh: toNullableString(values.ylenh),
+        nnnnhanvien: toNullableString(values.nnnnhanvien),
+        nnnnguoibenh: toNullableString(values.nnnnguoibenh),
+        nnnmoitruong: toNullableString(values.nnnmoitruong),
+        nnntochuc: toNullableString(values.nnntochuc),
+        nnnbenngoai: toNullableString(values.nnnbenngoai),
+        nnnkhac: toNullableString(values.nnnkhac),
+        khacphucsuco: toNullableString(values.khacphucsuco),
+        dexuat: toNullableString(values.dexuat),
+        chuyengiadanhgia: toNullableString(values.chuyengiadanhgia),
+        cgthaoluan: toNullableString(values.cgthaoluan),
+        phuhop: toNullableString(values.phuhop),
+        khuyencao: toNullableString(values.khuyencao),
+        tt_NC0: values.tt_NC0,
+        tt_NC1: toNullableString(values.tt_NC1),
+        tt_NC2: toNullableString(values.tt_NC2),
+        tt_NC3: toNullableString(values.tt_NC3),
+        tttochuc: toNullableString(values.tttochuc),
+      };
 
-    const result = await saveAnalysisIncident(suco.masuco, payload, isApprove);
-    setIsSaving(false);
-
-    if (result.success) {
-      toast.success(
-        isApprove
-          ? "Duyệt thông tin sự cố thành công!"
-          : "Lưu kết quả phân tích sự cố thành công!",
+      const result = await saveAnalysisIncident(
+        suco.masuco,
+        payload,
+        isApprove,
       );
-      setIsEditing(false);
-      router.refresh();
-    } else {
-      toast.error(
-        result.error ?? "Thao tác không thành công. Vui lòng thử lại.",
-      );
-    }
-  }, [suco?.masuco, setIsEditing, router, toast]);
+      setIsSaving(false);
+
+      if (result.success) {
+        toast.success(
+          isApprove
+            ? "Duyệt thông tin sự cố thành công!"
+            : "Lưu kết quả phân tích sự cố thành công!",
+        );
+        setIsEditing(false);
+        router.refresh();
+      } else {
+        toast.error(
+          result.error ?? "Thao tác không thành công. Vui lòng thử lại.",
+        );
+      }
+    },
+    [suco?.masuco, setIsEditing, router, toast],
+  );
 
   const onSubmit = (values: ConfirmForm, e?: React.BaseSyntheticEvent) => {
     const nativeEvent = e?.nativeEvent as SubmitEvent | undefined;

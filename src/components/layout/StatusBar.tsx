@@ -44,7 +44,13 @@ function StatusBarContent({ userRole }: StatusBarProps) {
     triggerSubmit("approve");
   };
 
-  const handleEdit = () => setIsEditing(true);
+  const handleEdit = () => {
+    if (!activeMasuco) {
+      toast.error("Vui lòng chọn sự cố để phân tích hoặc duyệt");
+      return;
+    }
+    setIsEditing(true);
+  };
 
   const handleExit = () => setIsEditing(false);
 
@@ -109,7 +115,7 @@ function StatusBarContent({ userRole }: StatusBarProps) {
           <button
             className="ql-btn-action"
             onClick={handleEdit}
-            disabled={isEditing || disableEditButton}
+            disabled={isEditing || (disableEditButton && !!activeMasuco)}
           >
             <span className="ql-btn-icon-yellow">&#9999;</span> Sửa
           </button>
