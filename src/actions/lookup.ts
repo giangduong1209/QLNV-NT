@@ -5,7 +5,6 @@ import {
   DANH_MUC_PHAI,
 } from "@/app/services/incident/incident.service";
 
-
 import type { LookupData } from "@/types";
 
 export type {
@@ -41,5 +40,3 @@ export async function getLookupData(): Promise<LookupData> {
     };
   }
 }
-
-

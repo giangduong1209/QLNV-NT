@@ -19,10 +19,15 @@ import {
   CAUSES_LEFT_DEFAULT,
   CAUSES_RIGHT_DEFAULT,
   INJURY_FIELDS,
+  CGTHAOLUAN_OPTIONS,
 } from "./incidents.constants";
 import {
   buildDefaultValues,
   buildCauseItemsFromLookup,
+  buildTonThuongNC1Options,
+  buildTonThuongNC2Options,
+  buildTonThuongNC3Options,
+  buildTonThuongToChucOptions,
   type ResolvedCauseItem,
 } from "./incidents.helpers";
 
@@ -58,6 +63,26 @@ export function IncidentAnalysisForm({
 
   const phongOptions = useMemo(
     () => buildPhongOptions(lookupData),
+    [lookupData],
+  );
+
+  const tonThuongNC1Options = useMemo(
+    () => buildTonThuongNC1Options(lookupData),
+    [lookupData],
+  );
+
+  const tonThuongNC2Options = useMemo(
+    () => buildTonThuongNC2Options(lookupData),
+    [lookupData],
+  );
+
+  const tonThuongNC3Options = useMemo(
+    () => buildTonThuongNC3Options(lookupData),
+    [lookupData],
+  );
+
+  const tonThuongToChucOptions = useMemo(
+    () => buildTonThuongToChucOptions(lookupData),
     [lookupData],
   );
 
@@ -529,11 +554,17 @@ export function IncidentAnalysisForm({
                   Đã thảo luận đưa ra khuyến cáo:
                 </span>
                 <div className="ql-field-control">
-                  <input
-                    type="text"
+                  <select
                     {...register("cgthaoluan")}
                     disabled={!canEditExpert}
-                  />
+                  >
+                    <option value="">-- Chọn --</option>
+                    {CGTHAOLUAN_OPTIONS.map((o) => (
+                      <option key={o.value} value={o.value}>
+                        {o.label}
+                      </option>
+                    ))}
+                  </select>
                 </div>
               </div>
             </div>
@@ -545,11 +576,17 @@ export function IncidentAnalysisForm({
                   Phù hợp với các khuyến cáo:
                 </span>
                 <div className="ql-field-control">
-                  <input
-                    type="text"
+                  <select
                     {...register("phuhop")}
                     disabled={!canEditExpert}
-                  />
+                  >
+                    <option value="">-- Chọn --</option>
+                    {CGTHAOLUAN_OPTIONS.map((o) => (
+                      <option key={o.value} value={o.value}>
+                        {o.label}
+                      </option>
+                    ))}
+                  </select>
                 </div>
               </div>
             </div>
@@ -590,24 +627,41 @@ export function IncidentAnalysisForm({
             </div>
           </div>
 
-          {INJURY_FIELDS.map(({ field, label }) => (
-            <div key={field} className="grid grid-cols-12 gap-4 mb-4">
-              <div className="col-span-8">
-                <div className="ql-field">
-                  <span className="ql-field-label w-47.5 font-bold">
-                    {label}
-                  </span>
-                  <div className="ql-field-control">
-                    <input
-                      type="text"
-                      {...register(field)}
-                      disabled={!canEditExpert}
-                    />
+          {INJURY_FIELDS.map(({ field, label }) => {
+            const options =
+              field === "tt_NC1"
+                ? tonThuongNC1Options
+                : field === "tt_NC2"
+                  ? tonThuongNC2Options
+                  : field === "tt_NC3"
+                    ? tonThuongNC3Options
+                    : tonThuongToChucOptions;
+
+            return (
+              <div key={field} className="grid grid-cols-12 gap-4 mb-4">
+                <div className="col-span-8">
+                  <div className="ql-field">
+                    <span className="ql-field-label w-47.5 font-bold">
+                      {label}
+                    </span>
+                    <div className="ql-field-control">
+                      <select
+                        {...register(field)}
+                        disabled={!canEditExpert}
+                      >
+                        <option value="">-- Chọn --</option>
+                        {options.map((opt) => (
+                          <option key={opt.value} value={opt.value}>
+                            {opt.label}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
     </form>

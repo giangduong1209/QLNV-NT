@@ -120,6 +120,18 @@ export interface DanhGiaBanDauItem {
   tendanhgia: string | null;
 }
 
+export interface TonThuongNguoiBenhItem {
+  maphanloai: number;
+  macapdotonthuong: string | null;
+  capdotonthuong: string | null;
+  motasucoykhoa: string | null;
+}
+
+export interface TonThuongToChucItem {
+  matonthuong: number;
+  tentonthuong: string | null;
+}
+
 export interface CauseSubItem {
   id: number;
   name: string;
@@ -135,6 +147,8 @@ export interface LookupData {
   phongNoi: PhongNoiItem[];
   phanLoaiBanDau: PhanLoaiBanDauItem[];
   danhGiaBanDau: DanhGiaBanDauItem[];
+  tonThuongNguoiBenh?: TonThuongNguoiBenhItem[];
+  tonThuongToChuc?: TonThuongToChucItem[];
   causeMaxOptionsMap?: Record<string, number>;
   causeSubItemsMap?: Record<string, CauseSubItem[]>;
 }

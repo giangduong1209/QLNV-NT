@@ -3,6 +3,7 @@ import type {
   ConfirmForm,
   LookupData,
   CauseSubItem,
+  SelectOption,
 } from "@/types";
 import { toDateStr, toTimeStr } from "@/utils";
 import type { CauseItem } from "./incidents.constants";
@@ -116,4 +117,93 @@ export function parseCommaSeparatedIds(valueString: string): string[] {
  */
 export function formatCommaSeparatedIds(idsArray: string[]): string {
   return idsArray.filter(Boolean).join(",");
+}
+
+/**
+ * Định dạng nhãn hiển thị cho tùy chọn tổn thương người bệnh: ${Mã cấp độ} - ${Mô tả chi tiết}
+ */
+function formatTonThuongLabel(item: any): string {
+  const code = item.macapdotonthuong ? item.macapdotonthuong.trim() : "";
+  const desc = item.motasucoykhoa
+    ? item.motasucoykhoa.trim()
+    : item.capdotonthuong
+      ? item.capdotonthuong.trim()
+      : "";
+  if (code && desc) {
+    return `${code} - ${desc}`;
+  }
+  return code || desc || `Mục ${item.maphanloai}`;
+}
+
+/**
+ * Xây dựng danh sách tùy chọn tổn thương nhẹ (NC1) - Mã B, C, D
+ */
+export function buildTonThuongNC1Options(
+  lookupData: LookupData,
+): SelectOption[] {
+  if (!lookupData.tonThuongNguoiBenh?.length) return [];
+  return lookupData.tonThuongNguoiBenh
+    .filter(
+      (item) =>
+        item.capdotonthuong?.includes("NC1") ||
+        ["B", "C", "D"].includes(item.macapdotonthuong?.trim() ?? "") ||
+        [1, 2, 3].includes(item.maphanloai),
+    )
+    .map((item) => ({
+      value: String(item.maphanloai),
+      label: formatTonThuongLabel(item),
+    }));
+}
+
+/**
+ * Xây dựng danh sách tùy chọn tổn thương trung bình (NC2) - Mã E, F
+ */
+export function buildTonThuongNC2Options(
+  lookupData: LookupData,
+): SelectOption[] {
+  if (!lookupData.tonThuongNguoiBenh?.length) return [];
+  return lookupData.tonThuongNguoiBenh
+    .filter(
+      (item) =>
+        item.capdotonthuong?.includes("NC2") ||
+        ["E", "F"].includes(item.macapdotonthuong?.trim() ?? "") ||
+        [4, 5].includes(item.maphanloai),
+    )
+    .map((item) => ({
+      value: String(item.maphanloai),
+      label: formatTonThuongLabel(item),
+    }));
+}
+
+/**
+ * Xây dựng danh sách tùy chọn tổn thương nặng (NC3) - Mã G, H, I
+ */
+export function buildTonThuongNC3Options(
+  lookupData: LookupData,
+): SelectOption[] {
+  if (!lookupData.tonThuongNguoiBenh?.length) return [];
+  return lookupData.tonThuongNguoiBenh
+    .filter(
+      (item) =>
+        item.capdotonthuong?.includes("NC3") ||
+        ["G", "H", "I"].includes(item.macapdotonthuong?.trim() ?? "") ||
+        [6, 7, 8].includes(item.maphanloai),
+    )
+    .map((item) => ({
+      value: String(item.maphanloai),
+      label: formatTonThuongLabel(item),
+    }));
+}
+
+/**
+ * Xây dựng danh sách tùy chọn combobox cho tổn thương trên tổ chức
+ */
+export function buildTonThuongToChucOptions(
+  lookupData: LookupData,
+): SelectOption[] {
+  if (!lookupData.tonThuongToChuc?.length) return [];
+  return lookupData.tonThuongToChuc.map((item) => ({
+    value: String(item.matonthuong),
+    label: item.tentonthuong ?? `Mục ${item.matonthuong}`,
+  }));
 }

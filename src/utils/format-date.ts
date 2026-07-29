@@ -20,10 +20,15 @@ export function toTimeStr(d: Date | null | undefined): string {
 }
 
 export function toDate(dateStr: string, timeStr: string): Date | null {
-  if (!dateStr) return null;
-  const [y, m, d] = dateStr.split("-").map(Number);
-  const [hh, mm] = timeStr ? timeStr.split(":").map(Number) : [0, 0];
-  return new Date(y, m - 1, d, hh, mm);
+  if (!dateStr || typeof dateStr !== "string") return null;
+  const parts = dateStr.trim().split("-").map(Number);
+  if (parts.length !== 3 || parts.some((p) => isNaN(p))) return null;
+  const [y, m, d] = parts;
+  const [hh, mm] = timeStr ? timeStr.trim().split(":").map(Number) : [0, 0];
+  const validHh = isNaN(hh) ? 0 : hh;
+  const validMm = isNaN(mm) ? 0 : mm;
+  const date = new Date(y, m - 1, d, validHh, validMm);
+  return isNaN(date.getTime()) ? null : date;
 }
 
 export function todayStr(): string {

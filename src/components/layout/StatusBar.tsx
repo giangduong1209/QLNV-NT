@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, Suspense } from "react";
+import { useState, useEffect, useCallback, Suspense } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEditMode } from "@/store/use-edit-mode-store";
 import { useToast } from "@/components/ui/ToastProvider";
@@ -52,7 +52,42 @@ function StatusBarContent({ userRole }: StatusBarProps) {
     setIsEditing(true);
   };
 
-  const handleExit = () => setIsEditing(false);
+  const handleExit = useCallback(() => {
+    // 1. Nếu đang ở chế độ sửa -> tắt chế độ sửa
+    if (isEditing) {
+      setIsEditing(false);
+      return;
+    }
+
+    // 2. Nếu đang chọn một sự cố -> bỏ chọn sự cố (xóa query ?masuco=)
+    if (activeMasuco) {
+      router.push(pathname);
+      return;
+    }
+
+    // 3. Nếu ở tab Duyệt thông tin sự cố (/incidents) và chưa chọn sự cố -> quay về tab Khai báo (/dashboard)
+    if (pathname === "/incidents") {
+      router.push("/dashboard");
+      return;
+    }
+
+    if (pathname === "/dashboard") {
+      router.push("/dashboard");
+    }
+  }, [isEditing, setIsEditing, activeMasuco, router, pathname]);
+
+  // Lắng nghe sự kiện phím Esc trên bàn phím
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        handleExit();
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [handleExit]);
 
   const handleNew = () => {
     setIsEditing(true);
