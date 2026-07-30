@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { Prisma } from "@prisma/client";
-import { toDate, generateRandomIncidentCodeParts } from "@/utils";
+import { toDate, generateRandomIncidentCodeParts, checkIsAdmin } from "@/utils";
 import type {
   FilterParams,
   IncidentSavePayload,
@@ -473,8 +473,44 @@ export async function getLookupDataFromDB() {
 
 export async function deleteIncidentFromDB(
   masuco: number,
+  userRole?: string,
 ): Promise<{ success: boolean; error?: string }> {
   try {
+    // 1. Kiểm tra tồn tại bản ghi sự cố
+    const incidentRecord = await prisma.dangky_sucoykhoa.findUnique({
+      where: { masuco },
+      select: { masuco: true },
+    });
+
+    if (!incidentRecord) {
+      return { success: false, error: "Không tìm thấy sự cố cần xóa." };
+    }
+
+    // 2. Kiểm tra bản ghi phân tích và điều kiện xóa
+    const phanTichRecord = await prisma.dangky_phantichsuco.findUnique({
+      where: { masuco },
+      select: { duyet: true },
+    });
+
+    if (phanTichRecord) {
+      if (phanTichRecord.duyet === true) {
+        return {
+          success: false,
+          error: "Sự cố đã được duyệt và không được phép xóa.",
+        };
+      }
+
+      const isAdmin = checkIsAdmin(userRole);
+
+      if (!isAdmin) {
+        return {
+          success: false,
+          error: "Sự cố đã được phân tích, không được phép xóa.",
+        };
+      }
+    }
+
+    // 3. Thực hiện xóa triệt để cả 2 bảng trong Prisma Transaction
     await prisma.$transaction(async (tx) => {
       await tx.dangky_phantichsuco.deleteMany({
         where: { masuco },

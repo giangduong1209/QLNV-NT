@@ -49,6 +49,7 @@ export function IncidentAnalysisForm({
     setIsEditing,
     setDisableEditButton,
     setDisableApproveButton,
+    setIncidentStatus,
     registerSubmitHandler,
   } = useEditMode();
   const [isSaving, setIsSaving] = useState(false);
@@ -110,14 +111,17 @@ export function IncidentAnalysisForm({
     if (!suco) {
       setDisableEditButton(true);
       setDisableApproveButton(true);
+      setIncidentStatus({ daPhanTich: false, daDuyet: false });
     } else {
       setDisableEditButton(!daPhanTich);
       setDisableApproveButton(daDuyet);
+      setIncidentStatus({ daPhanTich, daDuyet });
     }
     return () => {
       setIsEditing(false);
       setDisableEditButton(false);
       setDisableApproveButton(false);
+      setIncidentStatus({ daPhanTich: false, daDuyet: false });
     };
   }, [
     suco,
@@ -126,6 +130,7 @@ export function IncidentAnalysisForm({
     setIsEditing,
     setDisableEditButton,
     setDisableApproveButton,
+    setIncidentStatus,
   ]);
 
   const canEditGeneral = Boolean(suco) && (!daPhanTich || isEditing);
@@ -554,10 +559,7 @@ export function IncidentAnalysisForm({
                   Đã thảo luận đưa ra khuyến cáo:
                 </span>
                 <div className="ql-field-control">
-                  <select
-                    {...register("cgthaoluan")}
-                    disabled={!canEditExpert}
-                  >
+                  <select {...register("cgthaoluan")} disabled={!canEditExpert}>
                     <option value="">-- Chọn --</option>
                     {CGTHAOLUAN_OPTIONS.map((o) => (
                       <option key={o.value} value={o.value}>
@@ -576,10 +578,7 @@ export function IncidentAnalysisForm({
                   Phù hợp với các khuyến cáo:
                 </span>
                 <div className="ql-field-control">
-                  <select
-                    {...register("phuhop")}
-                    disabled={!canEditExpert}
-                  >
+                  <select {...register("phuhop")} disabled={!canEditExpert}>
                     <option value="">-- Chọn --</option>
                     {CGTHAOLUAN_OPTIONS.map((o) => (
                       <option key={o.value} value={o.value}>
@@ -645,10 +644,7 @@ export function IncidentAnalysisForm({
                       {label}
                     </span>
                     <div className="ql-field-control">
-                      <select
-                        {...register(field)}
-                        disabled={!canEditExpert}
-                      >
+                      <select {...register(field)} disabled={!canEditExpert}>
                         <option value="">-- Chọn --</option>
                         {options.map((opt) => (
                           <option key={opt.value} value={opt.value}>

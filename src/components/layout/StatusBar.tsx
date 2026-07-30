@@ -22,6 +22,8 @@ function StatusBarContent({ userRole }: StatusBarProps) {
     setIsEditing,
     disableEditButton,
     disableApproveButton,
+    daPhanTich,
+    daDuyet,
     triggerSubmit,
   } = useEditMode();
 
@@ -94,8 +96,31 @@ function StatusBarContent({ userRole }: StatusBarProps) {
     router.push("/dashboard");
   };
 
+  const isAdmin = checkIsAdmin(userRole);
+
+  // Tính toán điều kiện xóa và tooltip
+  let canDelete = false;
+  let deleteTooltip = "";
+
+  if (!activeMasuco) {
+    canDelete = false;
+    deleteTooltip = "Chọn sự cố để xóa";
+  } else if (isEditing) {
+    canDelete = false;
+    deleteTooltip = "Hoàn tất hoặc hủy chỉnh sửa trước khi xóa";
+  } else if (daDuyet) {
+    canDelete = false;
+    deleteTooltip = "Sự cố đã được duyệt và không được phép xóa";
+  } else if (daPhanTich && !isAdmin) {
+    canDelete = false;
+    deleteTooltip = "Sự cố đã được phân tích, không được phép xóa";
+  } else {
+    canDelete = true;
+    deleteTooltip = "Xóa sự cố đang chọn";
+  }
+
   const handleOpenDeleteModal = () => {
-    if (activeMasuco) {
+    if (canDelete && activeMasuco) {
       setShowDeleteModal(true);
     }
   };
@@ -117,7 +142,6 @@ function StatusBarContent({ userRole }: StatusBarProps) {
     }
   };
 
-  const isAdmin = checkIsAdmin(userRole);
   const canSave = isEditing || disableEditButton;
 
   return (
@@ -168,8 +192,8 @@ function StatusBarContent({ userRole }: StatusBarProps) {
           <button
             className="ql-btn-action"
             onClick={handleOpenDeleteModal}
-            disabled={!activeMasuco || isEditing}
-            title={activeMasuco ? "Xóa sự cố đang chọn" : "Chọn sự cố để xóa"}
+            disabled={!canDelete}
+            title={deleteTooltip}
           >
             <span className="ql-btn-icon-red">&#10008;</span> Xóa
           </button>

@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { getCurrentUser } from "@/lib/dal";
 import {
   getIncidentDetail,
   getIncidentList,
@@ -119,7 +120,10 @@ export async function deleteIncident(
   masuco: number,
 ): Promise<ActionResult<{ masuco: number }>> {
   try {
-    const res = await deleteIncidentFromDB(masuco);
+    const user = await getCurrentUser();
+    const userRole = user?.quyen ?? "user";
+
+    const res = await deleteIncidentFromDB(masuco, userRole);
     if (!res.success) {
       return {
         success: false,
