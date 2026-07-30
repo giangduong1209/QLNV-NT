@@ -1,6 +1,9 @@
 "use server";
 
-import { getLookupDataFromDB } from "@/app/services/incident/incident.service";
+import {
+  getLookupDataFromDB,
+  DANH_MUC_PHAI,
+} from "@/app/services/incident/incident.service";
 
 import type { LookupData } from "@/types";
 
@@ -28,7 +31,7 @@ export async function getLookupData(): Promise<LookupData> {
       loaiSuCo: [],
       tenSuCo: [],
       hinhThuc: [],
-      phai: [],
+      phai: DANH_MUC_PHAI,
       doiTuong: [],
       phong: [],
       phongNoi: [],
@@ -37,4 +40,3 @@ export async function getLookupData(): Promise<LookupData> {
     };
   }
 }
-

@@ -83,7 +83,6 @@ model dangky_sucoykhoa {
   nguyennhangoc        String?           @db.NVarChar(Max)
   giaiphaptranhlaplai  String?           @db.NVarChar(Max)
   maloaiscyk           Int?
-  daphantich           Boolean?
   dmdanhgiabandau      dmdanhgiabandau?  @relation(fields: [danhgiabandau], references: [madanhgia], onDelete: NoAction, onUpdate: NoAction, map: "FK_sucoykhoa_danhgiabandau")
   dmphanloaibandau     dmphanloaibandau? @relation(fields: [phanloaibandau], references: [maphanloai], onDelete: NoAction, onUpdate: NoAction, map: "FK_sucoykhoa_phanloaibandau")
 }
@@ -207,11 +206,6 @@ model dmhinhthuc_scyk {
   tenhinhthuc String? @db.NVarChar(150)
 }
 
-model dmphai_scyk {
-  maphai Int     @id(map: "PK_dmphai_scyk")
-  phai   String? @db.NVarChar(50)
-}
-
 model dmphong_scyk {
   maphong            Int               @id(map: "PK_dmphong_scyk")
   tenphong           String            @db.NVarChar(500)
@@ -249,4 +243,21 @@ model dmphongnoi_scyk {
   sapxep       Int
   ksd          Boolean
   dmphong_scyk dmphong_scyk @relation(fields: [maphong], references: [maphong], map: "FK_dmphongnoi_dmphong")
+}
+
+model dmtonthuongnguoibenh_scyk {
+  maphanloai       Int      @id(map: "PK_danhmuc_tonthuongnguoibenh")
+  macapdotonthuong String?  @db.NChar(10)
+  capdotonthuong   String?  @db.NVarChar(500)
+  motasucoykhoa    String?  @db.NVarChar(500)
+  sapxep           Int?
+  ksd              Boolean?
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+model dmtonthuongtrentochuc_scyk {
+  matonthuong  Int?
+  tentonthuong String? @db.NVarChar(500)
+
+  @@ignore
 }

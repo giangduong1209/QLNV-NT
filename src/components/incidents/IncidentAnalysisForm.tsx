@@ -5,7 +5,11 @@ import { useForm, Controller } from "react-hook-form";
 import { useRouter } from "next/navigation";
 import { TimePicker } from "../ui/TimePicker";
 import { useToast } from "../ui/ToastProvider";
-import { useEditMode, DASHBOARD_FORM_ID, type FormSubmitAction } from "@/store/use-edit-mode-store";
+import {
+  useEditMode,
+  DASHBOARD_FORM_ID,
+  type FormSubmitAction,
+} from "@/store/use-edit-mode-store";
 import { saveAnalysisIncident } from "@/actions/incidents";
 import type { LookupData, SuCoDetail, ConfirmForm } from "@/types";
 import { buildPhongOptions } from "../dashboard/dashboard.helpers";
@@ -15,10 +19,15 @@ import {
   CAUSES_LEFT_DEFAULT,
   CAUSES_RIGHT_DEFAULT,
   INJURY_FIELDS,
+  CGTHAOLUAN_OPTIONS,
 } from "./incidents.constants";
 import {
   buildDefaultValues,
   buildCauseItemsFromLookup,
+  buildTonThuongNC1Options,
+  buildTonThuongNC2Options,
+  buildTonThuongNC3Options,
+  buildTonThuongToChucOptions,
   type ResolvedCauseItem,
 } from "./incidents.helpers";
 
@@ -40,6 +49,7 @@ export function IncidentAnalysisForm({
     setIsEditing,
     setDisableEditButton,
     setDisableApproveButton,
+    setIncidentStatus,
     registerSubmitHandler,
   } = useEditMode();
   const [isSaving, setIsSaving] = useState(false);
@@ -47,12 +57,33 @@ export function IncidentAnalysisForm({
   const suco = initialData?.sucoykhoa;
   const phanTich = initialData?.phantichsuco;
 
-  const { control, register, reset, handleSubmit, getValues } = useForm<ConfirmForm>({
-    defaultValues: buildDefaultValues(suco, phanTich),
-  });
+  const { control, register, reset, handleSubmit, getValues } =
+    useForm<ConfirmForm>({
+      defaultValues: buildDefaultValues(suco, phanTich),
+    });
 
   const phongOptions = useMemo(
     () => buildPhongOptions(lookupData),
+    [lookupData],
+  );
+
+  const tonThuongNC1Options = useMemo(
+    () => buildTonThuongNC1Options(lookupData),
+    [lookupData],
+  );
+
+  const tonThuongNC2Options = useMemo(
+    () => buildTonThuongNC2Options(lookupData),
+    [lookupData],
+  );
+
+  const tonThuongNC3Options = useMemo(
+    () => buildTonThuongNC3Options(lookupData),
+    [lookupData],
+  );
+
+  const tonThuongToChucOptions = useMemo(
+    () => buildTonThuongToChucOptions(lookupData),
     [lookupData],
   );
 
@@ -77,82 +108,102 @@ export function IncidentAnalysisForm({
   const isAdmin = checkIsAdmin(userRole);
 
   useEffect(() => {
-    setDisableEditButton(!daPhanTich);
-    setDisableApproveButton(daDuyet);
+    if (!suco) {
+      setDisableEditButton(true);
+      setDisableApproveButton(true);
+      setIncidentStatus({ daPhanTich: false, daDuyet: false });
+    } else {
+      setDisableEditButton(!daPhanTich);
+      setDisableApproveButton(daDuyet);
+      setIncidentStatus({ daPhanTich, daDuyet });
+    }
     return () => {
       setIsEditing(false);
       setDisableEditButton(false);
       setDisableApproveButton(false);
+      setIncidentStatus({ daPhanTich: false, daDuyet: false });
     };
-  }, [daPhanTich, daDuyet, setIsEditing, setDisableEditButton, setDisableApproveButton]);
+  }, [
+    suco,
+    daPhanTich,
+    daDuyet,
+    setIsEditing,
+    setDisableEditButton,
+    setDisableApproveButton,
+    setIncidentStatus,
+  ]);
 
-  const canEditGeneral = !daPhanTich || isEditing;
-  const canEditExpert = isAdmin && (!daPhanTich || isEditing);
+  const canEditGeneral = Boolean(suco) && (!daPhanTich || isEditing);
+  const canEditExpert = Boolean(suco) && isAdmin && (!daPhanTich || isEditing);
 
-  const performSubmit = useCallback(async (
-    values: ConfirmForm,
-    isApprove?: boolean,
-  ) => {
-    if (!suco?.masuco) {
-      toast.error("Vui lòng chọn một sự cố để thực hiện phân tích/duyệt.");
-      return;
-    }
+  const performSubmit = useCallback(
+    async (values: ConfirmForm, isApprove?: boolean) => {
+      if (!suco?.masuco) {
+        toast.error("Vui lòng chọn một sự cố để thực hiện phân tích/duyệt.");
+        return;
+      }
 
-    setIsSaving(true);
+      setIsSaving(true);
 
-    const ptNgay = toDate(values.pt_ngayDate, values.pt_ngayTime);
+      const ptNgay = toDate(values.pt_ngayDate, values.pt_ngayTime);
 
-    const payload = {
-      ngay: ptNgay,
-      mota: toNullableString(values.pt_mota),
-      kythuat: toNullableString(values.kythuat),
-      nhiemkhuan: toNullableString(values.nhiemkhuan),
-      thuoc: toNullableString(values.thuoc),
-      mau: toNullableString(values.mau),
-      thietbiyte: toNullableString(values.thietbiyte),
-      hanhvi: toNullableString(values.hanhvi),
-      tainan: toNullableString(values.tainan),
-      hatang: toNullableString(values.hatang),
-      nguonluc: toNullableString(values.nguonluc),
-      tailieu: toNullableString(values.tailieu),
-      ptkhac: toNullableString(values.ptkhac),
-      ylenh: toNullableString(values.ylenh),
-      nnnnhanvien: toNullableString(values.nnnnhanvien),
-      nnnnguoibenh: toNullableString(values.nnnnguoibenh),
-      nnnmoitruong: toNullableString(values.nnnmoitruong),
-      nnntochuc: toNullableString(values.nnntochuc),
-      nnnbenngoai: toNullableString(values.nnnbenngoai),
-      nnnkhac: toNullableString(values.nnnkhac),
-      khacphucsuco: toNullableString(values.khacphucsuco),
-      dexuat: toNullableString(values.dexuat),
-      chuyengiadanhgia: toNullableString(values.chuyengiadanhgia),
-      cgthaoluan: toNullableString(values.cgthaoluan),
-      phuhop: toNullableString(values.phuhop),
-      khuyencao: toNullableString(values.khuyencao),
-      tt_NC0: values.tt_NC0,
-      tt_NC1: toNullableString(values.tt_NC1),
-      tt_NC2: toNullableString(values.tt_NC2),
-      tt_NC3: toNullableString(values.tt_NC3),
-      tttochuc: toNullableString(values.tttochuc),
-    };
+      const payload = {
+        ngay: ptNgay,
+        mota: toNullableString(values.pt_mota),
+        kythuat: toNullableString(values.kythuat),
+        nhiemkhuan: toNullableString(values.nhiemkhuan),
+        thuoc: toNullableString(values.thuoc),
+        mau: toNullableString(values.mau),
+        thietbiyte: toNullableString(values.thietbiyte),
+        hanhvi: toNullableString(values.hanhvi),
+        tainan: toNullableString(values.tainan),
+        hatang: toNullableString(values.hatang),
+        nguonluc: toNullableString(values.nguonluc),
+        tailieu: toNullableString(values.tailieu),
+        ptkhac: toNullableString(values.ptkhac),
+        ylenh: toNullableString(values.ylenh),
+        nnnnhanvien: toNullableString(values.nnnnhanvien),
+        nnnnguoibenh: toNullableString(values.nnnnguoibenh),
+        nnnmoitruong: toNullableString(values.nnnmoitruong),
+        nnntochuc: toNullableString(values.nnntochuc),
+        nnnbenngoai: toNullableString(values.nnnbenngoai),
+        nnnkhac: toNullableString(values.nnnkhac),
+        khacphucsuco: toNullableString(values.khacphucsuco),
+        dexuat: toNullableString(values.dexuat),
+        chuyengiadanhgia: toNullableString(values.chuyengiadanhgia),
+        cgthaoluan: toNullableString(values.cgthaoluan),
+        phuhop: toNullableString(values.phuhop),
+        khuyencao: toNullableString(values.khuyencao),
+        tt_NC0: values.tt_NC0,
+        tt_NC1: toNullableString(values.tt_NC1),
+        tt_NC2: toNullableString(values.tt_NC2),
+        tt_NC3: toNullableString(values.tt_NC3),
+        tttochuc: toNullableString(values.tttochuc),
+      };
 
-    const result = await saveAnalysisIncident(suco.masuco, payload, isApprove);
-    setIsSaving(false);
-
-    if (result.success) {
-      toast.success(
-        isApprove
-          ? "Duyệt thông tin sự cố thành công!"
-          : "Lưu kết quả phân tích sự cố thành công!",
+      const result = await saveAnalysisIncident(
+        suco.masuco,
+        payload,
+        isApprove,
       );
-      setIsEditing(false);
-      router.refresh();
-    } else {
-      toast.error(
-        result.error ?? "Thao tác không thành công. Vui lòng thử lại.",
-      );
-    }
-  }, [suco?.masuco, setIsEditing, router, toast]);
+      setIsSaving(false);
+
+      if (result.success) {
+        toast.success(
+          isApprove
+            ? "Duyệt thông tin sự cố thành công!"
+            : "Lưu kết quả phân tích sự cố thành công!",
+        );
+        setIsEditing(false);
+        router.refresh();
+      } else {
+        toast.error(
+          result.error ?? "Thao tác không thành công. Vui lòng thử lại.",
+        );
+      }
+    },
+    [suco?.masuco, setIsEditing, router, toast],
+  );
 
   const onSubmit = (values: ConfirmForm, e?: React.BaseSyntheticEvent) => {
     const nativeEvent = e?.nativeEvent as SubmitEvent | undefined;
@@ -508,11 +559,14 @@ export function IncidentAnalysisForm({
                   Đã thảo luận đưa ra khuyến cáo:
                 </span>
                 <div className="ql-field-control">
-                  <input
-                    type="text"
-                    {...register("cgthaoluan")}
-                    disabled={!canEditExpert}
-                  />
+                  <select {...register("cgthaoluan")} disabled={!canEditExpert}>
+                    <option value="">-- Chọn --</option>
+                    {CGTHAOLUAN_OPTIONS.map((o) => (
+                      <option key={o.value} value={o.value}>
+                        {o.label}
+                      </option>
+                    ))}
+                  </select>
                 </div>
               </div>
             </div>
@@ -524,11 +578,14 @@ export function IncidentAnalysisForm({
                   Phù hợp với các khuyến cáo:
                 </span>
                 <div className="ql-field-control">
-                  <input
-                    type="text"
-                    {...register("phuhop")}
-                    disabled={!canEditExpert}
-                  />
+                  <select {...register("phuhop")} disabled={!canEditExpert}>
+                    <option value="">-- Chọn --</option>
+                    {CGTHAOLUAN_OPTIONS.map((o) => (
+                      <option key={o.value} value={o.value}>
+                        {o.label}
+                      </option>
+                    ))}
+                  </select>
                 </div>
               </div>
             </div>
@@ -569,24 +626,38 @@ export function IncidentAnalysisForm({
             </div>
           </div>
 
-          {INJURY_FIELDS.map(({ field, label }) => (
-            <div key={field} className="grid grid-cols-12 gap-4 mb-4">
-              <div className="col-span-8">
-                <div className="ql-field">
-                  <span className="ql-field-label w-47.5 font-bold">
-                    {label}
-                  </span>
-                  <div className="ql-field-control">
-                    <input
-                      type="text"
-                      {...register(field)}
-                      disabled={!canEditExpert}
-                    />
+          {INJURY_FIELDS.map(({ field, label }) => {
+            const options =
+              field === "tt_NC1"
+                ? tonThuongNC1Options
+                : field === "tt_NC2"
+                  ? tonThuongNC2Options
+                  : field === "tt_NC3"
+                    ? tonThuongNC3Options
+                    : tonThuongToChucOptions;
+
+            return (
+              <div key={field} className="grid grid-cols-12 gap-4 mb-4">
+                <div className="col-span-8">
+                  <div className="ql-field">
+                    <span className="ql-field-label w-47.5 font-bold">
+                      {label}
+                    </span>
+                    <div className="ql-field-control">
+                      <select {...register(field)} disabled={!canEditExpert}>
+                        <option value="">-- Chọn --</option>
+                        {options.map((opt) => (
+                          <option key={opt.value} value={opt.value}>
+                            {opt.label}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
     </form>

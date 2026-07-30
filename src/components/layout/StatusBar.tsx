@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, Suspense } from "react";
+import { useState, useEffect, useCallback, Suspense } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEditMode } from "@/store/use-edit-mode-store";
 import { useToast } from "@/components/ui/ToastProvider";
@@ -22,6 +22,8 @@ function StatusBarContent({ userRole }: StatusBarProps) {
     setIsEditing,
     disableEditButton,
     disableApproveButton,
+    daPhanTich,
+    daDuyet,
     triggerSubmit,
   } = useEditMode();
 
@@ -44,17 +46,81 @@ function StatusBarContent({ userRole }: StatusBarProps) {
     triggerSubmit("approve");
   };
 
-  const handleEdit = () => setIsEditing(true);
+  const handleEdit = () => {
+    if (!activeMasuco) {
+      toast.error("Vui lòng chọn sự cố để phân tích hoặc duyệt");
+      return;
+    }
+    setIsEditing(true);
+  };
 
-  const handleExit = () => setIsEditing(false);
+  const handleExit = useCallback(() => {
+    // 1. Nếu đang ở chế độ sửa -> tắt chế độ sửa
+    if (isEditing) {
+      setIsEditing(false);
+      return;
+    }
+
+    // 2. Nếu đang chọn một sự cố -> bỏ chọn sự cố (xóa query ?masuco=)
+    if (activeMasuco) {
+      router.push(pathname);
+      return;
+    }
+
+    // 3. Nếu ở tab Duyệt thông tin sự cố (/incidents) và chưa chọn sự cố -> quay về tab Khai báo (/dashboard)
+    if (pathname === "/incidents") {
+      router.push("/dashboard");
+      return;
+    }
+
+    if (pathname === "/dashboard") {
+      router.push("/dashboard");
+    }
+  }, [isEditing, setIsEditing, activeMasuco, router, pathname]);
+
+  // Lắng nghe sự kiện phím Esc trên bàn phím
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        handleExit();
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [handleExit]);
 
   const handleNew = () => {
     setIsEditing(true);
     router.push("/dashboard");
   };
 
+  const isAdmin = checkIsAdmin(userRole);
+
+  // Tính toán điều kiện xóa và tooltip
+  let canDelete = false;
+  let deleteTooltip = "";
+
+  if (!activeMasuco) {
+    canDelete = false;
+    deleteTooltip = "Chọn sự cố để xóa";
+  } else if (isEditing) {
+    canDelete = false;
+    deleteTooltip = "Hoàn tất hoặc hủy chỉnh sửa trước khi xóa";
+  } else if (daDuyet) {
+    canDelete = false;
+    deleteTooltip = "Sự cố đã được duyệt và không được phép xóa";
+  } else if (daPhanTich && !isAdmin) {
+    canDelete = false;
+    deleteTooltip = "Sự cố đã được phân tích, không được phép xóa";
+  } else {
+    canDelete = true;
+    deleteTooltip = "Xóa sự cố đang chọn";
+  }
+
   const handleOpenDeleteModal = () => {
-    if (activeMasuco) {
+    if (canDelete && activeMasuco) {
       setShowDeleteModal(true);
     }
   };
@@ -76,7 +142,6 @@ function StatusBarContent({ userRole }: StatusBarProps) {
     }
   };
 
-  const isAdmin = checkIsAdmin(userRole);
   const canSave = isEditing || disableEditButton;
 
   return (
@@ -109,7 +174,7 @@ function StatusBarContent({ userRole }: StatusBarProps) {
           <button
             className="ql-btn-action"
             onClick={handleEdit}
-            disabled={isEditing || disableEditButton}
+            disabled={isEditing || (disableEditButton && !!activeMasuco)}
           >
             <span className="ql-btn-icon-yellow">&#9999;</span> Sửa
           </button>
@@ -127,8 +192,8 @@ function StatusBarContent({ userRole }: StatusBarProps) {
           <button
             className="ql-btn-action"
             onClick={handleOpenDeleteModal}
-            disabled={!activeMasuco || isEditing}
-            title={activeMasuco ? "Xóa sự cố đang chọn" : "Chọn sự cố để xóa"}
+            disabled={!canDelete}
+            title={deleteTooltip}
           >
             <span className="ql-btn-icon-red">&#10008;</span> Xóa
           </button>

@@ -14,10 +14,13 @@ export interface EditModeState {
   isEditing: boolean;
   disableEditButton: boolean;
   disableApproveButton: boolean;
+  daPhanTich: boolean;
+  daDuyet: boolean;
   submitHandler: SubmitHandler | null;
   setIsEditing: (v: boolean) => void;
   setDisableEditButton: (v: boolean) => void;
   setDisableApproveButton: (v: boolean) => void;
+  setIncidentStatus: (status: { daPhanTich: boolean; daDuyet: boolean }) => void;
   registerSubmitHandler: (handler: SubmitHandler | null) => void;
   triggerSubmit: (actionType?: FormSubmitAction) => void;
 }
@@ -26,12 +29,16 @@ export const useEditModeStore = create<EditModeState>((set, get) => ({
   isEditing: false,
   disableEditButton: false,
   disableApproveButton: false,
+  daPhanTich: false,
+  daDuyet: false,
   submitHandler: null,
 
   setIsEditing: (isEditing) => set({ isEditing }),
   setDisableEditButton: (disableEditButton) => set({ disableEditButton }),
   setDisableApproveButton: (disableApproveButton) =>
     set({ disableApproveButton }),
+  setIncidentStatus: (status) =>
+    set({ daPhanTich: status.daPhanTich, daDuyet: status.daDuyet }),
 
   registerSubmitHandler: (handler) => set({ submitHandler: handler }),
 
@@ -81,6 +88,11 @@ export function useEditMode() {
   const setDisableApproveButton = useEditModeStore(
     (state) => state.setDisableApproveButton,
   );
+  const daPhanTich = useEditModeStore((state) => state.daPhanTich);
+  const daDuyet = useEditModeStore((state) => state.daDuyet);
+  const setIncidentStatus = useEditModeStore(
+    (state) => state.setIncidentStatus,
+  );
   const registerSubmitHandler = useEditModeStore(
     (state) => state.registerSubmitHandler,
   );
@@ -93,6 +105,9 @@ export function useEditMode() {
     setDisableEditButton,
     disableApproveButton,
     setDisableApproveButton,
+    daPhanTich,
+    daDuyet,
+    setIncidentStatus,
     registerSubmitHandler,
     triggerSubmit,
   };

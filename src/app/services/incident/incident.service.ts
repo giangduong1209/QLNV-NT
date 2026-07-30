@@ -1,16 +1,26 @@
 import { prisma } from "@/lib/prisma";
 import { Prisma } from "@prisma/client";
-import { toDate, generateRandomIncidentCodeParts } from "@/utils";
+import { toDate, generateRandomIncidentCodeParts, checkIsAdmin } from "@/utils";
 import type {
   FilterParams,
   IncidentSavePayload,
   AnalysisSavePayload,
+  PhaiItem,
 } from "@/types";
+
+export const DANH_MUC_PHAI: PhaiItem[] = [
+  { maphai: 0, phai: "Nam" },
+  { maphai: 1, phai: "Nữ" },
+];
 
 export async function getCandidateDepartmentIds(selectedId: number): Promise<{
   maphongIds: number[];
   maphongnoiIds: number[];
 }> {
+  if (selectedId === undefined || selectedId === null || isNaN(selectedId)) {
+    return { maphongIds: [], maphongnoiIds: [] };
+  }
+
   const subRooms = await prisma.dmphongnoi_scyk.findMany({
     where: { maphong: selectedId },
     select: { maphongnoi: true },
@@ -23,25 +33,42 @@ export async function getCandidateDepartmentIds(selectedId: number): Promise<{
 }
 
 function isFilterParams(arg: any): arg is FilterParams {
+  if (!arg || typeof arg !== "object") return false;
   return (
-    arg && typeof arg === "object" && ("trangThai" in arg || "tuNgay" in arg)
+    "trangThai" in arg ||
+    "tuNgay" in arg ||
+    "denNgay" in arg ||
+    "maphong" in arg ||
+    "tuNgayTime" in arg ||
+    "denNgayTime" in arg
   );
 }
 
 export async function getIncidentList(
   params?: FilterParams | Prisma.dangky_sucoykhoaWhereInput,
 ) {
-  if (!params) {
-    return prisma.dangky_sucoykhoa.findMany({
-      orderBy: { ngaysuco: "desc" },
+  // Lấy danh sách mã sự cố đã phân tích để check daPhanTich và lọc trangThai
+  const getAnalyzedMasucoSet = async () => {
+    const analyzedRows = await prisma.dangky_phantichsuco.findMany({
+      select: { masuco: true },
     });
-  }
+    return new Set(analyzedRows.map((row) => row.masuco));
+  };
 
-  if (!isFilterParams(params)) {
-    return prisma.dangky_sucoykhoa.findMany({
-      where: params,
+  if (!params || !isFilterParams(params)) {
+    const where =
+      params && typeof params === "object"
+        ? (params as Prisma.dangky_sucoykhoaWhereInput)
+        : undefined;
+    const list = await prisma.dangky_sucoykhoa.findMany({
+      where,
       orderBy: { ngaysuco: "desc" },
     });
+    const analyzedSet = await getAnalyzedMasucoSet();
+    return list.map((item) => ({
+      ...item,
+      daPhanTich: analyzedSet.has(item.masuco),
+    }));
   }
 
   const { trangThai, tuNgay, tuNgayTime, denNgay, denNgayTime, maphong } =
@@ -61,32 +88,42 @@ export async function getIncidentList(
     });
   }
 
+  const analyzedSet = await getAnalyzedMasucoSet();
+  const analyzedMasucoList = Array.from(analyzedSet);
+
   if (trangThai === "DA_PHAN_TICH") {
-    conditions.push({ daphantich: true });
+    conditions.push({ masuco: { in: analyzedMasucoList } });
   } else if (trangThai === "CHUA_PHAN_TICH") {
-    conditions.push({ daphantich: false });
+    conditions.push({ masuco: { notIn: analyzedMasucoList } });
   }
 
-  if (maphong) {
+  if (maphong !== undefined && maphong !== null && !isNaN(maphong)) {
     const { maphongIds, maphongnoiIds } =
       await getCandidateDepartmentIds(maphong);
-    const orConditions: Prisma.dangky_sucoykhoaWhereInput[] = [
-      { maphong: { in: maphongIds } },
-      { makkbaocao: { in: maphongIds } },
-    ];
-    if (maphongnoiIds.length > 0) {
-      orConditions.push({ maphongnoi: { in: maphongnoiIds } });
+    if (maphongIds.length > 0) {
+      const orConditions: Prisma.dangky_sucoykhoaWhereInput[] = [
+        { maphong: { in: maphongIds } },
+        { makkbaocao: { in: maphongIds } },
+      ];
+      if (maphongnoiIds.length > 0) {
+        orConditions.push({ maphongnoi: { in: maphongnoiIds } });
+      }
+      conditions.push({ OR: orConditions });
     }
-    conditions.push({ OR: orConditions });
   }
 
   const where: Prisma.dangky_sucoykhoaWhereInput =
     conditions.length > 0 ? { AND: conditions } : {};
 
-  return prisma.dangky_sucoykhoa.findMany({
+  const list = await prisma.dangky_sucoykhoa.findMany({
     where,
     orderBy: { ngaysuco: "desc" },
   });
+
+  return list.map((item) => ({
+    ...item,
+    daPhanTich: analyzedSet.has(item.masuco),
+  }));
 }
 
 export async function getIncidentDetail(masuco: number) {
@@ -196,7 +233,6 @@ export async function saveIncidentToDB(
             data: {
               masuco: candidateIncidentCode.masuco,
               sosuco: candidateIncidentCode.sosuco,
-              daphantich: false,
               ...payload,
             },
           });
@@ -220,11 +256,11 @@ export async function saveIncidentToDB(
 }
 
 export async function getLookupDataFromDB() {
+  const phai = DANH_MUC_PHAI;
   const [
     loaiSuCo,
     tenSuCo,
     hinhThuc,
-    phai,
     doiTuong,
     phong,
     phongNoi,
@@ -245,6 +281,8 @@ export async function getLookupDataFromDB() {
     listMoiTruong,
     listToChuc,
     listYeuToBenNgoai,
+    tonThuongNguoiBenh,
+    tonThuongToChuc,
   ] = await Promise.all([
     prisma.dmloaisuco.findMany({
       where: { ksd: false },
@@ -258,9 +296,6 @@ export async function getLookupDataFromDB() {
     }),
     prisma.dmhinhthuc_scyk.findMany({
       select: { mahinhthuc: true, tenhinhthuc: true },
-    }),
-    prisma.dmphai_scyk.findMany({
-      select: { maphai: true, phai: true },
     }),
     prisma.dmdoituongsc_scyk.findMany({
       select: { madoituongsc: true, doituongsc: true },
@@ -335,6 +370,20 @@ export async function getLookupDataFromDB() {
     prisma.dmyeutobenngoai_scyk.findMany({
       select: { mayeutobenngoai: true, tenyeutobenngoai: true },
     }),
+    prisma.dmtonthuongnguoibenh_scyk.findMany({
+      select: {
+        maphanloai: true,
+        macapdotonthuong: true,
+        capdotonthuong: true,
+        motasucoykhoa: true,
+      },
+      orderBy: { sapxep: "asc" },
+    }),
+    prisma.$queryRaw<
+      Array<{ matonthuong: number; tentonthuong: string | null }>
+    >`SELECT matonthuong, tentonthuong FROM dmtonthuongtrentochuc_scyk`.catch(
+      () => [],
+    ),
   ]);
 
   const causeSubItemsMap = {
@@ -415,6 +464,8 @@ export async function getLookupDataFromDB() {
     phongNoi,
     phanLoaiBanDau,
     danhGiaBanDau,
+    tonThuongNguoiBenh,
+    tonThuongToChuc,
     causeMaxOptionsMap,
     causeSubItemsMap,
   };
@@ -422,8 +473,44 @@ export async function getLookupDataFromDB() {
 
 export async function deleteIncidentFromDB(
   masuco: number,
+  userRole?: string,
 ): Promise<{ success: boolean; error?: string }> {
   try {
+    // 1. Kiểm tra tồn tại bản ghi sự cố
+    const incidentRecord = await prisma.dangky_sucoykhoa.findUnique({
+      where: { masuco },
+      select: { masuco: true },
+    });
+
+    if (!incidentRecord) {
+      return { success: false, error: "Không tìm thấy sự cố cần xóa." };
+    }
+
+    // 2. Kiểm tra bản ghi phân tích và điều kiện xóa
+    const phanTichRecord = await prisma.dangky_phantichsuco.findUnique({
+      where: { masuco },
+      select: { duyet: true },
+    });
+
+    if (phanTichRecord) {
+      if (phanTichRecord.duyet === true) {
+        return {
+          success: false,
+          error: "Sự cố đã được duyệt và không được phép xóa.",
+        };
+      }
+
+      const isAdmin = checkIsAdmin(userRole);
+
+      if (!isAdmin) {
+        return {
+          success: false,
+          error: "Sự cố đã được phân tích, không được phép xóa.",
+        };
+      }
+    }
+
+    // 3. Thực hiện xóa triệt để cả 2 bảng trong Prisma Transaction
     await prisma.$transaction(async (tx) => {
       await tx.dangky_phantichsuco.deleteMany({
         where: { masuco },
@@ -455,20 +542,13 @@ export async function saveAnalysisToDB(
       ...(isApprove !== undefined ? { duyet: isApprove } : {}),
     };
 
-    await prisma.$transaction(async (tx) => {
-      await tx.dangky_phantichsuco.upsert({
-        where: { masuco },
-        create: {
-          masuco,
-          ...dataToSave,
-        },
-        update: dataToSave,
-      });
-
-      await tx.dangky_sucoykhoa.update({
-        where: { masuco },
-        data: { daphantich: true },
-      });
+    await prisma.dangky_phantichsuco.upsert({
+      where: { masuco },
+      create: {
+        masuco,
+        ...dataToSave,
+      },
+      update: dataToSave,
     });
 
     return { success: true };

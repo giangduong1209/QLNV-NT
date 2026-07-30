@@ -36,8 +36,18 @@ export function IncidentReportForm({
     isEditing,
     setIsEditing,
     setDisableEditButton,
+    setIncidentStatus,
     registerSubmitHandler,
   } = useEditMode();
+
+  useEffect(() => {
+    const daPhanTich = !!initialData?.phantichsuco;
+    const daDuyet = !!initialData?.phantichsuco?.duyet;
+    setIncidentStatus({ daPhanTich, daDuyet });
+    return () => {
+      setIncidentStatus({ daPhanTich: false, daDuyet: false });
+    };
+  }, [initialData, setIncidentStatus]);
   const [isSaving, setIsSaving] = useState(false);
 
   const canEdit = isNew || isEditing;

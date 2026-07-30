@@ -10,7 +10,7 @@ import {
 import { useForm } from "react-hook-form";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { TimePicker } from "@/components/ui/TimePicker";
-import { getSuCoList } from "@/actions/incidents";
+import { getSuCoList, getSuCoDetail } from "@/actions/incidents";
 import { getLookupData } from "@/actions/lookup";
 import { KHOA_PHONG_MAP } from "@/types";
 import type {
@@ -19,7 +19,7 @@ import type {
   SidebarFilterFormValues,
   LookupData,
 } from "@/types";
-import { formatDate, todayStr } from "@/utils";
+import { formatDate, todayStr, toDateStr } from "@/utils";
 
 const FILTER_STORAGE_KEY = "qlscyk_sidebar_filter";
 
@@ -79,45 +79,37 @@ function SidebarContent() {
   const tuNgayTime = watch("tuNgayTime");
   const denNgayTime = watch("denNgayTime");
 
-  const fetchList = useCallback(
-    (values: SidebarFilterFormValues) => {
-      setErrorMsg(null);
+  const fetchList = useCallback((values: SidebarFilterFormValues) => {
+    setErrorMsg(null);
 
-      // Lưu bộ lọc hiện tại vào sessionStorage để duy trì khi refresh trang (F5)
-      try {
-        sessionStorage.setItem(FILTER_STORAGE_KEY, JSON.stringify(values));
-      } catch (e) {
-        console.error("Lỗi khi ghi sessionStorage:", e);
-      }
+    // Lưu bộ lọc hiện tại vào sessionStorage để duy trì khi refresh trang (F5)
+    try {
+      sessionStorage.setItem(FILTER_STORAGE_KEY, JSON.stringify(values));
+    } catch (e) {
+      console.error("Lỗi khi ghi sessionStorage:", e);
+    }
 
-      startTransition(async () => {
-        const result = await getSuCoList({
-          trangThai: values.trangThai,
-          tuNgay: values.tuNgayDate,
-          tuNgayTime: values.tuNgayTime,
-          denNgay: values.denNgayDate,
-          denNgayTime: values.denNgayTime,
-          maphong: values.maphong ? parseInt(values.maphong, 10) : undefined,
-        });
-
-        setHasSearched(true);
-
-        if (result.error) {
-          setErrorMsg(result.error);
-          setSuCoList([]);
-        } else {
-          const list = result.data ?? [];
-          setSuCoList(list);
-
-          if (pathname === "/incidents" && list.length > 0 && !activeMasuco) {
-            // Chỉ trên trang Duyệt (/incidents) mới mặc định chọn item đầu tiên nếu URL chưa có masuco
-            router.push(`${pathname}?masuco=${list[0].masuco}`);
-          }
-        }
+    startTransition(async () => {
+      const result = await getSuCoList({
+        trangThai: values.trangThai,
+        tuNgay: values.tuNgayDate,
+        tuNgayTime: values.tuNgayTime,
+        denNgay: values.denNgayDate,
+        denNgayTime: values.denNgayTime,
+        maphong: values.maphong ? parseInt(values.maphong, 10) : undefined,
       });
-    },
-    [activeMasuco, pathname, router],
-  );
+
+      setHasSearched(true);
+
+      if (result.error) {
+        setErrorMsg(result.error);
+        setSuCoList([]);
+      } else {
+        const list = result.data ?? [];
+        setSuCoList(list);
+      }
+    });
+  }, []);
 
   // Nạp danh mục Khoa & Phòng động và khôi phục bộ lọc từ sessionStorage khi mount
   useEffect(() => {
@@ -159,6 +151,75 @@ function SidebarContent() {
       isMounted = false;
     };
   }, [fetchList, getValues, reset]);
+
+  // Tự động kiểm tra và đồng bộ bộ lọc khi activeMasuco trên URL chưa có trong danh sách Sidebar
+  useEffect(() => {
+    if (!activeMasuco) return;
+
+    const isAlreadyInList = suCoList.some(
+      (item) => item.masuco === activeMasuco,
+    );
+
+    if (isAlreadyInList) return;
+
+    let isMounted = true;
+    getSuCoDetail(activeMasuco).then((res) => {
+      if (!isMounted || !res.success || !res.data?.sucoykhoa) return;
+
+      const incident = res.data.sucoykhoa;
+      const phantich = res.data.phantichsuco;
+
+      const currentValues = getValues();
+      let shouldUpdateFilter = false;
+      const updatedValues = { ...currentValues };
+
+      // 1. Kiểm tra trạng thái phân tích: nếu sự cố mới chưa phân tích mà bộ lọc đang chọn DA_PHAN_TICH
+      if (!phantich && currentValues.trangThai === "DA_PHAN_TICH") {
+        updatedValues.trangThai = "TAT_CA";
+        shouldUpdateFilter = true;
+      }
+
+      // 2. Kiểm tra khoảng ngày: nếu ngaysuco nằm ngoài khoảng tuNgay - denNgay
+      if (incident.ngaysuco) {
+        const incidentDateStr = toDateStr(incident.ngaysuco);
+        if (
+          currentValues.tuNgayDate &&
+          incidentDateStr < currentValues.tuNgayDate
+        ) {
+          updatedValues.tuNgayDate = incidentDateStr;
+          shouldUpdateFilter = true;
+        }
+        if (
+          currentValues.denNgayDate &&
+          incidentDateStr > currentValues.denNgayDate
+        ) {
+          updatedValues.denNgayDate = incidentDateStr;
+          shouldUpdateFilter = true;
+        }
+      }
+
+      // 3. Kiểm tra khoa/phòng: nếu đang lọc theo 1 khoa khác khoa của sự cố mới
+      if (
+        currentValues.maphong &&
+        incident.maphong &&
+        parseInt(currentValues.maphong, 10) !== incident.maphong
+      ) {
+        updatedValues.maphong = "";
+        shouldUpdateFilter = true;
+      }
+
+      if (shouldUpdateFilter) {
+        reset(updatedValues);
+        fetchList(updatedValues);
+      } else {
+        fetchList(currentValues);
+      }
+    });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [activeMasuco, suCoList, getValues, reset, fetchList]);
 
   const onSubmit = (values: SidebarFilterFormValues) => {
     fetchList(values);
