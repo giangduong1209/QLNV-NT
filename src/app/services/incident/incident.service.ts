@@ -1,17 +1,12 @@
 import { prisma } from "@/lib/prisma";
 import { Prisma } from "@prisma/client";
 import { toDate, generateRandomIncidentCodeParts, checkIsAdmin } from "@/utils";
+import { DANH_MUC_PHAI } from "@/constants/department";
 import type {
   FilterParams,
   IncidentSavePayload,
   AnalysisSavePayload,
-  PhaiItem,
 } from "@/types";
-
-export const DANH_MUC_PHAI: PhaiItem[] = [
-  { maphai: 0, phai: "Nam" },
-  { maphai: 1, phai: "Nữ" },
-];
 
 export async function getCandidateDepartmentIds(selectedId: number): Promise<{
   maphongIds: number[];
@@ -450,8 +445,8 @@ export async function getLookupDataFromDB() {
   };
 
   const causeMaxOptionsMap: Record<string, number> = {};
-  for (const [k, v] of Object.entries(causeSubItemsMap)) {
-    causeMaxOptionsMap[k] = v.length;
+  for (const [causeKey, subItemList] of Object.entries(causeSubItemsMap)) {
+    causeMaxOptionsMap[causeKey] = subItemList.length;
   }
 
   return {

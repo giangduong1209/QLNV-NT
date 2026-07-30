@@ -1,9 +1,7 @@
 "use server";
 
-import {
-  getLookupDataFromDB,
-  DANH_MUC_PHAI,
-} from "@/app/services/incident/incident.service";
+import { getLookupDataFromDB } from "@/app/services/incident/incident.service";
+import { DANH_MUC_PHAI } from "@/constants/department";
 
 import type { LookupData } from "@/types";
 

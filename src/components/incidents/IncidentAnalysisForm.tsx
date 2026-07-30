@@ -12,9 +12,13 @@ import {
 } from "@/store/use-edit-mode-store";
 import { saveAnalysisIncident } from "@/actions/incidents";
 import type { LookupData, SuCoDetail, ConfirmForm } from "@/types";
-import { buildPhongOptions } from "../dashboard/dashboard.helpers";
 import { MultiSelect } from "../ui/MultiSelect";
-import { toDate, toNullableString, checkIsAdmin } from "@/utils";
+import {
+  toDate,
+  toNullableString,
+  checkIsAdmin,
+  buildPhongOptions,
+} from "@/utils";
 import {
   CAUSES_LEFT_DEFAULT,
   CAUSES_RIGHT_DEFAULT,
