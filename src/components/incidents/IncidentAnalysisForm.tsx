@@ -15,6 +15,7 @@ import type { LookupData, SuCoDetail, ConfirmForm } from "@/types";
 import { MultiSelect } from "../ui/MultiSelect";
 import {
   toDate,
+  todayStr,
   toNullableString,
   checkIsAdmin,
   buildPhongOptions,
@@ -147,9 +148,15 @@ export function IncidentAnalysisForm({
         return;
       }
 
-      setIsSaving(true);
-
       const ptNgay = toDate(values.pt_ngayDate, values.pt_ngayTime);
+      const now = new Date();
+
+      if (ptNgay && ptNgay > now) {
+        toast.error("Ngày phân tích không được vượt quá thời gian và ngày hiện tại!");
+        return;
+      }
+
+      setIsSaving(true);
 
       const payload = {
         ngay: ptNgay,
@@ -432,6 +439,7 @@ export function IncidentAnalysisForm({
                   <input
                     type="date"
                     {...register("pt_ngayDate")}
+                    max={todayStr()}
                     disabled={!canEditGeneral}
                     suppressHydrationWarning
                   />

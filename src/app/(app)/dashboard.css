@@ -308,7 +308,7 @@
   background-color: #ffffff;
   margin-bottom: 24px;
   border-radius: 12px;
-  overflow: hidden;
+  overflow: visible;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.01);
 }
 
@@ -324,6 +324,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
+  border-radius: 12px 12px 0 0;
 }
 
 .ql-form-section-body {
@@ -985,4 +986,155 @@
 
 .ql-his-ribbon-btn:disabled {
   cursor: default !important;
+}
+
+.ql-searchable-select {
+  position: relative;
+  width: 100%;
+}
+
+.ql-searchable-select.is-open {
+  z-index: 100;
+}
+
+.ql-searchable-select-btn {
+  width: 100%;
+  font-size: 13px;
+  height: 40px;
+  padding: 8px 12px;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  background-color: #ffffff;
+  box-sizing: border-box;
+  color: #000000 !important;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.ql-sidebar-control .ql-searchable-select-btn {
+  height: 34px;
+  padding: 6px 12px;
+}
+
+.ql-searchable-select-btn:focus,
+.ql-searchable-select-btn.is-open {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.12);
+  outline: none;
+}
+
+.ql-searchable-select-btn:disabled {
+  background-color: #e2e8f0 !important;
+  color: #0f172a !important;
+  -webkit-text-fill-color: #0f172a !important;
+  opacity: 1 !important;
+  font-weight: 600;
+  cursor: default;
+  border-color: #94a3b8 !important;
+}
+
+.ql-searchable-select-btn.ql-input-error {
+  border-color: #ef4444 !important;
+  box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.2) !important;
+}
+
+.ql-searchable-select-popover {
+  position: absolute;
+  top: 100%;
+  margin-top: 4px;
+  left: 0;
+  z-index: 100;
+  min-width: 100%;
+  width: max-content;
+  max-width: 480px;
+  background-color: #ffffff;
+  border: 1px solid var(--color-border-light);
+  border-radius: 8px;
+  box-shadow:
+    0 10px 25px -5px rgba(0, 0, 0, 0.1),
+    0 8px 10px -6px rgba(0, 0, 0, 0.05);
+  padding: 6px;
+  box-sizing: border-box;
+}
+
+.ql-searchable-select-search-wrapper {
+  position: relative;
+  margin-bottom: 6px;
+}
+
+.ql-searchable-select-search {
+  width: 100%;
+  font-size: 13px;
+  height: 34px;
+  padding: 6px 28px 6px 10px;
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  background-color: #f8fafc;
+  color: #000000 !important;
+  box-sizing: border-box;
+}
+
+.ql-searchable-select-search:focus {
+  border-color: var(--color-primary);
+  outline: none;
+  background-color: #ffffff;
+}
+
+.ql-searchable-select-clear-btn {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--color-text-muted);
+  font-weight: bold;
+  font-size: 12px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 0 4px;
+}
+
+.ql-searchable-select-clear-btn:hover {
+  color: var(--color-primary-dark);
+}
+
+.ql-searchable-select-list {
+  max-height: 200px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.ql-searchable-select-option {
+  padding: 8px 10px;
+  font-size: 13px;
+  border-radius: 6px;
+  cursor: pointer;
+  color: var(--color-text-secondary);
+  transition: all 0.15s ease;
+}
+
+.ql-searchable-select-option:hover {
+  background-color: var(--color-primary-light);
+  color: var(--color-primary-dark);
+  font-weight: 600;
+}
+
+.ql-searchable-select-option.is-selected {
+  background-color: var(--color-primary-light);
+  color: var(--color-primary-dark);
+  font-weight: 700;
+}
+
+.ql-searchable-select-empty {
+  padding: 12px;
+  text-align: center;
+  font-size: 12px;
+  color: var(--color-text-muted);
+  font-style: italic;
 }

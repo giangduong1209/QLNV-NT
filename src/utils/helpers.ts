@@ -1,11 +1,11 @@
 /**
- * Chuyển đổi an toàn giá trị sang string (null/undefined -> "")
+ * Chuyển đổi giá trị sang string (null/undefined -> "")
  */
 export const safeToString = (inputValue: unknown): string =>
   inputValue != null ? String(inputValue) : "";
 
 /**
- * Parse an toàn chuỗi sang number (rỗng/invalid -> null)
+ * Parse chuỗi sang number (rỗng/invalid -> null)
  */
 export const safeParseInt = (
   rawInput: string | null | undefined,
@@ -16,7 +16,8 @@ export const safeParseInt = (
  */
 export const toNullableString = (
   rawInput: string | null | undefined,
-): string | null => (rawInput && rawInput.trim() !== "" ? rawInput.trim() : null);
+): string | null =>
+  rawInput && rawInput.trim() !== "" ? rawInput.trim() : null;
 
 /**
  * Format giá trị boolean/string option cho select ("true" | "false" | "")
@@ -26,7 +27,11 @@ export function formatBooleanOption(
 ): string {
   if (optionValue === true || optionValue === "true" || optionValue === "Có")
     return "true";
-  if (optionValue === false || optionValue === "false" || optionValue === "Không")
+  if (
+    optionValue === false ||
+    optionValue === "false" ||
+    optionValue === "Không"
+  )
     return "false";
   return "";
 }
@@ -41,5 +46,3 @@ export function parseBooleanOption(
   if (optionValue === "false" || optionValue === "Không") return false;
   return null;
 }
-
-

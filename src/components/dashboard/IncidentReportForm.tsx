@@ -1,15 +1,17 @@
 "use client";
 
-import { useState, useEffect, useMemo, useCallback } from "react";
+import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { useForm, Controller, useWatch } from "react-hook-form";
 import { useRouter } from "next/navigation";
 import { TimePicker } from "@/components/ui/TimePicker";
 import { FormFieldControl } from "@/components/ui/FormFieldControl";
+import { SearchableSelect } from "@/components/ui/SearchableSelect";
 import { useToast } from "@/components/ui/ToastProvider";
 import { useEditMode, DASHBOARD_FORM_ID } from "@/store/use-edit-mode-store";
 import { saveIncident, getPreviewSoSuCo } from "@/actions/incidents";
 import type { SuCoDetail, IncidentFormValues } from "@/types";
 import type { LookupData } from "@/actions/lookup";
+import { toDate, todayStr, safeToString } from "@/utils";
 import { CO_KHONG_OPTIONS, NOTIFICATION_FIELDS } from "./dashboard.constants";
 import {
   buildDefaultValues,
@@ -68,6 +70,17 @@ export function IncidentReportForm({
   const currentTenSuCo = useWatch({ control, name: "tensuco" });
   const selectedMaphong = useWatch({ control, name: "maphong" });
 
+  const loaiSuCoOptions = useMemo(
+    () => [
+      { value: "", label: "" },
+      ...lookupData.loaiSuCo.map((item) => ({
+        value: item.maloaiscyk.toString(),
+        label: item.tenloaiscyk ?? "",
+      })),
+    ],
+    [lookupData.loaiSuCo],
+  );
+
   const phongOptions = useMemo(
     () => buildPhongOptions(lookupData),
     [lookupData],
@@ -83,8 +96,37 @@ export function IncidentReportForm({
     [lookupData, selectedLoaiSuCo, currentTenSuCo],
   );
 
+  const tenSuCoSelectOptions = useMemo(
+    () => [
+      { value: "", label: "" },
+      ...tenSuCoList.map((item) => ({
+        value: item.tensucoyk ?? "",
+        label: String(item.tensucoyk ?? ""),
+      })),
+    ],
+    [tenSuCoList],
+  );
+
+
+
   const onSubmit = useCallback(
     async (values: IncidentFormValues) => {
+      const now = new Date();
+
+      const ngayLap = toDate(values.ngayLapDate, values.ngayLapTime);
+      if (ngayLap && ngayLap > now) {
+        toast.error("Ngày lập không được vượt quá thời gian và ngày hiện tại!");
+        return;
+      }
+
+      const ngaySuCo = toDate(values.ngaySuCoDate, values.ngaySuCoTime);
+      if (ngaySuCo && ngaySuCo > now) {
+        toast.error(
+          "Ngày sự cố không được vượt quá thời gian và ngày hiện tại!",
+        );
+        return;
+      }
+
       setIsSaving(true);
 
       const masuco = initialData?.sucoykhoa?.masuco ?? null;
@@ -193,6 +235,7 @@ export function IncidentReportForm({
             <input
               type="date"
               {...register("ngayLapDate")}
+              max={todayStr()}
               readOnly={!canEdit}
               disabled={!canEdit}
               className="w-full text-center bg-primary-light border border-[rgba(220,38,38,0.15)]"
@@ -232,23 +275,21 @@ export function IncidentReportForm({
             Loại sự cố <span className="text-red-500 font-bold">*</span>:
           </span>
           <FormFieldControl error={errors.maloaiscyk}>
-            <select
-              {...register("maloaiscyk", {
-                required: "Vui lòng chọn loại sự cố",
-              })}
-              disabled={!canEdit}
-              className={`w-full ${errors.maloaiscyk ? "ql-input-error" : ""}`}
-            >
-              <option value=""></option>
-              {lookupData.loaiSuCo.map((item) => (
-                <option
-                  key={item.maloaiscyk}
-                  value={item.maloaiscyk.toString()}
-                >
-                  {item.tenloaiscyk}
-                </option>
-              ))}
-            </select>
+            <Controller
+              name="maloaiscyk"
+              control={control}
+              rules={{ required: "Vui lòng chọn loại sự cố" }}
+              render={({ field }) => (
+                <SearchableSelect
+                  value={field.value}
+                  onChange={field.onChange}
+                  options={loaiSuCoOptions}
+                  disabled={!canEdit}
+                  error={!!errors.maloaiscyk}
+                  placeholder="-- Chọn loại sự cố --"
+                />
+              )}
+            />
           </FormFieldControl>
         </div>
       </div>
@@ -305,19 +346,21 @@ export function IncidentReportForm({
                 </span>
                 <div className="ql-field-control">
                   <FormFieldControl error={errors.maphong}>
-                    <select
-                      {...register("maphong", {
-                        required: "Vui lòng chọn khoa/phòng",
-                      })}
-                      disabled={!canEdit}
-                      className={errors.maphong ? "ql-input-error" : ""}
-                    >
-                      {phongOptions.map((o) => (
-                        <option key={o.value} value={o.value}>
-                          {o.label}
-                        </option>
-                      ))}
-                    </select>
+                    <Controller
+                      name="maphong"
+                      control={control}
+                      rules={{ required: "Vui lòng chọn khoa/phòng" }}
+                      render={({ field }) => (
+                        <SearchableSelect
+                          value={field.value}
+                          onChange={field.onChange}
+                          options={phongOptions}
+                          disabled={!canEdit}
+                          error={!!errors.maphong}
+                          placeholder=""
+                        />
+                      )}
+                    />
                   </FormFieldControl>
                 </div>
               </div>
@@ -438,20 +481,21 @@ export function IncidentReportForm({
                 </span>
                 <div className="ql-field-control">
                   <FormFieldControl error={errors.tensuco}>
-                    <select
-                      {...register("tensuco", {
-                        required: "Vui lòng chọn tên sự cố",
-                      })}
-                      disabled={!canEdit}
-                      className={`w-full ${errors.tensuco ? "ql-input-error" : ""}`}
-                    >
-                      <option value=""></option>
-                      {tenSuCoList.map((item) => (
-                        <option key={item.idscyk} value={item.tensucoyk ?? ""}>
-                          {item.tensucoyk}
-                        </option>
-                      ))}
-                    </select>
+                    <Controller
+                      name="tensuco"
+                      control={control}
+                      rules={{ required: "Vui lòng chọn tên sự cố" }}
+                      render={({ field }) => (
+                        <SearchableSelect
+                          value={field.value}
+                          onChange={field.onChange}
+                          options={tenSuCoSelectOptions}
+                          disabled={!canEdit}
+                          error={!!errors.tensuco}
+                          placeholder="-- Chọn tên sự cố --"
+                        />
+                      )}
+                    />
                   </FormFieldControl>
                 </div>
               </div>
@@ -463,6 +507,7 @@ export function IncidentReportForm({
                   <input
                     type="date"
                     {...register("ngaySuCoDate")}
+                    max={todayStr()}
                     readOnly={!canEdit}
                     disabled={!canEdit}
                   />
@@ -490,19 +535,23 @@ export function IncidentReportForm({
                 </span>
                 <div className="ql-field-control">
                   <FormFieldControl error={errors.maphongnoi}>
-                    <select
-                      {...register("maphongnoi", {
+                    <Controller
+                      name="maphongnoi"
+                      control={control}
+                      rules={{
                         required: "Vui lòng chọn khoa/phòng nơi xảy ra sự cố",
-                      })}
-                      disabled={!canEdit}
-                      className={errors.maphongnoi ? "ql-input-error" : ""}
-                    >
-                      {phongNoiOptions.map((o) => (
-                        <option key={o.value} value={o.value}>
-                          {o.label}
-                        </option>
-                      ))}
-                    </select>
+                      }}
+                      render={({ field }) => (
+                        <SearchableSelect
+                          value={field.value}
+                          onChange={field.onChange}
+                          options={phongNoiOptions}
+                          disabled={!canEdit}
+                          error={!!errors.maphongnoi}
+                          placeholder="-- Chọn khoa/phòng nơi xảy ra sự cố --"
+                        />
+                      )}
+                    />
                   </FormFieldControl>
                 </div>
               </div>

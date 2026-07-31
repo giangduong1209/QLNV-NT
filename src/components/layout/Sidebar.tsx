@@ -5,11 +5,13 @@ import {
   useEffect,
   useCallback,
   useTransition,
+  useMemo,
   Suspense,
 } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, Controller } from "react-hook-form";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { TimePicker } from "@/components/ui/TimePicker";
+import { SearchableSelect } from "@/components/ui/SearchableSelect";
 import { getSuCoList, getSuCoDetail } from "@/actions/incidents";
 import { getLookupData } from "@/actions/lookup";
 import type {
@@ -42,7 +44,7 @@ function SidebarContent() {
     [],
   );
 
-  const { register, handleSubmit, watch, setValue, getValues, reset } =
+  const { register, handleSubmit, watch, setValue, getValues, reset, control } =
     useForm<SidebarFilterFormValues>({
       defaultValues: {
         trangThai: "TAT_CA",
@@ -56,6 +58,11 @@ function SidebarContent() {
 
   const tuNgayTime = watch("tuNgayTime");
   const denNgayTime = watch("denNgayTime");
+
+  const departmentSelectOptions = useMemo(
+    () => [{ value: "", label: "Tất cả khoa phòng" }, ...departmentOptions],
+    [departmentOptions],
+  );
 
   const fetchList = useCallback((values: SidebarFilterFormValues) => {
     setErrorMsg(null);
@@ -258,14 +265,18 @@ function SidebarContent() {
         <div className="ql-sidebar-row">
           <div className="ql-sidebar-label">K.phòng</div>
           <div className="ql-sidebar-control">
-            <select {...register("maphong")}>
-              <option value="">Tất cả khoa phòng</option>
-              {departmentOptions.map((opt) => (
-                <option key={opt.value} value={opt.value}>
-                  {opt.label}
-                </option>
-              ))}
-            </select>
+            <Controller
+              name="maphong"
+              control={control}
+              render={({ field }) => (
+                <SearchableSelect
+                  value={field.value}
+                  onChange={field.onChange}
+                  options={departmentSelectOptions}
+                  placeholder="Tất cả khoa phòng"
+                />
+              )}
+            />
           </div>
         </div>
 
