@@ -25,8 +25,7 @@ import {
   toDateStr,
   buildDepartmentSelectOptions,
 } from "@/utils";
-
-const FILTER_STORAGE_KEY = "qlscyk_sidebar_filter";
+import { FILTER_STORAGE_KEY } from "@/constants/app";
 
 function SidebarContent() {
   const router = useRouter();

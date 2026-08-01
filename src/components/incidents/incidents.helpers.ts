@@ -6,7 +6,7 @@ import type {
   SelectOption,
 } from "@/types";
 import { toDateStr, toTimeStr } from "@/utils";
-import type { CauseItem } from "./incidents.constants";
+import type { CauseItem } from "@/constants";
 
 export interface ResolvedCauseItem {
   causeKey: string;

@@ -7,7 +7,6 @@ import { TimePicker } from "../ui/TimePicker";
 import { useToast } from "../ui/ToastProvider";
 import {
   useEditMode,
-  DASHBOARD_FORM_ID,
   type FormSubmitAction,
 } from "@/store/use-edit-mode-store";
 import { saveAnalysisIncident } from "@/actions/incidents";
@@ -25,7 +24,8 @@ import {
   CAUSES_RIGHT_DEFAULT,
   INJURY_FIELDS,
   CGTHAOLUAN_OPTIONS,
-} from "./incidents.constants";
+  DASHBOARD_FORM_ID,
+} from "@/constants";
 import {
   buildDefaultValues,
   buildCauseItemsFromLookup,

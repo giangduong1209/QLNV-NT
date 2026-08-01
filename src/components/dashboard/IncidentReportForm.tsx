@@ -7,12 +7,16 @@ import { TimePicker } from "@/components/ui/TimePicker";
 import { FormFieldControl } from "@/components/ui/FormFieldControl";
 import { SearchableSelect } from "@/components/ui/SearchableSelect";
 import { useToast } from "@/components/ui/ToastProvider";
-import { useEditMode, DASHBOARD_FORM_ID } from "@/store/use-edit-mode-store";
+import { useEditMode } from "@/store/use-edit-mode-store";
 import { saveIncident, getPreviewSoSuCo } from "@/actions/incidents";
 import type { SuCoDetail, IncidentFormValues } from "@/types";
 import type { LookupData } from "@/actions/lookup";
-import { toDate, todayStr, safeToString } from "@/utils";
-import { CO_KHONG_OPTIONS, NOTIFICATION_FIELDS } from "./dashboard.constants";
+import { toDate, todayStr } from "@/utils";
+import {
+  CO_KHONG_OPTIONS,
+  NOTIFICATION_FIELDS,
+  DASHBOARD_FORM_ID,
+} from "@/constants";
 import {
   buildDefaultValues,
   buildPhongOptions,
@@ -106,8 +110,6 @@ export function IncidentReportForm({
     ],
     [tenSuCoList],
   );
-
-
 
   const onSubmit = useCallback(
     async (values: IncidentFormValues) => {

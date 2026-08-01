@@ -10,8 +10,6 @@ export default async function AppLayout({
   const user = await getCurrentUser();
   const userRole = user?.quyen ?? "user";
 
-  console.log({ user });
-
   return (
     <div className="ql-app-shell" suppressHydrationWarning>
       <HeaderMenu />
