@@ -1,3 +1,5 @@
+// Causes Matrix & Injury Field Constants
+
 import type { SelectOption } from "@/types";
 
 export interface CauseItem {

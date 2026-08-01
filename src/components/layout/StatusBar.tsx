@@ -170,11 +170,10 @@ function StatusBarContent({ userRole }: StatusBarProps) {
             )
           )}
 
-          {/* Sửa — disabled khi đang editing HOẶC khi sự cố chưa phân tích (đã mở sẵn ô nhập) */}
           <button
             className="ql-btn-action"
             onClick={handleEdit}
-            disabled={isEditing || (disableEditButton && !!activeMasuco)}
+            disabled={!activeMasuco || isEditing || disableEditButton}
           >
             <span className="ql-btn-icon-yellow">&#9999;</span> Sửa
           </button>

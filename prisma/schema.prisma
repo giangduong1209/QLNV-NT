@@ -4,7 +4,6 @@ generator client {
 
 datasource db {
   provider = "sqlserver"
-  url      = env("DATABASE_URL")
 }
 
 model dangky_phantichsuco {
@@ -254,10 +253,7 @@ model dmtonthuongnguoibenh_scyk {
   ksd              Boolean?
 }
 
-/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
 model dmtonthuongtrentochuc_scyk {
-  matonthuong  Int?
+  matonthuong  Int     @id(map: "PK_dmtonthuongtrentochuc_scyk")
   tentonthuong String? @db.NVarChar(500)
-
-  @@ignore
 }

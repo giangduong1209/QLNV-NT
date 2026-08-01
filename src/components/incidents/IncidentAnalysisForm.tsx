@@ -7,20 +7,25 @@ import { TimePicker } from "../ui/TimePicker";
 import { useToast } from "../ui/ToastProvider";
 import {
   useEditMode,
-  DASHBOARD_FORM_ID,
   type FormSubmitAction,
 } from "@/store/use-edit-mode-store";
 import { saveAnalysisIncident } from "@/actions/incidents";
 import type { LookupData, SuCoDetail, ConfirmForm } from "@/types";
-import { buildPhongOptions } from "../dashboard/dashboard.helpers";
 import { MultiSelect } from "../ui/MultiSelect";
-import { toDate, toNullableString, checkIsAdmin } from "@/utils";
+import {
+  toDate,
+  todayStr,
+  toNullableString,
+  checkIsAdmin,
+  buildPhongOptions,
+} from "@/utils";
 import {
   CAUSES_LEFT_DEFAULT,
   CAUSES_RIGHT_DEFAULT,
   INJURY_FIELDS,
   CGTHAOLUAN_OPTIONS,
-} from "./incidents.constants";
+  DASHBOARD_FORM_ID,
+} from "@/constants";
 import {
   buildDefaultValues,
   buildCauseItemsFromLookup,
@@ -143,9 +148,15 @@ export function IncidentAnalysisForm({
         return;
       }
 
-      setIsSaving(true);
-
       const ptNgay = toDate(values.pt_ngayDate, values.pt_ngayTime);
+      const now = new Date();
+
+      if (ptNgay && ptNgay > now) {
+        toast.error("Ngày phân tích không được vượt quá thời gian và ngày hiện tại!");
+        return;
+      }
+
+      setIsSaving(true);
 
       const payload = {
         ngay: ptNgay,
@@ -428,6 +439,7 @@ export function IncidentAnalysisForm({
                   <input
                     type="date"
                     {...register("pt_ngayDate")}
+                    max={todayStr()}
                     disabled={!canEditGeneral}
                     suppressHydrationWarning
                   />

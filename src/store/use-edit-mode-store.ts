@@ -1,9 +1,7 @@
 "use client";
 
 import { create } from "zustand";
-
-// Form ID dùng làm fallback nếu chưa có submit handler đăng ký
-export const DASHBOARD_FORM_ID = "incident-form-dashboard";
+import { DASHBOARD_FORM_ID } from "@/constants";
 
 export type FormSubmitAction = "save" | "approve";
 export type SubmitHandler = (
@@ -20,7 +18,10 @@ export interface EditModeState {
   setIsEditing: (v: boolean) => void;
   setDisableEditButton: (v: boolean) => void;
   setDisableApproveButton: (v: boolean) => void;
-  setIncidentStatus: (status: { daPhanTich: boolean; daDuyet: boolean }) => void;
+  setIncidentStatus: (status: {
+    daPhanTich: boolean;
+    daDuyet: boolean;
+  }) => void;
   registerSubmitHandler: (handler: SubmitHandler | null) => void;
   triggerSubmit: (actionType?: FormSubmitAction) => void;
 }

@@ -171,7 +171,7 @@ function ToastSingle({
         <h4 className="text-xs font-semibold leading-tight mb-0.5">
           {toast.title || styleConfig.defaultTitle}
         </h4>
-        <p className="text-xs font-normal opacity-90 leading-normal break-words">
+        <p className="text-xs font-normal opacity-90 leading-normal wrap-break-word">
           {toast.message}
         </p>
       </div>

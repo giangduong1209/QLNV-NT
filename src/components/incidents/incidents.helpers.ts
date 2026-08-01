@@ -6,7 +6,7 @@ import type {
   SelectOption,
 } from "@/types";
 import { toDateStr, toTimeStr } from "@/utils";
-import type { CauseItem } from "./incidents.constants";
+import type { CauseItem } from "@/constants";
 
 export interface ResolvedCauseItem {
   causeKey: string;
@@ -119,10 +119,17 @@ export function formatCommaSeparatedIds(idsArray: string[]): string {
   return idsArray.filter(Boolean).join(",");
 }
 
+export interface TonThuongLabelInput {
+  maphanloai: number;
+  macapdotonthuong?: string | null;
+  capdotonthuong?: string | null;
+  motasucoykhoa?: string | null;
+}
+
 /**
  * Định dạng nhãn hiển thị cho tùy chọn tổn thương người bệnh: ${Mã cấp độ} - ${Mô tả chi tiết}
  */
-function formatTonThuongLabel(item: any): string {
+function formatTonThuongLabel(item: TonThuongLabelInput): string {
   const code = item.macapdotonthuong ? item.macapdotonthuong.trim() : "";
   const desc = item.motasucoykhoa
     ? item.motasucoykhoa.trim()

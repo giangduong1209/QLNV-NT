@@ -14,9 +14,13 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "QLSCYK — Quản lý Sự cố Y khoa",
-  description:
-    "Hệ thống Quản lý và Báo cáo Sự cố Y khoa — Nội bộ Bệnh viện",
+  title: "BỆNH VIỆN ĐA KHOA NHẬT TÂN — Quản lý sự cố y khoa",
+  description: "Quản lý sự cố y khoa — Bệnh viện đa khoa Nhật Tân",
+  icons: {
+    icon: "/nhat_tan_logo.png",
+    shortcut: "/nhat_tan_logo.png",
+    apple: "/nhat_tan_logo.png",
+  },
 };
 
 export default function RootLayout({

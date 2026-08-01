@@ -5,48 +5,27 @@ import {
   useEffect,
   useCallback,
   useTransition,
+  useMemo,
   Suspense,
 } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, Controller } from "react-hook-form";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { TimePicker } from "@/components/ui/TimePicker";
+import { SearchableSelect } from "@/components/ui/SearchableSelect";
 import { getSuCoList, getSuCoDetail } from "@/actions/incidents";
 import { getLookupData } from "@/actions/lookup";
-import { KHOA_PHONG_MAP } from "@/types";
 import type {
   SuCoListItem,
   SelectOption,
   SidebarFilterFormValues,
-  LookupData,
 } from "@/types";
-import { formatDate, todayStr, toDateStr } from "@/utils";
-
-const FILTER_STORAGE_KEY = "qlscyk_sidebar_filter";
-
-/**
- * Xây dựng danh sách tùy chọn Khoa & Phòng phân cấp từ LookupData.
- */
-function buildDepartmentSelectOptions(lookupData: LookupData): SelectOption[] {
-  const options: SelectOption[] = [];
-
-  if (lookupData.phong?.length) {
-    lookupData.phong.forEach((parentPhong) => {
-      options.push({
-        value: parentPhong.maphong.toString(),
-        label: parentPhong.tenphong ?? `Khoa/Phòng ${parentPhong.maphong}`,
-      });
-    });
-  }
-
-  // Fallback nếu CSDL chưa khởi tạo dữ liệu phòng khoa
-  if (options.length === 0) {
-    Object.entries(KHOA_PHONG_MAP).forEach(([ma, ten]) => {
-      options.push({ value: ma, label: ten });
-    });
-  }
-
-  return options;
-}
+import {
+  formatDate,
+  todayStr,
+  toDateStr,
+  buildDepartmentSelectOptions,
+} from "@/utils";
+import { FILTER_STORAGE_KEY } from "@/constants/app";
 
 function SidebarContent() {
   const router = useRouter();
@@ -64,7 +43,7 @@ function SidebarContent() {
     [],
   );
 
-  const { register, handleSubmit, watch, setValue, getValues, reset } =
+  const { register, handleSubmit, watch, setValue, getValues, reset, control } =
     useForm<SidebarFilterFormValues>({
       defaultValues: {
         trangThai: "TAT_CA",
@@ -78,6 +57,11 @@ function SidebarContent() {
 
   const tuNgayTime = watch("tuNgayTime");
   const denNgayTime = watch("denNgayTime");
+
+  const departmentSelectOptions = useMemo(
+    () => [{ value: "", label: "Tất cả khoa phòng" }, ...departmentOptions],
+    [departmentOptions],
+  );
 
   const fetchList = useCallback((values: SidebarFilterFormValues) => {
     setErrorMsg(null);
@@ -280,14 +264,18 @@ function SidebarContent() {
         <div className="ql-sidebar-row">
           <div className="ql-sidebar-label">K.phòng</div>
           <div className="ql-sidebar-control">
-            <select {...register("maphong")}>
-              <option value="">Tất cả khoa phòng</option>
-              {departmentOptions.map((opt) => (
-                <option key={opt.value} value={opt.value}>
-                  {opt.label}
-                </option>
-              ))}
-            </select>
+            <Controller
+              name="maphong"
+              control={control}
+              render={({ field }) => (
+                <SearchableSelect
+                  value={field.value}
+                  onChange={field.onChange}
+                  options={departmentSelectOptions}
+                  placeholder="Tất cả khoa phòng"
+                />
+              )}
+            />
           </div>
         </div>
 
