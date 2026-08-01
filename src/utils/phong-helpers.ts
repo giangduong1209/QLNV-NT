@@ -5,10 +5,10 @@ import { KHOA_PHONG_MAP } from "@/constants/department";
 /**
  * Xây dựng danh sách tùy chọn Khoa & Phòng cho dropdown select từ LookupData
  */
-export function buildPhongSelectOptions(lookupData: LookupData): SelectOption[] {
+export function buildPhongSelectOptions(
+  lookupData: LookupData,
+): SelectOption[] {
   const optionsMap = new Map<string, string>();
-  optionsMap.set("", "");
-
   if (lookupData.phong?.length) {
     lookupData.phong.forEach((phongItem) => {
       optionsMap.set(
@@ -38,7 +38,9 @@ export function buildPhongNoiSelectOptions(
 
   if (lookupData.phongNoi?.length) {
     let filteredList = filterMaphong
-      ? lookupData.phongNoi.filter((phongNoiItem) => phongNoiItem.maphong === filterMaphong)
+      ? lookupData.phongNoi.filter(
+          (phongNoiItem) => phongNoiItem.maphong === filterMaphong,
+        )
       : lookupData.phongNoi;
 
     if (filteredList.length === 0 && filterMaphong) {
@@ -66,7 +68,9 @@ export function buildPhongNoiSelectOptions(
 /**
  * Xây dựng danh sách tùy chọn Khoa & Phòng phân cấp cho Sidebar Filter (có fallback KHOA_PHONG_MAP)
  */
-export function buildDepartmentSelectOptions(lookupData: LookupData): SelectOption[] {
+export function buildDepartmentSelectOptions(
+  lookupData: LookupData,
+): SelectOption[] {
   const options: SelectOption[] = [];
 
   if (lookupData.phong?.length) {

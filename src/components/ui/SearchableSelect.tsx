@@ -148,7 +148,7 @@ export function SearchableSelect({
                       isSelected ? "is-selected" : ""
                     }`}
                   >
-                    {opt.label || <span className="italic opacity-60"></span>}
+                    {opt.label}
                   </div>
                 );
               })

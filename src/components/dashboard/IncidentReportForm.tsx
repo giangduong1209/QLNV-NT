@@ -76,7 +76,6 @@ export function IncidentReportForm({
 
   const loaiSuCoOptions = useMemo(
     () => [
-      { value: "", label: "" },
       ...lookupData.loaiSuCo.map((item) => ({
         value: item.maloaiscyk.toString(),
         label: item.tenloaiscyk ?? "",
@@ -102,7 +101,6 @@ export function IncidentReportForm({
 
   const tenSuCoSelectOptions = useMemo(
     () => [
-      { value: "", label: "" },
       ...tenSuCoList.map((item) => ({
         value: item.tensucoyk ?? "",
         label: String(item.tensucoyk ?? ""),
@@ -359,7 +357,7 @@ export function IncidentReportForm({
                           options={phongOptions}
                           disabled={!canEdit}
                           error={!!errors.maphong}
-                          placeholder=""
+                          placeholder="-- Chọn khoa/phòng --"
                         />
                       )}
                     />
