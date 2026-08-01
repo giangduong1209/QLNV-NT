@@ -151,7 +151,8 @@ export function ConfirmModal({
                 />
               </svg>
               <span>
-                Lưu ý: Dữ liệu bị xóa sẽ không thể phục hồi lại sau thao tác này.
+                Lưu ý: Dữ liệu bị xóa sẽ không thể phục hồi lại sau thao tác
+                này.
               </span>
             </div>
           )}
@@ -173,8 +174,8 @@ export function ConfirmModal({
             disabled={isLoading}
             className={`px-5 py-2 text-xs font-semibold text-white rounded-xl transition-all shadow-md active:scale-[0.98] flex items-center gap-2 cursor-pointer ${
               isDanger
-                ? "bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 shadow-red-500/20 hover:shadow-lg hover:shadow-red-500/30 disabled:from-red-400 disabled:to-red-400"
-                : "bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 shadow-blue-500/20 hover:shadow-lg hover:shadow-blue-500/30 disabled:from-blue-400 disabled:to-blue-400"
+                ? "bg-liner-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 shadow-red-500/20 hover:shadow-lg hover:shadow-red-500/30 disabled:from-red-400 disabled:to-red-400"
+                : "bg-linear-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 shadow-blue-500/20 hover:shadow-lg hover:shadow-blue-500/30 disabled:from-blue-400 disabled:to-blue-400"
             }`}
           >
             {isLoading && (
