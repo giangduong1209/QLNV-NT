@@ -15,7 +15,6 @@ import { toDate, todayStr } from "@/utils";
 import {
   CO_KHONG_OPTIONS,
   NOTIFICATION_FIELDS,
-  DASHBOARD_FORM_ID,
 } from "@/constants";
 import {
   buildDefaultValues,
@@ -193,7 +192,6 @@ export function IncidentReportForm({
 
   return (
     <form
-      id={DASHBOARD_FORM_ID}
       onSubmit={handleSubmit(onSubmit, onError)}
       className="ql-form-container"
     >

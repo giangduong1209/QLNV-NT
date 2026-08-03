@@ -1,7 +1,6 @@
 "use client";
 
 import { create } from "zustand";
-import { DASHBOARD_FORM_ID } from "@/constants";
 
 export type FormSubmitAction = "save" | "approve";
 export type SubmitHandler = (
@@ -24,6 +23,7 @@ export interface EditModeState {
   }) => void;
   registerSubmitHandler: (handler: SubmitHandler | null) => void;
   triggerSubmit: (actionType?: FormSubmitAction) => void;
+  resetState: () => void;
 }
 
 export const useEditModeStore = create<EditModeState>((set, get) => ({
@@ -43,29 +43,20 @@ export const useEditModeStore = create<EditModeState>((set, get) => ({
 
   registerSubmitHandler: (handler) => set({ submitHandler: handler }),
 
+  resetState: () =>
+    set({
+      isEditing: false,
+      disableEditButton: false,
+      disableApproveButton: false,
+      daPhanTich: false,
+      daDuyet: false,
+      submitHandler: null,
+    }),
+
   triggerSubmit: (actionType) => {
     const handler = get().submitHandler;
     if (handler) {
       handler(actionType);
-    } else {
-      // Fallback cho DOM requestSubmit nếu chưa register handler
-      const form = document.getElementById(
-        DASHBOARD_FORM_ID,
-      ) as HTMLFormElement | null;
-      if (form) {
-        if (actionType === "approve") {
-          const submitter = document.createElement("button");
-          submitter.name = "action_type";
-          submitter.value = "approve";
-          submitter.type = "submit";
-          submitter.style.display = "none";
-          form.appendChild(submitter);
-          submitter.click();
-          form.removeChild(submitter);
-        } else {
-          form.requestSubmit();
-        }
-      }
     }
   },
 }));
@@ -98,6 +89,7 @@ export function useEditMode() {
     (state) => state.registerSubmitHandler,
   );
   const triggerSubmit = useEditModeStore((state) => state.triggerSubmit);
+  const resetState = useEditModeStore((state) => state.resetState);
 
   return {
     isEditing,
@@ -111,5 +103,6 @@ export function useEditMode() {
     setIncidentStatus,
     registerSubmitHandler,
     triggerSubmit,
+    resetState,
   };
 }

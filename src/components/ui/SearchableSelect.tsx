@@ -106,7 +106,7 @@ export function SearchableSelect({
             <span className="opacity-60">{placeholder}</span>
           )}
         </span>
-        <span className="ml-1 text-[10px] opacity-50 shrink-0">▼</span>
+        <span className="ml-1 text-[10px] opacity-50 shrink-0">&#9660;</span>
       </button>
 
       {/* Popover chứa ô nhập từ khóa & danh sách tùy chọn */}
