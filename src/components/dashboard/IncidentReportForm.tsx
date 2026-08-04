@@ -12,10 +12,7 @@ import { saveIncident, getPreviewSoSuCo } from "@/actions/incidents";
 import type { SuCoDetail, IncidentFormValues } from "@/types";
 import type { LookupData } from "@/actions/lookup";
 import { toDate, todayStr } from "@/utils";
-import {
-  CO_KHONG_OPTIONS,
-  NOTIFICATION_FIELDS,
-} from "@/constants";
+import { CO_KHONG_OPTIONS, NOTIFICATION_FIELDS } from "@/constants";
 import {
   buildDefaultValues,
   buildPhongOptions,
