@@ -1,19 +1,42 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { getCurrentUser } from "@/lib/dal";
 import {
   getIncidentDetail,
   getIncidentList,
   saveIncidentToDB,
   deleteIncidentFromDB,
+  saveAnalysisToDB,
+  getPreviewIncidentCode,
 } from "@/app/services/incident/incident.service";
+import { IncidentSavePayloadSchema, AnalysisSavePayloadSchema } from "@/types";
 import type {
   FilterParams,
   SuCoListItem,
   SuCoDetail,
   IncidentSavePayload,
+  AnalysisSavePayload,
   ActionResult,
 } from "@/types";
+
+// ============================================================
+// Lấy Mã sự cố ngẫu nhiên dự kiến (Preview cho màn hình Thêm mới)
+// ============================================================
+export async function getPreviewSoSuCo(): Promise<
+  ActionResult<{ sosuco: string }>
+> {
+  try {
+    const res = await getPreviewIncidentCode();
+    return { success: true, data: { sosuco: res.sosuco } };
+  } catch (error) {
+    console.error("[getPreviewSoSuCo] Exception:", error);
+    return {
+      success: false,
+      error: "Không thể lấy mã sự cố dự kiến.",
+    };
+  }
+}
 
 // ============================================================
 // Lấy danh sách sự cố theo bộ lọc
@@ -46,83 +69,15 @@ export async function getSuCoDetail(
       return { success: false, error: "Không tìm thấy sự cố yêu cầu" };
     }
 
-    const data: SuCoDetail = {
-      sucoykhoa: {
-        masuco: row.masuco,
-        sosuco: row.sosuco,
-        ngay: row.ngay,
-        mahinhthuc: row.mahinhthuc,
-        makcb: row.makcb,
-        hoten: row.hoten,
-        maphong: row.maphong,
-        ngaysinh: row.ngaysinh,
-        sobenhan: row.sobenhan,
-        maphai: row.maphai,
-        madoituongsc: row.madoituongsc,
-        tensuco: row.tensuco,
-        ngaysuco: row.ngaysuco,
-        maphongnoi: row.maphongnoi,
-        vitricuthe: row.vitricuthe,
-        mota: row.mota,
-        giaiphapdexuat: row.giaiphapdexuat,
-        xulybandau: row.xulybandau,
-        thongbaobacsy: row.thongbaobacsy,
-        thongbaonguoinha: row.thongbaonguoinha,
-        ghinhan: row.ghinhan,
-        thongbaonguoibenh: row.thongbaonguoibenh,
-        phanloaibandau: row.phanloaibandau,
-        danhgiabandau: row.danhgiabandau,
-        manguoibaocao: row.manguoibaocao,
-        hotennguoibaocao: row.hotennguoibaocao,
-        dienthoainguoibaocao: row.dienthoainguoibaocao,
-        emailnguoibaocao: row.emailnguoibaocao,
-        chungkien1: row.chungkien1,
-        chungkien2: row.chungkien2,
-        nguyennhangoc: row.nguyennhangoc,
-        giaiphaptranhlaplai: row.giaiphaptranhlaplai,
-        maloaiscyk: row.maloaiscyk,
-      },
-      phantichsuco: row.phantichsuco
-        ? {
-            masuco: row.phantichsuco.masuco,
-            ngay: row.phantichsuco.ngay,
-            mota: row.phantichsuco.mota,
-            kythuat: row.phantichsuco.kythuat,
-            nhiemkhuan: row.phantichsuco.nhiemkhuan,
-            thuoc: row.phantichsuco.thuoc,
-            mau: row.phantichsuco.mau,
-            thietbiyte: row.phantichsuco.thietbiyte,
-            hanhvi: row.phantichsuco.hanhvi,
-            tainan: row.phantichsuco.tainan,
-            hatang: row.phantichsuco.hatang,
-            nguonluc: row.phantichsuco.nguonluc,
-            tailieu: row.phantichsuco.tailieu,
-            ptkhac: row.phantichsuco.ptkhac,
-            ylenh: row.phantichsuco.ylenh,
-            nnnnhanvien: row.phantichsuco.nnnnhanvien,
-            nnnnguoibenh: row.phantichsuco.nnnnguoibenh,
-            nnnmoitruong: row.phantichsuco.nnnmoitruong,
-            nnntochuc: row.phantichsuco.nnntochuc,
-            nnnbenngoai: row.phantichsuco.nnnbenngoai,
-            nnnkhac: row.phantichsuco.nnnkhac,
-            khacphucsuco: row.phantichsuco.khacphucsuco,
-            dexuat: row.phantichsuco.dexuat,
-            chuyengiadanhgia: row.phantichsuco.chuyengiadanhgia,
-            cgthaoluan: row.phantichsuco.cgthaoluan,
-            phuhop: row.phantichsuco.phuhop,
-            khuyencao: row.phantichsuco.khuyencao,
-            tt_NC0: row.phantichsuco.tt_NC0,
-            tt_NC1: row.phantichsuco.tt_NC1,
-            tt_NC2: row.phantichsuco.tt_NC2,
-            tt_NC3: row.phantichsuco.tt_NC3,
-            tttochuc: row.phantichsuco.tttochuc,
-            malanhdao: row.phantichsuco.malanhdao,
-            duyet: row.phantichsuco.duyet,
-          }
-        : null,
-    };
+    const { phantichsuco, ...sucoykhoa } = row;
 
-    return { success: true, data };
+    return {
+      success: true,
+      data: {
+        sucoykhoa,
+        phantichsuco: phantichsuco ?? null,
+      },
+    };
   } catch (error) {
     console.error("[getSuCoDetail] Exception:", error);
     return { success: false, error: "Không thể tải chi tiết sự cố." };
@@ -137,9 +92,17 @@ export async function saveIncident(
   payload: IncidentSavePayload,
 ): Promise<ActionResult<{ masuco?: number }>> {
   try {
-    const res = await saveIncidentToDB(masuco, payload);
+    const parseResult = IncidentSavePayloadSchema.safeParse(payload);
+    if (!parseResult.success) {
+      return { success: false, error: "Dữ liệu sự cố không hợp lệ." };
+    }
+
+    const res = await saveIncidentToDB(masuco, parseResult.data);
     if (!res.success) {
-      return { success: false, error: res.error || "Lưu sự cố không thành công." };
+      return {
+        success: false,
+        error: res.error || "Lưu sự cố không thành công.",
+      };
     }
     revalidatePath("/dashboard");
     revalidatePath("/incidents");
@@ -157,9 +120,15 @@ export async function deleteIncident(
   masuco: number,
 ): Promise<ActionResult<{ masuco: number }>> {
   try {
-    const res = await deleteIncidentFromDB(masuco);
+    const user = await getCurrentUser();
+    const userRole = user?.quyen ?? "user";
+
+    const res = await deleteIncidentFromDB(masuco, userRole);
     if (!res.success) {
-      return { success: false, error: res.error || "Xóa sự cố không thành công." };
+      return {
+        success: false,
+        error: res.error || "Xóa sự cố không thành công.",
+      };
     }
     revalidatePath("/dashboard");
     revalidatePath("/incidents");
@@ -167,5 +136,38 @@ export async function deleteIncident(
   } catch (error) {
     console.error("[deleteIncident] Exception:", error);
     return { success: false, error: "Không thể xóa sự cố. Vui lòng thử lại." };
+  }
+}
+
+// ============================================================
+// Lưu / Duyệt kết quả phân tích sự cố (dangky_phantichsuco)
+// ============================================================
+export async function saveAnalysisIncident(
+  masuco: number,
+  payload: AnalysisSavePayload,
+  isApprove?: boolean,
+): Promise<ActionResult<{ masuco: number }>> {
+  try {
+    const parseResult = AnalysisSavePayloadSchema.safeParse(payload);
+    if (!parseResult.success) {
+      return { success: false, error: "Dữ liệu phân tích không hợp lệ." };
+    }
+
+    const res = await saveAnalysisToDB(masuco, parseResult.data, isApprove);
+    if (!res.success) {
+      return {
+        success: false,
+        error: res.error || "Lưu kết quả phân tích không thành công.",
+      };
+    }
+    revalidatePath("/dashboard");
+    revalidatePath("/incidents");
+    return { success: true, data: { masuco } };
+  } catch (error) {
+    console.error("[saveAnalysisIncident] Exception:", error);
+    return {
+      success: false,
+      error: "Không thể lưu kết quả phân tích. Vui lòng thử lại.",
+    };
   }
 }

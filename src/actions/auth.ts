@@ -58,14 +58,6 @@ export async function login(
     }
 
     // 3. Verify password
-
-    // const passwordMatch = await bcrypt.compare(password, user.password);
-
-    // if (!passwordMatch) {
-    //   return {
-    //     message: "Tên đăng nhập hoặc mật khẩu không đúng",
-    //   };
-    // }
     if (password !== user.password) {
       return {
         message: "Tên đăng nhập hoặc mật khẩu không đúng",

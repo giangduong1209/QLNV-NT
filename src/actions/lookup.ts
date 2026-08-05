@@ -1,21 +1,9 @@
 "use server";
 
-import { getLookupDataFromDB } from "@/app/services/incident/incident.service";
+import { getLookupDataFromDB } from "@/app/services/lookup/lookup.service";
+import { DANH_MUC_PHAI } from "@/constants/department";
 
 import type { LookupData } from "@/types";
-
-export type {
-  LoaiSuCoItem,
-  TenSuCoItem,
-  HinhThucItem,
-  PhaiItem,
-  DoiTuongItem,
-  PhongItem,
-  PhongNoiItem,
-  PhanLoaiBanDauItem,
-  DanhGiaBanDauItem,
-  LookupData,
-} from "@/types";
 
 // ─── Fetch lookup tables từ DB qua service ────────────────────────────────────
 
@@ -28,7 +16,7 @@ export async function getLookupData(): Promise<LookupData> {
       loaiSuCo: [],
       tenSuCo: [],
       hinhThuc: [],
-      phai: [],
+      phai: DANH_MUC_PHAI,
       doiTuong: [],
       phong: [],
       phongNoi: [],
@@ -37,4 +25,3 @@ export async function getLookupData(): Promise<LookupData> {
     };
   }
 }
-

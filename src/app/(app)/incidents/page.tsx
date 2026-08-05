@@ -1,5 +1,7 @@
 import { getSuCoDetail } from "@/actions/incidents";
-import { ConfirmIncidents } from "@/components/confirmincidents/ConfirmIncidents";
+import { getLookupData } from "@/actions/lookup";
+import { getCurrentUser } from "@/lib/dal";
+import { IncidentAnalysisForm } from "@/components/incidents/IncidentAnalysisForm";
 
 interface IncidentsPageProps {
   searchParams: Promise<{ masuco?: string }>;
@@ -12,11 +14,22 @@ export default async function IncidentsPage({
   const rawMasuco = params?.masuco;
   const masuco = rawMasuco ? parseInt(rawMasuco, 10) : undefined;
 
+  const user = await getCurrentUser();
+  const userRole = user?.quyen ?? "user";
+
   let initialData = null;
   if (masuco && !isNaN(masuco)) {
     const result = await getSuCoDetail(masuco);
     initialData = result.data ?? null;
   }
 
-  return <ConfirmIncidents initialData={initialData} />;
+  const lookupData = await getLookupData();
+
+  return (
+    <IncidentAnalysisForm
+      initialData={initialData}
+      lookupData={lookupData}
+      userRole={userRole}
+    />
+  );
 }

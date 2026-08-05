@@ -1,5 +1,9 @@
-import type { SuCoDetail, IncidentFormValues, IncidentSavePayload } from "@/types";
-import type { LookupData } from "@/actions/lookup";
+import type {
+  SuCoDetail,
+  IncidentFormValues,
+  IncidentSavePayload,
+  LookupData,
+} from "@/types";
 import {
   toDateStr,
   toTimeStr,
@@ -9,8 +13,14 @@ import {
   toNullableString,
   formatBooleanOption,
   parseBooleanOption,
+  buildPhongSelectOptions,
+  buildPhongNoiSelectOptions,
 } from "@/utils";
-import { KHOA_PHONG_OPTIONS } from "./incident-form.constants";
+
+export {
+  buildPhongSelectOptions as buildPhongOptions,
+  buildPhongNoiSelectOptions as buildPhongNoiOptions,
+};
 
 export function buildDefaultValues(
   initialData: SuCoDetail | null,
@@ -24,9 +34,9 @@ export function buildDefaultValues(
 
   if (initialTenSuCo && lookupData?.tenSuCo?.length) {
     const matched = lookupData.tenSuCo.find(
-      (t) =>
-        t.tensucoyk === initialTenSuCo ||
-        safeToString(t.idscyk) === initialTenSuCo,
+      (tenSuCoItem) =>
+        tenSuCoItem.tensucoyk === initialTenSuCo ||
+        safeToString(tenSuCoItem.idscyk) === initialTenSuCo,
     );
     if (matched) {
       if (matched.tensucoyk) {
@@ -75,58 +85,6 @@ export function buildDefaultValues(
   };
 }
 
-export function buildPhongOptions(lookupData: LookupData) {
-  const optionsMap = new Map<string, string>();
-  optionsMap.set("", "");
-
-  if (lookupData.phong?.length) {
-    lookupData.phong.forEach((p) => {
-      optionsMap.set(safeToString(p.maphong), p.tenphong ?? `Khoa/Phòng ${p.maphong}`);
-    });
-  }
-
-  return Array.from(optionsMap.entries()).map(([value, label]) => ({
-    value,
-    label,
-  }));
-}
-
-export function buildPhongNoiOptions(
-  lookupData: LookupData,
-  selectedMaphong?: string,
-) {
-  const optionsMap = new Map<string, string>();
-  optionsMap.set("", "");
-
-  const filterMaphong = safeParseInt(selectedMaphong);
-
-  if (lookupData.phongNoi?.length) {
-    // Nếu có chọn maphong, lọc danh sách phòng nội thuộc maphong đó
-    let filteredList = filterMaphong
-      ? lookupData.phongNoi.filter((pn) => pn.maphong === filterMaphong)
-      : lookupData.phongNoi;
-
-    // Nếu lọc xong mà rỗng (hoặc chưa chọn maphong), hiển thị tất cả
-    if (filteredList.length === 0 && filterMaphong) {
-      filteredList = lookupData.phongNoi;
-    }
-
-    filteredList.forEach((pn) => {
-      const parent = lookupData.phong?.find((p) => p.maphong === pn.maphong);
-      const label =
-        parent && !filterMaphong
-          ? `${pn.tenphongnoi} (${parent.tenphong})`
-          : (pn.tenphongnoi ?? `Phòng ${pn.maphongnoi}`);
-      optionsMap.set(safeToString(pn.maphongnoi), label);
-    });
-  }
-
-  return Array.from(optionsMap.entries()).map(([value, label]) => ({
-    value,
-    label,
-  }));
-}
-
 export function buildTenSuCoList(
   lookupData: LookupData,
   selectedLoaiSuCo?: string,
@@ -141,15 +99,15 @@ export function buildTenSuCoList(
   const result = [...filtered];
   if (currentTenSuCo) {
     const exists = result.some(
-      (t) =>
-        t.tensucoyk === currentTenSuCo ||
-        safeToString(t.idscyk) === currentTenSuCo,
+      (tenSuCoItem) =>
+        tenSuCoItem.tensucoyk === currentTenSuCo ||
+        safeToString(tenSuCoItem.idscyk) === currentTenSuCo,
     );
     if (!exists) {
       const matchInLookup = lookupData.tenSuCo.find(
-        (t) =>
-          t.tensucoyk === currentTenSuCo ||
-          safeToString(t.idscyk) === currentTenSuCo,
+        (tenSuCoItem) =>
+          tenSuCoItem.tensucoyk === currentTenSuCo ||
+          safeToString(tenSuCoItem.idscyk) === currentTenSuCo,
       );
       if (matchInLookup) {
         result.push(matchInLookup);
@@ -165,7 +123,9 @@ export function buildTenSuCoList(
   return result;
 }
 
-export function buildSavePayload(values: IncidentFormValues): IncidentSavePayload {
+export function buildSavePayload(
+  values: IncidentFormValues,
+): IncidentSavePayload {
   return {
     ngay: toDate(values.ngayLapDate, values.ngayLapTime),
     mahinhthuc: safeParseInt(values.mahinhthuc),
@@ -199,4 +159,3 @@ export function buildSavePayload(values: IncidentFormValues): IncidentSavePayloa
     maloaiscyk: safeParseInt(values.maloaiscyk),
   };
 }
-

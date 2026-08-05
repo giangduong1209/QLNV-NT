@@ -1,12 +1,32 @@
 import { prisma } from "@/lib/prisma";
 import { Prisma } from "@prisma/client";
-import { toDate } from "@/utils";
-import type { FilterParams } from "@/types";
+import { toDate, generateRandomIncidentCodeParts, checkIsAdmin } from "@/utils";
+import type {
+  FilterParams,
+  IncidentSavePayload,
+  AnalysisSavePayload,
+} from "@/types";
+
+function isFilterParams(arg: any): arg is FilterParams {
+  if (!arg || typeof arg !== "object") return false;
+  return (
+    "trangThai" in arg ||
+    "tuNgay" in arg ||
+    "denNgay" in arg ||
+    "maphong" in arg ||
+    "tuNgayTime" in arg ||
+    "denNgayTime" in arg
+  );
+}
 
 export async function getCandidateDepartmentIds(selectedId: number): Promise<{
   maphongIds: number[];
   maphongnoiIds: number[];
 }> {
+  if (selectedId === undefined || selectedId === null || isNaN(selectedId)) {
+    return { maphongIds: [], maphongnoiIds: [] };
+  }
+
   const subRooms = await prisma.dmphongnoi_scyk.findMany({
     where: { maphong: selectedId },
     select: { maphongnoi: true },
@@ -18,26 +38,31 @@ export async function getCandidateDepartmentIds(selectedId: number): Promise<{
   };
 }
 
-function isFilterParams(arg: any): arg is FilterParams {
-  return (
-    arg && typeof arg === "object" && ("trangThai" in arg || "tuNgay" in arg)
-  );
-}
-
 export async function getIncidentList(
   params?: FilterParams | Prisma.dangky_sucoykhoaWhereInput,
 ) {
-  if (!params) {
-    return prisma.dangky_sucoykhoa.findMany({
-      orderBy: { ngaysuco: "desc" },
+  // Lấy danh sách mã sự cố đã phân tích để check daPhanTich và lọc trangThai
+  const getAnalyzedMasucoSet = async () => {
+    const analyzedRows = await prisma.dangky_phantichsuco.findMany({
+      select: { masuco: true },
     });
-  }
+    return new Set(analyzedRows.map((row) => row.masuco));
+  };
 
-  if (!isFilterParams(params)) {
-    return prisma.dangky_sucoykhoa.findMany({
-      where: params,
+  if (!params || !isFilterParams(params)) {
+    const where =
+      params && typeof params === "object"
+        ? (params as Prisma.dangky_sucoykhoaWhereInput)
+        : undefined;
+    const list = await prisma.dangky_sucoykhoa.findMany({
+      where,
       orderBy: { ngaysuco: "desc" },
     });
+    const analyzedSet = await getAnalyzedMasucoSet();
+    return list.map((item) => ({
+      ...item,
+      daPhanTich: analyzedSet.has(item.masuco),
+    }));
   }
 
   const { trangThai, tuNgay, tuNgayTime, denNgay, denNgayTime, maphong } =
@@ -57,36 +82,45 @@ export async function getIncidentList(
     });
   }
 
+  const analyzedSet = await getAnalyzedMasucoSet();
+  const analyzedMasucoList = Array.from(analyzedSet);
+
   if (trangThai === "DA_PHAN_TICH") {
-    conditions.push({ daphantich: true });
+    conditions.push({ masuco: { in: analyzedMasucoList } });
   } else if (trangThai === "CHUA_PHAN_TICH") {
-    conditions.push({ daphantich: false });
+    conditions.push({ masuco: { notIn: analyzedMasucoList } });
   }
 
-  if (maphong) {
+  if (maphong !== undefined && maphong !== null && !isNaN(maphong)) {
     const { maphongIds, maphongnoiIds } =
       await getCandidateDepartmentIds(maphong);
-    const orConditions: Prisma.dangky_sucoykhoaWhereInput[] = [
-      { maphong: { in: maphongIds } },
-      { makkbaocao: { in: maphongIds } },
-    ];
-    if (maphongnoiIds.length > 0) {
-      orConditions.push({ maphongnoi: { in: maphongnoiIds } });
+    if (maphongIds.length > 0) {
+      const orConditions: Prisma.dangky_sucoykhoaWhereInput[] = [
+        { maphong: { in: maphongIds } },
+        { makkbaocao: { in: maphongIds } },
+      ];
+      if (maphongnoiIds.length > 0) {
+        orConditions.push({ maphongnoi: { in: maphongnoiIds } });
+      }
+      conditions.push({ OR: orConditions });
     }
-    conditions.push({ OR: orConditions });
   }
 
   const where: Prisma.dangky_sucoykhoaWhereInput =
     conditions.length > 0 ? { AND: conditions } : {};
 
-  return prisma.dangky_sucoykhoa.findMany({
+  const list = await prisma.dangky_sucoykhoa.findMany({
     where,
     orderBy: { ngaysuco: "desc" },
   });
+
+  return list.map((item) => ({
+    ...item,
+    daPhanTich: analyzedSet.has(item.masuco),
+  }));
 }
 
 export async function getIncidentDetail(masuco: number) {
-  // Dùng $queryRaw + findUnique riêng để tránh Prisma 1-1 relation type conflict
   const sucoykhoa = await prisma.dangky_sucoykhoa.findUnique({
     where: { masuco },
   });
@@ -100,11 +134,71 @@ export async function getIncidentDetail(masuco: number) {
   return { ...sucoykhoa, phantichsuco: phantichsuco ?? null };
 }
 
+export async function getPreviewIncidentCode(): Promise<{
+  sosuco: string;
+  masuco: number;
+}> {
+  const maxRetries = 20;
+  for (let i = 0; i < maxRetries; i++) {
+    const candidate = generateRandomIncidentCodeParts();
+    const existing = await prisma.dangky_sucoykhoa.findUnique({
+      where: { masuco: candidate.masuco },
+      select: { masuco: true },
+    });
+    if (!existing) {
+      return candidate;
+    }
+  }
+
+  const fallbackMasuco = parseInt(String(Date.now()).slice(-9), 10);
+  return { sosuco: `SC${fallbackMasuco}`, masuco: fallbackMasuco };
+}
+
 export async function saveIncidentToDB(
   masuco: number | null,
-  payload: any,
+  payload: IncidentSavePayload,
 ): Promise<{ success: boolean; masuco?: number; error?: string }> {
   try {
+    // 1. Kiểm tra không trùng Mã KCB nếu có nhập
+    const trimmedKcb = payload.makcb ? String(payload.makcb).trim() : "";
+    if (payload.makcb && trimmedKcb !== "") {
+      const existingKcb = await prisma.dangky_sucoykhoa.findFirst({
+        where: {
+          makcb: trimmedKcb,
+          ...(masuco ? { masuco: { not: masuco } } : {}),
+        },
+        select: { masuco: true, sosuco: true },
+      });
+
+      if (existingKcb) {
+        return {
+          success: false,
+          error: `Mã KCB "${trimmedKcb}" đã được sử dụng ở sự cố ${existingKcb.sosuco ?? existingKcb.masuco}.`,
+        };
+      }
+    }
+
+    // 2. Kiểm tra không trùng Số bệnh án nếu có nhập
+    const trimmedBenhAn = payload.sobenhan
+      ? String(payload.sobenhan).trim()
+      : "";
+    if (payload.sobenhan && trimmedBenhAn !== "") {
+      const existingBenhAn = await prisma.dangky_sucoykhoa.findFirst({
+        where: {
+          sobenhan: trimmedBenhAn,
+          ...(masuco ? { masuco: { not: masuco } } : {}),
+        },
+        select: { masuco: true, sosuco: true },
+      });
+
+      if (existingBenhAn) {
+        return {
+          success: false,
+          error: `Số bệnh án "${trimmedBenhAn}" đã được sử dụng ở sự cố ${existingBenhAn.sosuco ?? existingBenhAn.masuco}.`,
+        };
+      }
+    }
+
     if (masuco) {
       await prisma.dangky_sucoykhoa.update({
         where: { masuco },
@@ -112,23 +206,42 @@ export async function saveIncidentToDB(
       });
       return { success: true, masuco };
     } else {
-      const lastRecord = await prisma.dangky_sucoykhoa.findFirst({
-        orderBy: { masuco: "desc" },
-        select: { masuco: true },
-      });
-      const newMasuco = (lastRecord?.masuco ?? 0) + 1;
-      const year = new Date().getFullYear().toString().slice(-2);
-      const sosuco = `SC${year}${String(newMasuco).padStart(6, "0")}`;
+      const maximumRetryAttempts = 10;
+      for (let attempt = 0; attempt < maximumRetryAttempts; attempt++) {
+        const candidateIncidentCode = generateRandomIncidentCodeParts();
 
-      await prisma.dangky_sucoykhoa.create({
-        data: {
-          masuco: newMasuco,
-          sosuco,
-          daphantich: false,
-          ...payload,
-        },
-      });
-      return { success: true, masuco: newMasuco };
+        // Kiểm tra xem mã sự cố đã tồn tại trong CSDL chưa
+        const existingIncidentRecord = await prisma.dangky_sucoykhoa.findUnique(
+          {
+            where: { masuco: candidateIncidentCode.masuco },
+            select: { masuco: true },
+          },
+        );
+
+        if (existingIncidentRecord) {
+          continue;
+        }
+
+        try {
+          await prisma.dangky_sucoykhoa.create({
+            data: {
+              masuco: candidateIncidentCode.masuco,
+              sosuco: candidateIncidentCode.sosuco,
+              ...payload,
+            },
+          });
+          return { success: true, masuco: candidateIncidentCode.masuco };
+        } catch (databaseInsertError: any) {
+          console.warn(
+            `[saveIncidentToDB] Xung đột DB/Race Condition tại lượt ${attempt + 1}:`,
+            databaseInsertError?.message,
+          );
+          if (attempt === maximumRetryAttempts - 1) {
+            throw databaseInsertError;
+          }
+        }
+      }
+      return { success: false, error: "Không thể tạo mã sự cố tự động." };
     }
   } catch (error) {
     console.error("saveIncidentToDB error:", error);
@@ -136,87 +249,54 @@ export async function saveIncidentToDB(
   }
 }
 
-export async function getLookupDataFromDB() {
-  const [
-    loaiSuCo,
-    tenSuCo,
-    hinhThuc,
-    phai,
-    doiTuong,
-    phong,
-    phongNoi,
-    phanLoaiBanDau,
-    danhGiaBanDau,
-  ] = await Promise.all([
-    prisma.dmloaisuco.findMany({
-      where: { ksd: false },
-      orderBy: { sapxep: "asc" },
-      select: { maloaiscyk: true, tenloaiscyk: true },
-    }),
-    prisma.dmtensucoyk.findMany({
-      where: { ksd: false },
-      orderBy: { sapxep: "asc" },
-      select: { idscyk: true, maloaiscyk: true, tensucoyk: true },
-    }),
-    prisma.dmhinhthuc_scyk.findMany({
-      select: { mahinhthuc: true, tenhinhthuc: true },
-    }),
-    prisma.dmphai_scyk.findMany({
-      select: { maphai: true, phai: true },
-    }),
-    prisma.dmdoituongsc_scyk.findMany({
-      select: { madoituongsc: true, doituongsc: true },
-    }),
-    prisma.dmphong_scyk.findMany({
-      where: { ksd: false },
-      orderBy: { sapxep: "asc" },
-      select: { maphong: true, tenphong: true, loai: true, sapxep: true },
-    }),
-    prisma.dmphongnoi_scyk.findMany({
-      where: { ksd: false },
-      orderBy: { sapxep: "asc" },
-      select: {
-        maphongnoi: true,
-        maphong: true,
-        tenphongnoi: true,
-        sapxep: true,
-      },
-    }),
-    prisma.dmphanloaibandau.findMany({
-      where: { ksd: false },
-      orderBy: { sapxep: "asc" },
-      select: { maphanloai: true, tenphanloai: true },
-    }),
-    prisma.dmdanhgiabandau.findMany({
-      where: { ksd: false },
-      orderBy: { sapxep: "asc" },
-      select: { madanhgia: true, mamucdo: true, tendanhgia: true },
-    }),
-  ]);
-
-  return {
-    loaiSuCo,
-    tenSuCo,
-    hinhThuc,
-    phai,
-    doiTuong,
-    phong,
-    phongNoi,
-    phanLoaiBanDau,
-    danhGiaBanDau,
-  };
-}
-
 export async function deleteIncidentFromDB(
   masuco: number,
+  userRole?: string,
 ): Promise<{ success: boolean; error?: string }> {
   try {
-    await prisma.dangky_phantichsuco.deleteMany({
+    // 1. Kiểm tra tồn tại bản ghi sự cố
+    const incidentRecord = await prisma.dangky_sucoykhoa.findUnique({
       where: { masuco },
+      select: { masuco: true },
     });
 
-    await prisma.dangky_sucoykhoa.delete({
+    if (!incidentRecord) {
+      return { success: false, error: "Không tìm thấy sự cố cần xóa." };
+    }
+
+    // 2. Kiểm tra bản ghi phân tích và điều kiện xóa
+    const phanTichRecord = await prisma.dangky_phantichsuco.findUnique({
       where: { masuco },
+      select: { duyet: true },
+    });
+
+    if (phanTichRecord) {
+      if (phanTichRecord.duyet === true) {
+        return {
+          success: false,
+          error: "Sự cố đã được duyệt và không được phép xóa.",
+        };
+      }
+
+      const isAdmin = checkIsAdmin(userRole);
+
+      if (!isAdmin) {
+        return {
+          success: false,
+          error: "Sự cố đã được phân tích, không được phép xóa.",
+        };
+      }
+    }
+
+    // 3. Thực hiện xóa triệt để cả 2 bảng trong Prisma Transaction
+    await prisma.$transaction(async (tx) => {
+      await tx.dangky_phantichsuco.deleteMany({
+        where: { masuco },
+      });
+
+      await tx.dangky_sucoykhoa.delete({
+        where: { masuco },
+      });
     });
 
     return { success: true };
@@ -225,6 +305,36 @@ export async function deleteIncidentFromDB(
     return {
       success: false,
       error: "Không thể xóa sự cố khỏi CSDL. Vui lòng thử lại sau.",
+    };
+  }
+}
+
+export async function saveAnalysisToDB(
+  masuco: number,
+  payload: AnalysisSavePayload,
+  isApprove?: boolean,
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    const dataToSave = {
+      ...payload,
+      ...(isApprove !== undefined ? { duyet: isApprove } : {}),
+    };
+
+    await prisma.dangky_phantichsuco.upsert({
+      where: { masuco },
+      create: {
+        masuco,
+        ...dataToSave,
+      },
+      update: dataToSave,
+    });
+
+    return { success: true };
+  } catch (error) {
+    console.error("saveAnalysisToDB error:", error);
+    return {
+      success: false,
+      error: "Không thể lưu kết quả phân tích sự cố. Vui lòng thử lại.",
     };
   }
 }

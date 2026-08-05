@@ -6,7 +6,8 @@ import {
   saveIncidentToDB,
   deleteIncidentFromDB,
 } from "@/app/services/incident/incident.service";
-import { handleError } from "@/utils";
+import { handleError, parseMasucoFromRequest } from "@/utils";
+import { IncidentSavePayloadSchema } from "@/types";
 
 export const dynamic = "force-dynamic";
 
@@ -17,21 +18,17 @@ export const dynamic = "force-dynamic";
 export async function GET(request: NextRequest) {
   try {
     const searchParams = request.nextUrl.searchParams;
-    const masucoParam = searchParams.get("masuco");
+    const masucoVal = await parseMasucoFromRequest(request);
 
-    if (masucoParam) {
-      const masuco = parseInt(masucoParam, 10);
-      if (isNaN(masuco)) {
-        return handleError("Mã sự cố ('masuco') không hợp lệ", 400);
-      }
-      const detail = await getIncidentDetail(masuco);
+    if (masucoVal) {
+      const detail = await getIncidentDetail(masucoVal);
       if (!detail) {
         return handleError("Không tìm thấy sự cố yêu cầu", 404);
       }
       return NextResponse.json({ success: true, data: detail });
     }
 
-    const trangThai = searchParams.get("trangThai") || undefined;
+    const trangThai = (searchParams.get("trangThai") as any) || undefined;
     const tuNgay = searchParams.get("tuNgay") || undefined;
     const denNgay = searchParams.get("denNgay") || undefined;
     const maphongParam = searchParams.get("maphong");
@@ -39,7 +36,7 @@ export async function GET(request: NextRequest) {
 
     const filterParams =
       trangThai || tuNgay || denNgay || maphong
-        ? { trangThai, tuNgay, denNgay, maphong }
+        ? { trangThai, tuNgay, tuNgayTime: "00:00", denNgay, denNgayTime: "23:59", maphong }
         : undefined;
 
     const list = await getIncidentList(filterParams);
@@ -61,7 +58,12 @@ export async function POST(request: NextRequest) {
       return handleError("Dữ liệu gửi lên không hợp lệ (cần JSON body)", 400);
     }
 
-    const result = await saveIncidentToDB(null, body);
+    const parseResult = IncidentSavePayloadSchema.safeParse(body);
+    if (!parseResult.success) {
+      return handleError("Dữ liệu sự cố không đúng cấu trúc schema", 400);
+    }
+
+    const result = await saveIncidentToDB(null, parseResult.data);
     if (!result.success) {
       return handleError(result.error || "Không thể tạo sự cố mới", 400);
     }
@@ -89,24 +91,22 @@ export async function POST(request: NextRequest) {
 // ============================================================
 export async function PUT(request: NextRequest) {
   try {
-    const searchParams = request.nextUrl.searchParams;
-    const body = await request.json().catch(() => ({}));
+    const body = await request.clone().json().catch(() => ({}));
+    const masucoVal = await parseMasucoFromRequest(request);
 
-    const masucoQuery = searchParams.get("masuco");
-    const masucoVal = masucoQuery
-      ? parseInt(masucoQuery, 10)
-      : body.masuco
-        ? parseInt(String(body.masuco), 10)
-        : null;
-
-    if (!masucoVal || isNaN(masucoVal)) {
+    if (!masucoVal) {
       return handleError(
         "Thiếu hoặc sai tham số 'masuco' để cập nhật sự cố",
         400,
       );
     }
 
-    const result = await saveIncidentToDB(masucoVal, body);
+    const parseResult = IncidentSavePayloadSchema.safeParse(body);
+    if (!parseResult.success) {
+      return handleError("Dữ liệu sự cố không đúng cấu trúc schema", 400);
+    }
+
+    const result = await saveIncidentToDB(masucoVal, parseResult.data);
     if (!result.success) {
       return handleError(result.error || "Cập nhật sự cố thất bại", 400);
     }
@@ -131,20 +131,9 @@ export async function PUT(request: NextRequest) {
 // ============================================================
 export async function DELETE(request: NextRequest) {
   try {
-    const searchParams = request.nextUrl.searchParams;
-    let masucoVal: number | null = null;
+    const masucoVal = await parseMasucoFromRequest(request);
 
-    const masucoQuery = searchParams.get("masuco");
-    if (masucoQuery) {
-      masucoVal = parseInt(masucoQuery, 10);
-    } else {
-      const body = await request.json().catch(() => ({}));
-      if (body && body.masuco) {
-        masucoVal = parseInt(String(body.masuco), 10);
-      }
-    }
-
-    if (!masucoVal || isNaN(masucoVal)) {
+    if (!masucoVal) {
       return handleError(
         "Thiếu hoặc sai tham số 'masuco' để thực hiện xóa sự cố",
         400,
