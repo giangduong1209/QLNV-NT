@@ -9,8 +9,7 @@ import { SearchableSelect } from "@/components/ui/SearchableSelect";
 import { useToast } from "@/components/ui/ToastProvider";
 import { useEditMode } from "@/store/use-edit-mode-store";
 import { saveIncident, getPreviewSoSuCo } from "@/actions/incidents";
-import type { SuCoDetail, IncidentFormValues } from "@/types";
-import type { LookupData } from "@/actions/lookup";
+import type { SuCoDetail, IncidentFormValues, LookupData } from "@/types";
 import { toDate, todayStr } from "@/utils";
 import { CO_KHONG_OPTIONS, NOTIFICATION_FIELDS } from "@/constants";
 import {

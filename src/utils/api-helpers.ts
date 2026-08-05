@@ -1,4 +1,12 @@
-import { NextRequest } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
+
+/**
+ * Tra response lỗi JSON chuẩn cho Next.js API Routes
+ */
+export function handleError(message: string, status: number = 500) {
+  console.error(`[API Error ${status}]:`, message);
+  return NextResponse.json({ error: message }, { status });
+}
 
 /**
  * Helper trích xuất và validate `masuco` từ params URL, query string (?masuco=) hoặc JSON body

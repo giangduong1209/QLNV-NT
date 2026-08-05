@@ -2,8 +2,8 @@ import type {
   SuCoDetail,
   IncidentFormValues,
   IncidentSavePayload,
+  LookupData,
 } from "@/types";
-import type { LookupData } from "@/actions/lookup";
 import {
   toDateStr,
   toTimeStr,
