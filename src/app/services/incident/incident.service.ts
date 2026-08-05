@@ -7,6 +7,18 @@ import type {
   AnalysisSavePayload,
 } from "@/types";
 
+function isFilterParams(arg: any): arg is FilterParams {
+  if (!arg || typeof arg !== "object") return false;
+  return (
+    "trangThai" in arg ||
+    "tuNgay" in arg ||
+    "denNgay" in arg ||
+    "maphong" in arg ||
+    "tuNgayTime" in arg ||
+    "denNgayTime" in arg
+  );
+}
+
 export async function getCandidateDepartmentIds(selectedId: number): Promise<{
   maphongIds: number[];
   maphongnoiIds: number[];
@@ -24,18 +36,6 @@ export async function getCandidateDepartmentIds(selectedId: number): Promise<{
     maphongIds: [selectedId],
     maphongnoiIds: subRooms.map((room) => room.maphongnoi),
   };
-}
-
-function isFilterParams(arg: any): arg is FilterParams {
-  if (!arg || typeof arg !== "object") return false;
-  return (
-    "trangThai" in arg ||
-    "tuNgay" in arg ||
-    "denNgay" in arg ||
-    "maphong" in arg ||
-    "tuNgayTime" in arg ||
-    "denNgayTime" in arg
-  );
 }
 
 export async function getIncidentList(

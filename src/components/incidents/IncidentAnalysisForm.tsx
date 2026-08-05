@@ -24,7 +24,6 @@ import {
   CAUSES_RIGHT_DEFAULT,
   INJURY_FIELDS,
   CGTHAOLUAN_OPTIONS,
-  DASHBOARD_FORM_ID,
 } from "@/constants";
 import {
   buildDefaultValues,
@@ -141,10 +140,15 @@ export function IncidentAnalysisForm({
   const canEditGeneral = Boolean(suco) && (!daPhanTich || isEditing);
   const canEditExpert = Boolean(suco) && isAdmin && (!daPhanTich || isEditing);
 
-  const performSubmit = useCallback(
+  const onSubmit = useCallback(
     async (values: ConfirmForm, isApprove?: boolean) => {
       if (!suco?.masuco) {
         toast.error("Vui lòng chọn một sự cố để thực hiện phân tích/duyệt.");
+        return;
+      }
+
+      if (!values.pt_ngayDate || !values.pt_ngayDate.trim()) {
+        toast.error("Vui lòng chọn Ngày phân tích!");
         return;
       }
 
@@ -152,7 +156,9 @@ export function IncidentAnalysisForm({
       const now = new Date();
 
       if (ptNgay && ptNgay > now) {
-        toast.error("Ngày phân tích không được vượt quá thời gian và ngày hiện tại!");
+        toast.error(
+          "Ngày phân tích không được vượt quá thời gian và ngày hiện tại!",
+        );
         return;
       }
 
@@ -197,6 +203,7 @@ export function IncidentAnalysisForm({
         payload,
         isApprove,
       );
+
       setIsSaving(false);
 
       if (result.success) {
@@ -209,30 +216,27 @@ export function IncidentAnalysisForm({
         router.refresh();
       } else {
         toast.error(
-          result.error ?? "Thao tác không thành công. Vui lòng thử lại.",
+          result.error ?? "Thao tác không thành công. Vui lòng thử lại!",
         );
       }
     },
-    [suco?.masuco, setIsEditing, router, toast],
+    [suco, setIsEditing, router],
   );
 
-  const onSubmit = (values: ConfirmForm, e?: React.BaseSyntheticEvent) => {
-    const nativeEvent = e?.nativeEvent as SubmitEvent | undefined;
-    const submitter = nativeEvent?.submitter as HTMLButtonElement | undefined;
-    const isApprove = submitter?.value === "approve";
-    performSubmit(values, isApprove);
-  };
+  const onError = useCallback(() => {
+    toast.error("Vui lòng kiểm tra và nhập đầy đủ các thông tin bắt buộc!");
+  }, [toast]);
 
   // Đăng ký submit handler với Zustand Store
   useEffect(() => {
     registerSubmitHandler((actionType?: FormSubmitAction) => {
-      const values = getValues();
-      performSubmit(values, actionType === "approve");
+      const isApprove = actionType === "approve";
+      handleSubmit((values) => onSubmit(values, isApprove), onError)();
     });
     return () => {
       registerSubmitHandler(null);
     };
-  }, [registerSubmitHandler, getValues, performSubmit]);
+  }, [registerSubmitHandler, handleSubmit, onSubmit, onError]);
 
   const renderCauseRow = (causeItem: ResolvedCauseItem) => (
     <div
@@ -287,8 +291,7 @@ export function IncidentAnalysisForm({
 
   return (
     <form
-      id={DASHBOARD_FORM_ID}
-      onSubmit={handleSubmit(onSubmit)}
+      onSubmit={handleSubmit((values) => onSubmit(values, false), onError)}
       className="ql-form-container"
     >
       {isSaving && (
@@ -434,7 +437,10 @@ export function IncidentAnalysisForm({
           <div className="grid grid-cols-12 gap-4 mb-4">
             <div className="col-span-6">
               <div className="ql-field">
-                <span className="ql-field-label">Ngày phân tích:</span>
+                <span className="ql-field-label">
+                  Ngày phân tích:{" "}
+                  <span className="text-red-500 font-bold ml-0.5">*</span>
+                </span>
                 <div className="ql-field-control ql-datetime-row">
                   <input
                     type="date"
@@ -545,6 +551,11 @@ export function IncidentAnalysisForm({
       <div className="ql-form-section mt-6">
         <div className="ql-form-section-header">
           <span>ĐÁNH GIÁ CỦA CHUYÊN GIA</span>
+          {daDuyet && (
+            <span className="text-xs font-normal text-blue-700 bg-blue-100 px-2 py-0.5 rounded-full">
+              ✓ Đã duyệt
+            </span>
+          )}
         </div>
         <div className="ql-form-section-body">
           <div className="grid grid-cols-12 gap-4 my-6">

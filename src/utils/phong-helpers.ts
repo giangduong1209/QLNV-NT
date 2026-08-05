@@ -66,7 +66,7 @@ export function buildPhongNoiSelectOptions(
 }
 
 /**
- * Xây dựng danh sách tùy chọn Khoa & Phòng phân cấp cho Sidebar Filter (có fallback KHOA_PHONG_MAP)
+ * Xây dựng danh sách tùy chọn Khoa & Phòng phân cấp cho Sidebar Filter
  */
 export function buildDepartmentSelectOptions(
   lookupData: LookupData,

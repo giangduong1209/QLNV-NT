@@ -9,14 +9,9 @@ import { SearchableSelect } from "@/components/ui/SearchableSelect";
 import { useToast } from "@/components/ui/ToastProvider";
 import { useEditMode } from "@/store/use-edit-mode-store";
 import { saveIncident, getPreviewSoSuCo } from "@/actions/incidents";
-import type { SuCoDetail, IncidentFormValues } from "@/types";
-import type { LookupData } from "@/actions/lookup";
+import type { SuCoDetail, IncidentFormValues, LookupData } from "@/types";
 import { toDate, todayStr } from "@/utils";
-import {
-  CO_KHONG_OPTIONS,
-  NOTIFICATION_FIELDS,
-  DASHBOARD_FORM_ID,
-} from "@/constants";
+import { CO_KHONG_OPTIONS, NOTIFICATION_FIELDS } from "@/constants";
 import {
   buildDefaultValues,
   buildPhongOptions,
@@ -193,7 +188,6 @@ export function IncidentReportForm({
 
   return (
     <form
-      id={DASHBOARD_FORM_ID}
       onSubmit={handleSubmit(onSubmit, onError)}
       className="ql-form-container"
     >

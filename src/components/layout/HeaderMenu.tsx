@@ -3,12 +3,27 @@
 import { useState, useTransition } from "react";
 import Image from "next/image";
 import { logout } from "@/actions/auth";
+import { useEditMode } from "@/store/use-edit-mode-store";
 
 export function HeaderMenu() {
   const [activeTab, setActiveTab] = useState("Hệ thống");
   const [isPending, startTransition] = useTransition();
+  const { resetState } = useEditMode();
 
   const handleLogout = () => {
+    // Xóa bộ nhớ Client Storage (sessionStorage, localStorage)
+    if (typeof window !== "undefined") {
+      try {
+        sessionStorage.clear();
+        localStorage.clear();
+      } catch (error) {
+        console.error("Lỗi khi dọn dẹp Client Storage:", error);
+      }
+    }
+
+    // Reset Zustand Store
+    resetState();
+
     startTransition(async () => {
       await logout();
     });
