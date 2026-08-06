@@ -1,14 +1,10 @@
 "use server";
 
 import { redirect } from "next/navigation";
-import bcrypt from "bcryptjs";
+// import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
 import { createSession, deleteSession } from "@/lib/session";
-import {
-  LoginFormSchema,
-  type LoginFormState,
-  type UserRole,
-} from "@/types";
+import { LoginFormSchema, type LoginFormState, type UserRole } from "@/types";
 
 // ============================================================
 // Login Action
@@ -58,6 +54,14 @@ export async function login(
     }
 
     // 3. Verify password
+
+    // const passwordMatch = await bcrypt.compare(password, user.password);
+
+    // if (!passwordMatch) {
+    //   return {
+    //     message: "Tên đăng nhập hoặc mật khẩu không đúng",
+    //   };
+    // }
     if (password !== user.password) {
       return {
         message: "Tên đăng nhập hoặc mật khẩu không đúng",
