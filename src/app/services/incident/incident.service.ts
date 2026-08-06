@@ -1,5 +1,5 @@
-import { prisma } from "@/lib/prisma";
-import type { Prisma } from "@prisma/client";
+import { prisma, type Prisma } from "@/lib/prisma";
+
 import { toDate, generateRandomIncidentCodeParts, checkIsAdmin } from "@/utils";
 import type {
   FilterParams,
