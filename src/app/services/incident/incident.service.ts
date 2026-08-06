@@ -38,17 +38,54 @@ export async function getCandidateDepartmentIds(selectedId: number): Promise<{
   };
 }
 
+const incidentListSelect = {
+  masuco: true,
+  sosuco: true,
+  ngay: true,
+  mahinhthuc: true,
+  makcb: true,
+  hoten: true,
+  maphong: true,
+  madoituongsc: true,
+  ngaysinh: true,
+  sobenhan: true,
+  maphai: true,
+  madonnguyen: true,
+  tensuco: true,
+  ngaysuco: true,
+  maphongnoi: true,
+  vitricuthe: true,
+  mota: true,
+  giaiphapdexuat: true,
+  xulybandau: true,
+  thongbaobacsy: true,
+  thongbaonguoinha: true,
+  ghinhan: true,
+  thongbaonguoibenh: true,
+  phanloaibandau: true,
+  danhgiabandau: true,
+  manguoibaocao: true,
+  hotennguoibaocao: true,
+  dienthoainguoibaocao: true,
+  emailnguoibaocao: true,
+  chungkien1: true,
+  chungkien2: true,
+  nguoibckhac: true,
+  txtmakkbaocao: true,
+  makkbaocao: true,
+  nguyennhangoc: true,
+  giaiphaptranhlaplai: true,
+  maloaiscyk: true,
+  phantichsuco: {
+    select: {
+      masuco: true,
+    },
+  },
+} as const;
+
 export async function getIncidentList(
   params?: FilterParams | Prisma.dangky_sucoykhoaWhereInput,
 ) {
-  // Lấy danh sách mã sự cố đã phân tích để check daPhanTich và lọc trangThai
-  const getAnalyzedMasucoSet = async () => {
-    const analyzedRows = await prisma.dangky_phantichsuco.findMany({
-      select: { masuco: true },
-    });
-    return new Set(analyzedRows.map((row) => row.masuco));
-  };
-
   if (!params || !isFilterParams(params)) {
     const where =
       params && typeof params === "object"
@@ -56,12 +93,12 @@ export async function getIncidentList(
         : undefined;
     const list = await prisma.dangky_sucoykhoa.findMany({
       where,
+      select: incidentListSelect,
       orderBy: { ngaysuco: "desc" },
     });
-    const analyzedSet = await getAnalyzedMasucoSet();
-    return list.map((item) => ({
+    return list.map(({ phantichsuco, ...item }) => ({
       ...item,
-      daPhanTich: analyzedSet.has(item.masuco),
+      daPhanTich: Boolean(phantichsuco),
     }));
   }
 
@@ -82,13 +119,10 @@ export async function getIncidentList(
     });
   }
 
-  const analyzedSet = await getAnalyzedMasucoSet();
-  const analyzedMasucoList = Array.from(analyzedSet);
-
   if (trangThai === "DA_PHAN_TICH") {
-    conditions.push({ masuco: { in: analyzedMasucoList } });
+    conditions.push({ phantichsuco: { isNot: null } });
   } else if (trangThai === "CHUA_PHAN_TICH") {
-    conditions.push({ masuco: { notIn: analyzedMasucoList } });
+    conditions.push({ phantichsuco: { is: null } });
   }
 
   if (maphong !== undefined && maphong !== null && !isNaN(maphong)) {
@@ -111,12 +145,13 @@ export async function getIncidentList(
 
   const list = await prisma.dangky_sucoykhoa.findMany({
     where,
+    select: incidentListSelect,
     orderBy: { ngaysuco: "desc" },
   });
 
-  return list.map((item) => ({
+  return list.map(({ phantichsuco, ...item }) => ({
     ...item,
-    daPhanTich: analyzedSet.has(item.masuco),
+    daPhanTich: Boolean(phantichsuco),
   }));
 }
 

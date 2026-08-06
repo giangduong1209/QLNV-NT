@@ -29,7 +29,14 @@ export async function GET(
       return handleError("Không tìm thấy sự cố yêu cầu", 404);
     }
 
-    return NextResponse.json({ success: true, data: detail });
+    return NextResponse.json(
+      { success: true, data: detail },
+      {
+        headers: {
+          "Cache-Control": "public, s-maxage=30, stale-while-revalidate=300",
+        },
+      },
+    );
   } catch (error) {
     console.error("[API GET /api/incidents/[masuco]] Error:", error);
     return handleError("Internal Server Error", 500);

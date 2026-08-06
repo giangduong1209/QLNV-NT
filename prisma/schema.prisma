@@ -43,6 +43,7 @@ model dangky_phantichsuco {
   tttochuc         String?   @db.NVarChar(50)
   malanhdao        Int?
   duyet            Boolean?
+  sucoykhoa        dangky_sucoykhoa? @relation(fields: [masuco], references: [masuco], onDelete: Cascade, onUpdate: NoAction, map: "FK_phantichsuco_sucoykhoa")
 }
 
 model dangky_sucoykhoa {
@@ -85,6 +86,7 @@ model dangky_sucoykhoa {
   maloaiscyk           Int?
   dmdanhgiabandau      dmdanhgiabandau?  @relation(fields: [danhgiabandau], references: [madanhgia], onDelete: NoAction, onUpdate: NoAction, map: "FK_sucoykhoa_danhgiabandau")
   dmphanloaibandau     dmphanloaibandau? @relation(fields: [phanloaibandau], references: [maphanloai], onDelete: NoAction, onUpdate: NoAction, map: "FK_sucoykhoa_phanloaibandau")
+  phantichsuco         dangky_phantichsuco?
 }
 
 model dmhanhvi_scyk {

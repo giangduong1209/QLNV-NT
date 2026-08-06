@@ -25,7 +25,14 @@ export async function GET(request: NextRequest) {
       if (!detail) {
         return handleError("Không tìm thấy sự cố yêu cầu", 404);
       }
-      return NextResponse.json({ success: true, data: detail });
+      return NextResponse.json(
+        { success: true, data: detail },
+        {
+          headers: {
+            "Cache-Control": "public, s-maxage=30, stale-while-revalidate=300",
+          },
+        },
+      );
     }
 
     const trangThai = (searchParams.get("trangThai") as any) || undefined;
@@ -40,7 +47,14 @@ export async function GET(request: NextRequest) {
         : undefined;
 
     const list = await getIncidentList(filterParams);
-    return NextResponse.json({ success: true, data: list });
+    return NextResponse.json(
+      { success: true, data: list },
+      {
+        headers: {
+          "Cache-Control": "public, s-maxage=30, stale-while-revalidate=300",
+        },
+      },
+    );
   } catch (error) {
     console.error("[API GET /api/incidents] Error:", error);
     return handleError("Internal Server Error", 500);
