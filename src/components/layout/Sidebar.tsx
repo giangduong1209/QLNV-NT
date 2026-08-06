@@ -14,6 +14,7 @@ import { TimePicker } from "@/components/ui/TimePicker";
 import { SearchableSelect } from "@/components/ui/SearchableSelect";
 import { getSuCoList, getSuCoDetail } from "@/actions/incidents";
 import { getLookupData } from "@/actions/lookup";
+import { Skeleton } from "@/components/ui/Skeleton";
 import type {
   SuCoListItem,
   SelectOption,
@@ -280,7 +281,22 @@ function SidebarContent() {
         </div>
 
         <div className="ql-sidebar-btn-row">
-          <button type="submit" className="ql-sidebar-btn" disabled={isPending}>
+          <button type="submit" className="ql-sidebar-btn flex items-center justify-center gap-1.5" disabled={isPending}>
+            {isPending && (
+              <svg
+                className="w-3.5 h-3.5 animate-spin text-white"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  d="M12 4v1m0 14v1m8-8h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707"
+                />
+              </svg>
+            )}
             {isPending ? "Đang tải..." : "Nạp"}
           </button>
         </div>
@@ -302,17 +318,29 @@ function SidebarContent() {
             </tr>
           </thead>
           <tbody>
-            {suCoList.length === 0 ? (
+            {isPending ? (
+              Array.from({ length: 5 }).map((_, idx) => (
+                <tr key={idx}>
+                  <td className="py-2.5 px-2">
+                    <Skeleton className="h-3.5 w-16" />
+                  </td>
+                  <td className="py-2.5 px-2">
+                    <Skeleton className="h-3.5 w-24" />
+                  </td>
+                  <td className="py-2.5 px-2">
+                    <Skeleton className="h-3.5 w-14" />
+                  </td>
+                </tr>
+              ))
+            ) : suCoList.length === 0 ? (
               <tr>
                 <td
                   colSpan={3}
                   className="text-center text-slate-400 italic py-6"
                 >
-                  {isPending
-                    ? "Đang tải..."
-                    : hasSearched
-                      ? "Không tìm thấy dữ liệu"
-                      : "Nhấn Nạp để tìm kiếm"}
+                  {hasSearched
+                    ? "Không tìm thấy dữ liệu"
+                    : "Nhấn Nạp để tìm kiếm"}
                 </td>
               </tr>
             ) : (

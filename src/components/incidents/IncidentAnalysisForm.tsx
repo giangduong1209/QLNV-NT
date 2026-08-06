@@ -54,9 +54,15 @@ export function IncidentAnalysisForm({
     setDisableEditButton,
     setDisableApproveButton,
     setIncidentStatus,
+    setIsSubmitting,
     registerSubmitHandler,
   } = useEditMode();
   const [isSaving, setIsSaving] = useState(false);
+  const [currentAction, setCurrentAction] = useState<"save" | "approve">("save");
+
+  useEffect(() => {
+    setIsSubmitting(isSaving, currentAction);
+  }, [isSaving, currentAction, setIsSubmitting]);
 
   const suco = initialData?.sucoykhoa;
   const phanTich = initialData?.phantichsuco;
@@ -162,6 +168,7 @@ export function IncidentAnalysisForm({
         return;
       }
 
+      setCurrentAction(isApprove ? "approve" : "save");
       setIsSaving(true);
 
       const payload = {

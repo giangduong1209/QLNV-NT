@@ -38,6 +38,7 @@ export function IncidentReportForm({
     setIsEditing,
     setDisableEditButton,
     setIncidentStatus,
+    setIsSubmitting,
     registerSubmitHandler,
   } = useEditMode();
 
@@ -50,6 +51,10 @@ export function IncidentReportForm({
     };
   }, [initialData, setIncidentStatus]);
   const [isSaving, setIsSaving] = useState(false);
+
+  useEffect(() => {
+    setIsSubmitting(isSaving, "save");
+  }, [isSaving, setIsSubmitting]);
 
   const canEdit = isNew || isEditing;
 

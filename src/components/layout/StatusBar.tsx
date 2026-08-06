@@ -24,6 +24,8 @@ function StatusBarContent({ userRole }: StatusBarProps) {
     disableApproveButton,
     daPhanTich,
     daDuyet,
+    isSubmitting,
+    submitAction,
     triggerSubmit,
   } = useEditMode();
 
@@ -142,7 +144,9 @@ function StatusBarContent({ userRole }: StatusBarProps) {
     }
   };
 
-  const canSave = isEditing || disableEditButton;
+  const canSave = (isEditing || disableEditButton) && !isSubmitting;
+  const isSavingNow = isSubmitting && submitAction === "save";
+  const isApprovingNow = isSubmitting && submitAction === "approve";
 
   return (
     <>
@@ -150,7 +154,11 @@ function StatusBarContent({ userRole }: StatusBarProps) {
         <div className="ql-status-actions">
           {/* Thêm mới (nếu ở dashboard) / Duyệt (nếu ở incidents & là admin) */}
           {pathname !== "/incidents" ? (
-            <button className="ql-btn-action" onClick={handleNew}>
+            <button
+              className="ql-btn-action"
+              onClick={handleNew}
+              disabled={isSubmitting || isDeleting}
+            >
               <span className="ql-btn-icon-green">&#10010;</span> Thêm mới
             </button>
           ) : (
@@ -158,14 +166,31 @@ function StatusBarContent({ userRole }: StatusBarProps) {
               <button
                 className="ql-btn-action"
                 onClick={handleApprove}
-                disabled={disableApproveButton}
+                disabled={disableApproveButton || isSubmitting || isDeleting}
                 title={
                   disableApproveButton
                     ? "Sự cố này đã được duyệt"
                     : "Duyệt thông tin sự cố"
                 }
               >
-                <span className="ql-btn-icon-green">&#10003;</span> Duyệt
+                {isApprovingNow ? (
+                  <svg
+                    className="w-3.5 h-3.5 animate-spin text-green-600 inline-block"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      d="M12 4v1m0 14v1m8-8h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707"
+                    />
+                  </svg>
+                ) : (
+                  <span className="ql-btn-icon-green">&#10003;</span>
+                )}
+                {isApprovingNow ? "Đang duyệt..." : "Duyệt"}
               </button>
             )
           )}
@@ -173,7 +198,9 @@ function StatusBarContent({ userRole }: StatusBarProps) {
           <button
             className="ql-btn-action"
             onClick={handleEdit}
-            disabled={!activeMasuco || isEditing || disableEditButton}
+            disabled={
+              !activeMasuco || isEditing || disableEditButton || isSubmitting || isDeleting
+            }
           >
             <span className="ql-btn-icon-yellow">&#9999;</span> Sửa
           </button>
@@ -184,27 +211,61 @@ function StatusBarContent({ userRole }: StatusBarProps) {
             onClick={handleSave}
             disabled={!canSave}
           >
-            <span className="ql-btn-icon-blue">&#128190;</span> Lưu
+            {isSavingNow ? (
+              <svg
+                className="w-3.5 h-3.5 animate-spin text-blue-600 inline-block"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  d="M12 4v1m0 14v1m8-8h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707"
+                />
+              </svg>
+            ) : (
+              <span className="ql-btn-icon-blue">&#128190;</span>
+            )}
+            {isSavingNow ? "Đang lưu..." : "Lưu"}
           </button>
 
           {/* Xóa */}
           <button
             className="ql-btn-action"
             onClick={handleOpenDeleteModal}
-            disabled={!canDelete}
+            disabled={!canDelete || isSubmitting || isDeleting}
             title={deleteTooltip}
           >
-            <span className="ql-btn-icon-red">&#10008;</span> Xóa
+            {isDeleting ? (
+              <svg
+                className="w-3.5 h-3.5 animate-spin text-red-600 inline-block"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  d="M12 4v1m0 14v1m8-8h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707"
+                />
+              </svg>
+            ) : (
+              <span className="ql-btn-icon-red">&#10008;</span>
+            )}
+            {isDeleting ? "Đang xóa..." : "Xóa"}
           </button>
 
           {/* In phiếu — chưa implement */}
-          <button className="ql-btn-action" disabled={!activeMasuco}>
+          <button className="ql-btn-action" disabled={!activeMasuco || isSubmitting || isDeleting}>
             <span className="ql-btn-icon-blue">&#128427;</span> In phiếu{" "}
             <small>▼</small>
           </button>
 
           {/* Thoát: tắt edit mode */}
-          <button className="ql-btn-action" onClick={handleExit}>
+          <button className="ql-btn-action" onClick={handleExit} disabled={isSubmitting || isDeleting}>
             <span className="ql-btn-icon-red">&#128682;</span> Thoát (Esc)
           </button>
         </div>

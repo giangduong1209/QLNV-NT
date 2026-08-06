@@ -13,10 +13,13 @@ export interface EditModeState {
   disableApproveButton: boolean;
   daPhanTich: boolean;
   daDuyet: boolean;
+  isSubmitting: boolean;
+  submitAction: FormSubmitAction | null;
   submitHandler: SubmitHandler | null;
   setIsEditing: (v: boolean) => void;
   setDisableEditButton: (v: boolean) => void;
   setDisableApproveButton: (v: boolean) => void;
+  setIsSubmitting: (isSubmitting: boolean, submitAction?: FormSubmitAction | null) => void;
   setIncidentStatus: (status: {
     daPhanTich: boolean;
     daDuyet: boolean;
@@ -32,12 +35,16 @@ export const useEditModeStore = create<EditModeState>((set, get) => ({
   disableApproveButton: false,
   daPhanTich: false,
   daDuyet: false,
+  isSubmitting: false,
+  submitAction: null,
   submitHandler: null,
 
   setIsEditing: (isEditing) => set({ isEditing }),
   setDisableEditButton: (disableEditButton) => set({ disableEditButton }),
   setDisableApproveButton: (disableApproveButton) =>
     set({ disableApproveButton }),
+  setIsSubmitting: (isSubmitting, submitAction = null) =>
+    set({ isSubmitting, submitAction: isSubmitting ? submitAction : null }),
   setIncidentStatus: (status) =>
     set({ daPhanTich: status.daPhanTich, daDuyet: status.daDuyet }),
 
@@ -50,6 +57,8 @@ export const useEditModeStore = create<EditModeState>((set, get) => ({
       disableApproveButton: false,
       daPhanTich: false,
       daDuyet: false,
+      isSubmitting: false,
+      submitAction: null,
       submitHandler: null,
     }),
 
@@ -82,6 +91,9 @@ export function useEditMode() {
   );
   const daPhanTich = useEditModeStore((state) => state.daPhanTich);
   const daDuyet = useEditModeStore((state) => state.daDuyet);
+  const isSubmitting = useEditModeStore((state) => state.isSubmitting);
+  const submitAction = useEditModeStore((state) => state.submitAction);
+  const setIsSubmitting = useEditModeStore((state) => state.setIsSubmitting);
   const setIncidentStatus = useEditModeStore(
     (state) => state.setIncidentStatus,
   );
@@ -100,6 +112,9 @@ export function useEditMode() {
     setDisableApproveButton,
     daPhanTich,
     daDuyet,
+    isSubmitting,
+    submitAction,
+    setIsSubmitting,
     setIncidentStatus,
     registerSubmitHandler,
     triggerSubmit,

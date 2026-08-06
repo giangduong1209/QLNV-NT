@@ -272,10 +272,26 @@ export function HeaderMenu() {
               <button
                 onClick={handleLogout}
                 disabled={isPending}
-                className="ql-his-ribbon-btn cursor-pointer  hover:bg-red-100 text-red-700 font-bold border-red-300"
+                className="ql-his-ribbon-btn cursor-pointer hover:bg-red-100 text-red-700 font-bold border-red-300 flex items-center gap-1.5"
                 title="Đăng xuất khỏi hệ thống"
               >
-                <span>&#128682;</span>
+                {isPending ? (
+                  <svg
+                    className="w-3.5 h-3.5 animate-spin text-red-600 inline-block"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      d="M12 4v1m0 14v1m8-8h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707"
+                    />
+                  </svg>
+                ) : (
+                  <span>&#128682;</span>
+                )}
                 {isPending ? "Đang đăng xuất..." : "Đăng xuất"}
               </button>
             </div>
