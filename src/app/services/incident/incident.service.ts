@@ -121,15 +121,16 @@ export async function getIncidentList(
 }
 
 export async function getIncidentDetail(masuco: number) {
-  const sucoykhoa = await prisma.dangky_sucoykhoa.findUnique({
-    where: { masuco },
-  });
+  const [sucoykhoa, phantichsuco] = await Promise.all([
+    prisma.dangky_sucoykhoa.findUnique({
+      where: { masuco },
+    }),
+    prisma.dangky_phantichsuco.findUnique({
+      where: { masuco },
+    }),
+  ]);
 
   if (!sucoykhoa) return null;
-
-  const phantichsuco = await prisma.dangky_phantichsuco.findUnique({
-    where: { masuco },
-  });
 
   return { ...sucoykhoa, phantichsuco: phantichsuco ?? null };
 }
