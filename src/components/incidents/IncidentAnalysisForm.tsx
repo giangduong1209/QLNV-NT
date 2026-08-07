@@ -119,7 +119,7 @@ export function IncidentAnalysisForm({
 
   useEffect(() => {
     if (!suco) {
-      setDisableEditButton(true);
+      setDisableEditButton(false);
       setDisableApproveButton(true);
       setIncidentStatus({ daPhanTich: false, daDuyet: false });
     } else {

@@ -144,7 +144,9 @@ function StatusBarContent({ userRole }: StatusBarProps) {
     }
   };
 
-  const canSave = (isEditing || disableEditButton) && !isSubmitting;
+  const isIncidentsPageNoSelection = pathname === "/incidents" && !activeMasuco;
+  const canSave =
+    !isIncidentsPageNoSelection && (isEditing || disableEditButton) && !isSubmitting;
   const isSavingNow = isSubmitting && submitAction === "save";
   const isApprovingNow = isSubmitting && submitAction === "approve";
 
