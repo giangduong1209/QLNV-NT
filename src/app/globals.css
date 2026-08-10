@@ -23,12 +23,7 @@
   --color-text-muted: #64748b; /* slate-500 */
   --color-text-on-primary: #ffffff;
   --color-error: #ef4444; /* red-500 */
-  --color-border-primary: rgba(
-    148,
-    163,
-    184,
-    0.15
-  ); /* slate-400 with opacity */
+  --color-border-primary: rgba(19, 23, 27, 0.15); /* slate-400 with opacity */
 }
 
 @theme inline {
@@ -55,7 +50,7 @@
     --color-text-primary: #dd2821;
     --color-text-secondary: #020202;
     --color-error: #ef4444;
-    --color-border-primary: rgba(255, 255, 255, 0.1);
+    /* --color-border-primary: rgba(255, 255, 255, 0.1; */
   }
 }
 
