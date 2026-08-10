@@ -304,7 +304,7 @@ export function IncidentAnalysisForm({
       {isSaving && (
         <div className="mb-3 px-4 py-2.5 bg-blue-50 border border-blue-200 rounded-lg text-blue-700 text-sm flex items-center gap-2">
           <svg
-            className="w-4 h-4 animate-spin"
+            className="w-4 h-4 animate-spin text-blue-600"
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"
