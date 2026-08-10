@@ -1,22 +1,184 @@
-/* ============================================================
-   App Layout Shell (Modern Medical Aesthetic)
-   ============================================================ */
+/* ═══════════════════════════════════════════════════════════════
+   1. APP SHELL LAYOUT
+   ═══════════════════════════════════════════════════════════════ */
+
 .ql-app-shell {
   display: flex;
   flex-direction: column;
   height: 100vh;
   width: 100vw;
   background-color: #f8fafc;
-  font-family:
-    var(--font-geist-sans),
-    "Inter",
-    system-ui,
-    -apple-system,
-    sans-serif;
   overflow: hidden;
 }
 
-/* Tab bar at top */
+.ql-workspace {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+  min-height: 0;
+}
+
+.ql-main-content {
+  flex: 1;
+  overflow-y: auto;
+  background-color: #f1f5f9;
+  padding: 24px;
+  min-height: 0;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   2. HIS HEADER
+   ═══════════════════════════════════════════════════════════════ */
+
+.ql-his-header {
+  user-select: none;
+  background-color: #f1f5f9;
+  border-bottom: 1px solid var(--color-border-light);
+  flex-shrink: 0;
+  width: 100%;
+  max-width: 100vw;
+  overflow-x: hidden;
+}
+
+.ql-his-titlebar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 4px 12px;
+  background-color: var(--color-primary-light);
+  border-bottom: 1px solid rgba(220, 38, 38, 0.15);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-primary-dark);
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.ql-his-menubar {
+  display: flex;
+  align-items: center;
+  background-color: var(--color-primary-dark);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.15);
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.ql-his-menu-btn {
+  padding: 5px 14px;
+  font-size: 11.5px;
+  font-weight: 700;
+  color: #ffffff;
+  background-color: rgba(255, 255, 255, 0.15);
+  border: none;
+  border-right: 1px solid rgba(255, 255, 255, 0.2);
+  cursor: pointer;
+  letter-spacing: 0.05em;
+  flex-shrink: 0;
+}
+
+.ql-his-menu-btn:hover {
+  background-color: rgba(255, 255, 255, 0.25);
+}
+
+.ql-his-tab {
+  padding: 5px 9px;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.88);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.15s ease;
+  flex-shrink: 0;
+}
+
+.ql-his-tab:hover {
+  background-color: rgba(255, 255, 255, 0.2);
+  color: #ffffff;
+}
+
+.ql-his-tab.active {
+  background-color: #ffffff;
+  color: var(--color-primary-dark);
+  font-weight: 700;
+}
+
+.ql-his-tab:disabled {
+  cursor: default !important;
+}
+
+/* 2-Row Stacked HIS Ribbon Bar */
+.ql-his-ribbon-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0;
+  width: 100%;
+  max-width: 100vw;
+  padding: 5px 8px;
+  background-color: #f1f5f9;
+  border-bottom: 1px solid #cbd5e1;
+  box-sizing: border-box;
+  overflow-x: auto;
+}
+
+.ql-his-ribbon-group {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 4px;
+  padding: 0 8px;
+  border-right: 1px solid #cbd5e1;
+  flex: 1 1 0%;
+  box-sizing: border-box;
+}
+
+.ql-his-ribbon-group:last-child {
+  border-right: none;
+}
+
+.ql-his-ribbon-row {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  width: 100%;
+}
+
+.ql-his-ribbon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 5px;
+  padding: 3px 8px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #334155;
+  border-radius: 4px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.12s ease;
+  user-select: none;
+  box-sizing: border-box;
+  flex: 1 1 0%;
+  width: 100%;
+  height: 29px;
+}
+
+.ql-his-ribbon-btn:hover {
+  background-color: #e2e8f0;
+  border-color: #94a3b8;
+  color: #0f172a;
+}
+
+.ql-his-ribbon-btn:disabled {
+  cursor: default !important;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   3. TAB BAR
+   ═══════════════════════════════════════════════════════════════ */
+
 .ql-tab-bar {
   display: flex;
   background-color: var(--color-primary-dark);
@@ -88,15 +250,10 @@
   color: #ef4444;
 }
 
-/* Workspace wrapper */
-.ql-workspace {
-  display: flex;
-  flex: 1;
-  overflow: hidden;
-  min-height: 0;
-}
+/* ═══════════════════════════════════════════════════════════════
+   4. SIDEBAR
+   ═══════════════════════════════════════════════════════════════ */
 
-/* Sidebar on the left */
 .ql-sidebar {
   width: 400px;
   background-color: #ffffff;
@@ -153,32 +310,7 @@
   height: 34px !important;
 }
 
-.ql-sidebar-control select:focus,
-.ql-sidebar-control input:focus {
-  border-color: var(--color-primary);
-  box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.12);
-  outline: none;
-}
-
-.ql-sidebar-date-range {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-}
-
-.ql-sidebar-date-range input {
-  flex: 1;
-  min-width: 0;
-  font-size: 11px;
-  padding: 4px 6px;
-}
-
-.ql-sidebar-date-range span {
-  font-size: 12px;
-  color: var(--color-text-muted);
-}
-
-/* Date/time inputs directly inside sidebar rows (not in ql-sidebar-control) */
+/* Date/time inputs directly inside sidebar rows */
 .ql-sidebar-row input[type="date"],
 .ql-sidebar-row input[type="time"] {
   font-size: 12px;
@@ -190,13 +322,6 @@
   box-sizing: border-box;
   color: #000000 !important;
   transition: all 0.2s ease;
-}
-
-.ql-sidebar-row input[type="date"]:focus,
-.ql-sidebar-row input[type="time"]:focus {
-  border-color: var(--color-primary);
-  box-shadow: 0 0 0 2px rgba(220, 38, 38, 0.12);
-  outline: none;
 }
 
 .ql-sidebar-btn-row {
@@ -283,13 +408,187 @@
   color: var(--color-primary-dark);
 }
 
-/* Main form content area */
-.ql-main-content {
+/* ═══════════════════════════════════════════════════════════════
+   5. FORM — BASE FIELDS & INPUTS
+   ═══════════════════════════════════════════════════════════════ */
+
+.ql-field {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+}
+
+.ql-field-label {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  white-space: nowrap;
+  flex-shrink: 0;
+  text-align: left;
+}
+
+.ql-field-control {
   flex: 1;
-  overflow-y: auto;
+  display: flex;
+  align-items: center;
+}
+
+/* --- Base input styles --- */
+.ql-field-control input[type="text"],
+.ql-field-control input[type="date"],
+.ql-field-control input[type="time"],
+.ql-field-control select,
+.ql-field-control textarea {
+  width: 100%;
+  font-size: 13px;
+  height: 40px;
+  padding: 8px 12px;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  background-color: #ffffff;
+  box-sizing: border-box;
+  color: #000000 !important;
+  transition: all 0.2s ease;
+}
+
+.ql-field-control textarea {
+  height: auto;
+  min-height: 88px;
+  resize: vertical;
+  line-height: 1.6;
+  padding: 10px 12px;
+}
+
+/* --- Disabled / Readonly (consolidated from 4 separate blocks) --- */
+.ql-field-control :is(select, input, textarea):is(:disabled, [readonly]),
+.ql-field-control input[type="date"]:disabled,
+.ql-field-control input[type="date"][readonly],
+.ql-form-header-field :is(input, select):is(:disabled, [readonly]) {
+  background-color: #e2e8f0;
+  color: #0f172a;
+  -webkit-text-fill-color: #0f172a;
+  opacity: 1;
+  font-weight: 600;
+  cursor: default;
+  border-color: var(--color-border);
+}
+
+.ql-field-control
+  input[type="date"]:is(
+    :disabled,
+    [readonly]
+  )::-webkit-calendar-picker-indicator {
+  opacity: 0.6;
+  cursor: default;
+  pointer-events: none;
+}
+
+/* --- Focus ring (consolidated from 5 separate blocks) --- */
+.ql-field-control :is(input, select, textarea):focus,
+.ql-form-header-field :is(input, select):focus,
+.ql-sidebar-control :is(input, select):focus,
+.ql-sidebar-row :is(input[type="date"], input[type="time"]):focus,
+.ql-datetime-row input[type="date"]:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.12);
+  outline: none;
+}
+
+/* --- Datetime row --- */
+.ql-datetime-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ql-datetime-row input[type="date"] {
+  flex: 1;
+  min-width: 0;
+  width: auto !important;
+  font-size: 13px;
+  height: 40px;
+  padding: 8px 10px;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  background-color: #ffffff;
+  box-sizing: border-box;
+  color: #000000 !important;
+  transition: all 0.2s ease;
+}
+
+/* --- Input addon wrapper & button (used in IncidentAnalysisForm) --- */
+.ql-field-control-wrapper {
+  display: flex;
+  width: 100%;
+}
+
+.ql-input-addon-btn {
   background-color: #f1f5f9;
-  padding: 24px;
-  min-height: 0;
+  border: 1px solid var(--color-border);
+  border-left: none;
+  border-radius: 0 8px 8px 0;
+  padding: 0 10px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-primary-dark);
+  font-size: 10px;
+  transition: all 0.15s;
+}
+
+.ql-input-addon-btn:hover {
+  background-color: #e2e8f0;
+}
+
+.ql-input-with-addon {
+  border-top-right-radius: 0 !important;
+  border-bottom-right-radius: 0 !important;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   6. FORM — HEADER, SECTIONS & CONTAINER
+   ═══════════════════════════════════════════════════════════════ */
+
+.ql-form-header-line {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  gap: 16px;
+  padding: 14px 16px;
+  background-color: #f8fafc;
+  border-bottom: 1px solid var(--color-border-light);
+  align-items: start;
+  border-radius: 12px 12px 0 0;
+  margin-bottom: 20px;
+}
+
+.ql-form-header-field {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 12px;
+  width: 100%;
+}
+
+.ql-form-header-field .ql-field-label {
+  height: 40px;
+  display: flex;
+  align-items: center;
+  white-space: nowrap;
+}
+
+.ql-form-header-field input[type="text"],
+.ql-form-header-field input[type="date"],
+.ql-form-header-field input[type="time"],
+.ql-form-header-field select {
+  font-size: 13px;
+  height: 40px;
+  padding: 8px 12px;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  color: #000000 !important;
+  box-sizing: border-box;
 }
 
 .ql-form-container {
@@ -302,7 +601,6 @@
   margin: 0 auto;
 }
 
-/* Section style */
 .ql-form-section {
   border: 1px solid var(--color-border-light);
   background-color: #ffffff;
@@ -331,124 +629,9 @@
   padding: 20px;
 }
 
-/* Inputs & Form labels */
-.ql-field {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  width: 100%;
-}
-
-.ql-field-label {
-  font-size: 12.5px;
-  font-weight: 600;
-  color: var(--color-text-secondary);
-  white-space: nowrap;
-  flex-shrink: 0;
-  text-align: left;
-}
-
-.ql-field-control {
-  flex: 1;
-  display: flex;
-  align-items: center;
-}
-
-.ql-field-control input[type="text"],
-.ql-field-control input[type="date"],
-.ql-field-control input[type="time"],
-.ql-field-control select,
-.ql-field-control textarea {
-  width: 100%;
-  font-size: 13px;
-  height: 40px;
-  padding: 8px 12px;
-  border: 1px solid var(--color-border);
-  border-radius: 8px;
-  background-color: #ffffff;
-  box-sizing: border-box;
-  color: #000000 !important;
-  transition: all 0.2s ease;
-}
-
-.ql-field-control select:disabled,
-.ql-field-control input:disabled,
-.ql-field-control textarea:disabled {
-  background-color: #e2e8f0;
-  color: #0f172a;
-  -webkit-text-fill-color: #0f172a;
-  opacity: 1;
-  font-weight: 600;
-  cursor: default;
-  border-color: #94a3b8;
-}
-
-.ql-field-control input[readonly],
-.ql-field-control textarea[readonly],
-.ql-field-control input[type="date"]:disabled,
-.ql-field-control input[type="date"][readonly] {
-  background-color: #e2e8f0;
-  color: #0f172a;
-  -webkit-text-fill-color: #0f172a;
-  opacity: 1;
-  font-weight: 600;
-  cursor: default;
-  border-color: #94a3b8;
-}
-
-.ql-field-control
-  input[type="date"]:disabled::-webkit-calendar-picker-indicator,
-.ql-field-control
-  input[type="date"][readonly]::-webkit-calendar-picker-indicator {
-  opacity: 0.6;
-  cursor: default;
-  pointer-events: none;
-}
-
-.ql-field-control input[type="date"]:focus,
-.ql-field-control input[type="time"]:focus,
-.ql-field-control input[type="text"]:focus,
-.ql-field-control select:focus,
-.ql-field-control textarea:focus {
-  border-color: var(--color-primary);
-  box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.12);
-  outline: none;
-}
-
-.ql-field-control textarea {
-  height: auto;
-  min-height: 88px;
-  resize: vertical;
-  line-height: 1.6;
-  padding: 10px 12px;
-}
-
-.ql-datetime-row {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.ql-datetime-row input[type="date"] {
-  flex: 1;
-  min-width: 0;
-  width: auto !important;
-  font-size: 13px;
-  height: 40px;
-  padding: 8px 10px;
-  border: 1px solid var(--color-border);
-  border-radius: 8px;
-  background-color: #ffffff;
-  box-sizing: border-box;
-  color: #000000 !important;
-  transition: all 0.2s ease;
-}
-
-.ql-datetime-row input[type="date"]:focus {
-  border-color: var(--color-primary);
-  box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.12);
-  outline: none;
-}
+/* ═══════════════════════════════════════════════════════════════
+   7. TIMEPICKER COMPONENT
+   ═══════════════════════════════════════════════════════════════ */
 
 .ql-timepicker {
   display: inline-flex;
@@ -543,204 +726,14 @@
   font-size: 13px;
 }
 
-.ql-field-control-wrapper {
-  display: flex;
-  width: 100%;
-}
-
-.ql-input-addon-btn {
-  background-color: #f1f5f9;
-  border: 1px solid var(--color-border);
-  border-left: none;
-  border-radius: 0 8px 8px 0;
-  padding: 0 10px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--color-primary-dark);
-  font-size: 10px;
-  transition: all 0.15s;
-}
-
-.ql-input-addon-btn:hover {
-  background-color: #e2e8f0;
-}
-
-.ql-input-with-addon {
-  border-top-right-radius: 0 !important;
-  border-bottom-right-radius: 0 !important;
-}
-
-.ql-form-header-line {
-  display: grid;
-  grid-template-columns: repeat(12, minmax(0, 1fr));
-  gap: 16px;
-  padding: 14px 16px;
-  background-color: #f8fafc;
-  border-bottom: 1px solid var(--color-border-light);
-  align-items: start;
-  border-radius: 12px 12px 0 0;
-  margin-bottom: 20px;
-}
-
-.ql-form-header-field {
-  display: flex;
-  align-items: flex-start;
-  gap: 8px;
-  font-size: 12px;
-  width: 100%;
-}
-
-.ql-form-header-field .ql-field-label {
+.ql-datetime-row .ql-timepicker,
+.ql-form-header-field .ql-timepicker {
   height: 40px;
-  display: flex;
-  align-items: center;
-  white-space: nowrap;
-}
-
-.ql-form-header-field input[type="text"],
-.ql-form-header-field input[type="date"],
-.ql-form-header-field input[type="time"],
-.ql-form-header-field select {
-  font-size: 13px;
-  height: 40px;
-  padding: 8px 12px;
-  border: 1px solid var(--color-border);
-  border-radius: 8px;
-  background-color: #ffffff;
-  color: #000000 !important;
-  box-sizing: border-box;
-}
-
-.ql-form-header-field input[type="date"]:focus,
-.ql-form-header-field input[type="time"]:focus,
-.ql-form-header-field input[type="text"]:focus,
-.ql-form-header-field select:focus {
-  border-color: var(--color-primary);
-  box-shadow: 0 0 0 2px rgba(220, 38, 38, 0.12);
-  outline: none;
-}
-
-.ql-status-bar {
-  height: 56px;
-  background-color: #ffffff;
-  border-top: 1px solid var(--color-border-light);
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 0 24px;
-  flex-shrink: 0;
-  z-index: 10;
-  box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.02);
-}
-
-.ql-status-info {
-  font-size: 12px;
-  color: var(--color-text-muted);
-  font-weight: 500;
-  overflow: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-  flex: 1;
-  padding-right: 16px;
-}
-
-.ql-status-actions {
-  display: flex;
-  gap: 8px;
-  flex-shrink: 0;
-  margin-left: auto;
-}
-
-.ql-btn-action {
-  font-size: 13px;
-  background-color: #ffffff;
-  border: 1px solid var(--color-border);
-  border-radius: 8px;
-  padding: 8px 16px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  color: var(--color-text-secondary);
-  font-weight: 600;
-  line-height: 1.2;
-  transition: all 0.2s ease;
-}
-
-.ql-btn-action:hover {
-  background-color: #f8fafc;
-  border-color: var(--color-text-muted);
-  color: var(--color-text-primary);
-}
-
-.ql-btn-action:active {
-  transform: scale(0.98);
-}
-
-.ql-btn-action:has(.ql-btn-icon-green):hover {
-  background-color: #f0fdf4;
-  border-color: #22c55e;
-  color: #15803d;
-}
-
-.ql-btn-action:has(.ql-btn-icon-yellow):hover {
-  background-color: #fffbeb;
-  border-color: #f59e0b;
-  color: #b45309;
-}
-
-.ql-btn-action:has(.ql-btn-icon-blue):hover {
-  background-color: #eff6ff;
-  border-color: #3b82f6;
-  color: #1d4ed8;
-}
-
-.ql-btn-action:has(.ql-btn-icon-red):hover {
-  background-color: #fef2f2;
-  border-color: #ef4444;
-  color: #b91c1c;
-}
-
-.ql-btn-icon-green {
-  color: #22c55e;
-  font-size: 14px;
-}
-
-.ql-btn-icon-blue {
-  color: #3b82f6;
-  font-size: 14px;
-}
-
-.ql-btn-icon-yellow {
-  color: #f59e0b;
-  font-size: 14px;
-}
-
-.ql-btn-icon-red {
-  color: #ef4444;
-  font-size: 14px;
-}
-
-::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
-}
-::-webkit-scrollbar-track {
-  background: #f1f5f9;
-}
-::-webkit-scrollbar-thumb {
-  background: var(--color-border);
-  border-radius: 3px;
-}
-::-webkit-scrollbar-thumb:hover {
-  background: var(--color-text-muted);
 }
 
 .ql-timepicker--disabled {
-  background-color: #e2e8f0 !important;
-  border-color: #94a3b8 !important;
+  background-color: #e2e8f0;
+  border-color: #94a3b8;
   cursor: default;
 }
 
@@ -752,241 +745,9 @@
   cursor: default;
 }
 
-.ql-btn-action:disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
-  pointer-events: none;
-}
-
-.ql-form-header-field input[readonly] {
-  background-color: #e2e8f0;
-  color: #0f172a;
-  -webkit-text-fill-color: #0f172a;
-  font-weight: 600;
-  cursor: default;
-  border-color: #94a3b8;
-}
-
-.ql-form-header-field select:disabled {
-  background-color: #e2e8f0;
-  cursor: default;
-  border-color: #94a3b8;
-  color: #0f172a;
-  -webkit-text-fill-color: #0f172a;
-  font-weight: 600;
-}
-
-/* Validation Error Styles */
-.ql-field-control input.ql-input-error,
-.ql-field-control select.ql-input-error,
-.ql-field-control textarea.ql-input-error,
-.ql-form-header-field select.ql-input-error {
-  border-color: #ef4444 !important;
-  box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.2) !important;
-}
-
-.ql-field-error-text {
-  font-size: 11px;
-  color: #ef4444;
-  margin-top: 3px;
-  font-weight: 500;
-  display: block;
-  line-height: 1.2;
-}
-
-/* HIS Header Ribbon Toolbar Button Styles */
-.ql-his-tool-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  padding: 3px 8px;
-  font-size: 11.5px;
-  font-weight: 500;
-  color: #334155;
-  background-color: #ffffff;
-  border: 1px solid #cbd5e1;
-  border-radius: 4px;
-  cursor: pointer;
-  white-space: nowrap;
-  transition: all 0.15s ease;
-  user-select: none;
-}
-
-.ql-his-tool-btn:hover {
-  background-color: #e2e8f0;
-  border-color: #94a3b8;
-  color: #0f172a;
-}
-
-.ql-his-tool-btn:active {
-  background-color: #cbd5e1;
-}
-
-.no-scrollbar::-webkit-scrollbar {
-  display: none;
-}
-.no-scrollbar {
-  -ms-overflow-style: none;
-  scrollbar-width: none;
-}
-
-/* HIS Header Component Styles */
-.ql-his-header {
-  font-family: var(--font-geist-sans), "Inter", system-ui, sans-serif;
-  user-select: none;
-  background-color: #f1f5f9;
-  border-bottom: 1px solid var(--color-border-light);
-  flex-shrink: 0;
-  width: 100%;
-  max-width: 100vw;
-  overflow-x: hidden;
-}
-
-.ql-his-titlebar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 4px 12px;
-  background-color: var(--color-primary-light);
-  border-bottom: 1px solid rgba(220, 38, 38, 0.15);
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--color-primary-dark);
-  width: 100%;
-  box-sizing: border-box;
-}
-
-.ql-his-menubar {
-  display: flex;
-  align-items: center;
-  background-color: var(--color-primary-dark);
-  border-bottom: 1px solid rgba(0, 0, 0, 0.15);
-  width: 100%;
-  box-sizing: border-box;
-}
-
-.ql-his-menu-btn {
-  padding: 5px 14px;
-  font-size: 11.5px;
-  font-weight: 700;
-  color: #ffffff;
-  background-color: rgba(255, 255, 255, 0.15);
-  border: none;
-  border-right: 1px solid rgba(255, 255, 255, 0.2);
-  cursor: pointer;
-  letter-spacing: 0.05em;
-  flex-shrink: 0;
-}
-
-.ql-his-menu-btn:hover {
-  background-color: rgba(255, 255, 255, 0.25);
-}
-
-.ql-his-tab {
-  padding: 5px 9px;
-  font-size: 11.5px;
-  font-weight: 600;
-  color: rgba(255, 255, 255, 0.88);
-  background: transparent;
-  border: none;
-  cursor: pointer;
-  white-space: nowrap;
-  transition: all 0.15s ease;
-  flex-shrink: 0;
-}
-
-.ql-his-tab:hover {
-  background-color: rgba(255, 255, 255, 0.2);
-  color: #ffffff;
-}
-
-.ql-his-tab.active {
-  background-color: #ffffff;
-  color: var(--color-primary-dark);
-  font-weight: 700;
-}
-
-.ql-his-tab:disabled {
-  cursor: default !important;
-}
-
-.ql-his-tool-btn:hover {
-  background-color: #e2e8f0;
-  border-color: #94a3b8;
-  color: #0f172a;
-  transform: translateY(-1px);
-}
-
-.ql-his-tool-btn:disabled {
-  cursor: default !important;
-}
-
-/* 2-Row Stacked HIS Ribbon Bar */
-.ql-his-ribbon-bar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0;
-  width: 100%;
-  max-width: 100vw;
-  padding: 5px 8px;
-  background-color: #f1f5f9;
-  border-bottom: 1px solid #cbd5e1;
-  box-sizing: border-box;
-  overflow-x: auto;
-}
-
-.ql-his-ribbon-group {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  gap: 4px;
-  padding: 0 8px;
-  border-right: 1px solid #cbd5e1;
-  flex: 1 1 0%;
-  box-sizing: border-box;
-}
-
-.ql-his-ribbon-group:last-child {
-  border-right: none;
-}
-
-.ql-his-ribbon-row {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  width: 100%;
-}
-
-.ql-his-ribbon-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: flex-start;
-  gap: 5px;
-  padding: 3px 8px;
-  font-size: 14px;
-  font-weight: 500;
-  color: #334155;
-  border-radius: 4px;
-  cursor: pointer;
-  white-space: nowrap;
-  transition: all 0.12s ease;
-  user-select: none;
-  box-sizing: border-box;
-  flex: 1 1 0%;
-  width: 100%;
-  height: 29px;
-}
-
-.ql-his-ribbon-btn:hover {
-  background-color: #e2e8f0;
-  border-color: #94a3b8;
-  color: #0f172a;
-}
-
-.ql-his-ribbon-btn:disabled {
-  cursor: default !important;
-}
+/* ═══════════════════════════════════════════════════════════════
+   8. SEARCHABLE SELECT COMPONENT
+   ═══════════════════════════════════════════════════════════════ */
 
 .ql-searchable-select {
   position: relative;
@@ -1137,4 +898,156 @@
   font-size: 12px;
   color: var(--color-text-muted);
   font-style: italic;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   9. STATUS BAR & ACTION BUTTONS
+   ═══════════════════════════════════════════════════════════════ */
+
+.ql-status-bar {
+  height: 56px;
+  background-color: #ffffff;
+  border-top: 1px solid var(--color-border-light);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 24px;
+  flex-shrink: 0;
+  z-index: 10;
+  box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.02);
+}
+
+.ql-status-actions {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+  margin-left: auto;
+}
+
+.ql-btn-action {
+  font-size: 13px;
+  background-color: #ffffff;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  padding: 8px 16px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--color-text-secondary);
+  font-weight: 600;
+  line-height: 1.2;
+  transition: all 0.2s ease;
+}
+
+.ql-btn-action:hover {
+  background-color: #f8fafc;
+  border-color: var(--color-text-muted);
+  color: var(--color-text-primary);
+}
+
+.ql-btn-action:active {
+  transform: scale(0.98);
+}
+
+.ql-btn-action:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.ql-btn-action:has(.ql-btn-icon-green):hover {
+  background-color: #f0fdf4;
+  border-color: #22c55e;
+  color: #15803d;
+}
+
+.ql-btn-action:has(.ql-btn-icon-yellow):hover {
+  background-color: #fffbeb;
+  border-color: #f59e0b;
+  color: #b45309;
+}
+
+.ql-btn-action:has(.ql-btn-icon-blue):hover {
+  background-color: #eff6ff;
+  border-color: #3b82f6;
+  color: #1d4ed8;
+}
+
+.ql-btn-action:has(.ql-btn-icon-red):hover {
+  background-color: #fef2f2;
+  border-color: #ef4444;
+  color: #b91c1c;
+}
+
+.ql-btn-icon-green {
+  color: #22c55e;
+  font-size: 14px;
+}
+
+.ql-btn-icon-blue {
+  color: #3b82f6;
+  font-size: 14px;
+}
+
+.ql-btn-icon-yellow {
+  color: #f59e0b;
+  font-size: 14px;
+}
+
+.ql-btn-icon-red {
+  color: #ef4444;
+  font-size: 14px;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   10. VALIDATION ERRORS
+   ═══════════════════════════════════════════════════════════════ */
+
+.ql-field-control input.ql-input-error,
+.ql-field-control select.ql-input-error,
+.ql-field-control textarea.ql-input-error,
+.ql-form-header-field select.ql-input-error {
+  border-color: #ef4444 !important;
+  box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.2) !important;
+}
+
+.ql-field-error-text {
+  font-size: 11px;
+  color: #ef4444;
+  margin-top: 3px;
+  font-weight: 500;
+  display: block;
+  line-height: 1.2;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   11. UTILITIES & SCROLLBAR
+   ═══════════════════════════════════════════════════════════════ */
+
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-border);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-text-muted);
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }
