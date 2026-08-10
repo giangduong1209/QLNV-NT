@@ -237,7 +237,7 @@ export function IncidentReportForm({
               max={todayStr()}
               readOnly={!canEdit}
               disabled={!canEdit}
-              className={`w-full text-center bg-primary-light border border-[rgba(220,38,38,0.15)] ${isNew ? "bg-white!" : ""}`}
+              className={`w-full text-center bg-primary-light border border-[rgba(220,38,38,0.15)] ${isNew || canEdit ? "bg-white!" : ""}`}
               suppressHydrationWarning
             />
             <Controller
