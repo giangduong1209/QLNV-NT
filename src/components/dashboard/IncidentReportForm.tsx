@@ -224,7 +224,7 @@ export function IncidentReportForm({
             {...register("sosuco")}
             readOnly
             placeholder={isNew ? "Tự động" : ""}
-            className="w-full font-bold bg-primary-light border border-[rgba(220,38,38,0.2)] text-primary-dark"
+            className={`w-full font-bold bg-primary-light border border-[rgba(220,38,38,0.2)] text-primary-dark`}
           />
         </div>
 
@@ -237,7 +237,7 @@ export function IncidentReportForm({
               max={todayStr()}
               readOnly={!canEdit}
               disabled={!canEdit}
-              className="w-full text-center bg-primary-light border border-[rgba(220,38,38,0.15)]"
+              className={`w-full text-center bg-primary-light border border-[rgba(220,38,38,0.15)] ${isNew || canEdit ? "bg-white!" : ""}`}
               suppressHydrationWarning
             />
             <Controller
@@ -248,6 +248,7 @@ export function IncidentReportForm({
                   value={field.value}
                   onChange={field.onChange}
                   disabled={!canEdit}
+                  className="bg-primary-light border-[rgba(220,38,38,0.15)]"
                 />
               )}
             />
