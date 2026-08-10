@@ -284,7 +284,7 @@ function SidebarContent() {
           <button type="submit" className="ql-sidebar-btn flex items-center justify-center gap-1.5" disabled={isPending}>
             {isPending && (
               <svg
-                className="w-3.5 h-3.5 animate-spin text-white"
+                className="w-3.5 h-3.5 animate-spin text-primary-dark"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
