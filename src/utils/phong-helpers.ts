@@ -25,37 +25,53 @@ export function buildPhongSelectOptions(
 }
 
 /**
- * Xây dựng danh sách tùy chọn Phòng nội bộ trực thuộc Khoa & Phòng
+ * Xây dựng danh sách tùy chọn Phòng nội bộ trực thuộc Khoa & Phòng hoặc Khoa/Phòng (nếu không có phòng nội bộ)
  */
 export function buildPhongNoiSelectOptions(
   lookupData: LookupData,
   selectedMaphong?: string,
 ): SelectOption[] {
   const optionsMap = new Map<string, string>();
-  optionsMap.set("", "");
 
   const filterMaphong = safeParseInt(selectedMaphong);
 
+  // 1. Duyệt qua tất cả các Khoa/Phòng trong danh mục
+  if (lookupData.phong?.length) {
+    const targetPhongList = filterMaphong
+      ? lookupData.phong.filter((p) => p.maphong === filterMaphong)
+      : lookupData.phong;
+
+    targetPhongList.forEach((phongItem) => {
+      // Tìm các phòng nội bộ trực thuộc khoa/phòng này
+      const subRooms =
+        lookupData.phongNoi?.filter((pn) => pn.maphong === phongItem.maphong) ??
+        [];
+
+      if (subRooms.length > 0) {
+        // Có phòng nội bộ: Thêm từng phòng nội bộ kèm tên khoa/phòng
+        subRooms.forEach((subRoom) => {
+          const label = !filterMaphong
+            ? `${subRoom.tenphongnoi} (${phongItem.tenphong})`
+            : (subRoom.tenphongnoi ?? `Phòng ${subRoom.maphongnoi}`);
+          optionsMap.set(safeToString(subRoom.maphongnoi), label);
+        });
+      } else {
+        // Không có phòng nội bộ: Thêm chính khoa/phòng đó vào danh sách
+        optionsMap.set(
+          safeToString(phongItem.maphong),
+          phongItem.tenphong ?? `Khoa/Phòng ${phongItem.maphong}`,
+        );
+      }
+    });
+  }
+
+  // 2. Bổ sung các phòng nội bộ không map được với khoa/phòng cha (nếu có)
   if (lookupData.phongNoi?.length) {
-    let filteredList = filterMaphong
-      ? lookupData.phongNoi.filter(
-          (phongNoiItem) => phongNoiItem.maphong === filterMaphong,
-        )
-      : lookupData.phongNoi;
-
-    if (filteredList.length === 0 && filterMaphong) {
-      filteredList = lookupData.phongNoi;
-    }
-
-    filteredList.forEach((phongNoiItem) => {
-      const parentPhong = lookupData.phong?.find(
-        (phongItem) => phongItem.maphong === phongNoiItem.maphong,
-      );
-      const label =
-        parentPhong && !filterMaphong
-          ? `${phongNoiItem.tenphongnoi} (${parentPhong.tenphong})`
-          : (phongNoiItem.tenphongnoi ?? `Phòng ${phongNoiItem.maphongnoi}`);
-      optionsMap.set(safeToString(phongNoiItem.maphongnoi), label);
+    lookupData.phongNoi.forEach((pn) => {
+      const key = safeToString(pn.maphongnoi);
+      if (!optionsMap.has(key)) {
+        optionsMap.set(key, pn.tenphongnoi ?? `Phòng ${pn.maphongnoi}`);
+      }
     });
   }
 

@@ -101,6 +101,8 @@ export async function getIncidentList(
       ];
       if (maphongnoiIds.length > 0) {
         orConditions.push({ maphongnoi: { in: maphongnoiIds } });
+      } else {
+        orConditions.push({ maphongnoi: { in: maphongIds } });
       }
       conditions.push({ OR: orConditions });
     }

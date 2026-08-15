@@ -72,7 +72,6 @@ export function IncidentReportForm({
 
   const selectedLoaiSuCo = useWatch({ control, name: "maloaiscyk" });
   const currentTenSuCo = useWatch({ control, name: "tensuco" });
-  const selectedMaphong = useWatch({ control, name: "maphong" });
 
   const loaiSuCoOptions = useMemo(
     () => [
@@ -90,8 +89,8 @@ export function IncidentReportForm({
   );
 
   const phongNoiOptions = useMemo(
-    () => buildPhongNoiOptions(lookupData, selectedMaphong),
-    [lookupData, selectedMaphong],
+    () => buildPhongNoiOptions(lookupData),
+    [lookupData],
   );
 
   const tenSuCoList = useMemo(
