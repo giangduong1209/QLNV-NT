@@ -199,7 +199,11 @@ function StatusBarContent({ userRole }: StatusBarProps) {
             className="ql-btn-action"
             onClick={handleEdit}
             disabled={
-              !activeMasuco || isEditing || disableEditButton || isSubmitting || isDeleting
+              !activeMasuco ||
+              isEditing ||
+              disableEditButton ||
+              isSubmitting ||
+              isDeleting
             }
           >
             <span className="ql-btn-icon-yellow">&#9999;</span> Sửa
@@ -259,13 +263,17 @@ function StatusBarContent({ userRole }: StatusBarProps) {
           </button>
 
           {/* In phiếu — chưa implement */}
-          <button className="ql-btn-action" disabled={!activeMasuco || isSubmitting || isDeleting}>
+          {/* <button className="ql-btn-action" disabled={!activeMasuco || isSubmitting || isDeleting}>
             <span className="ql-btn-icon-blue">&#128427;</span> In phiếu{" "}
             <small>▼</small>
-          </button>
+          </button> */}
 
           {/* Thoát: tắt edit mode */}
-          <button className="ql-btn-action" onClick={handleExit} disabled={isSubmitting || isDeleting}>
+          <button
+            className="ql-btn-action"
+            onClick={handleExit}
+            disabled={isSubmitting || isDeleting}
+          >
             <span className="ql-btn-icon-red">&#128682;</span> Thoát (Esc)
           </button>
         </div>
