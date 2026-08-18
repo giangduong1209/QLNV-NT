@@ -5,7 +5,7 @@ import type {
   LookupData,
 } from "@/types";
 import {
-  toDateStr,
+  formatDate,
   toTimeStr,
   toDate,
   safeToString,
@@ -50,19 +50,19 @@ export function buildDefaultValues(
 
   return {
     sosuco: suco?.sosuco ?? "",
-    ngayLapDate: suco?.ngay ? toDateStr(suco.ngay) : nowDate,
+    ngayLapDate: suco?.ngay ? formatDate(suco.ngay) : nowDate,
     ngayLapTime: suco?.ngay ? toTimeStr(suco.ngay) : nowTime,
     mahinhthuc: safeToString(suco?.mahinhthuc) || "1",
     maloaiscyk: initialLoaiSuCo,
     makcb: suco?.makcb ?? "",
     hoten: suco?.hoten ?? "",
     maphong: safeToString(suco?.maphong),
-    ngaysinh: suco?.ngaysinh ? toDateStr(suco.ngaysinh) : "",
+    ngaysinh: suco?.ngaysinh ? formatDate(suco.ngaysinh) : "",
     sobenhan: suco?.sobenhan ?? "",
     maphai: safeToString(suco?.maphai),
     madoituongsc: safeToString(suco?.madoituongsc),
     tensuco: initialTenSuCo,
-    ngaySuCoDate: suco?.ngaysuco ? toDateStr(suco.ngaysuco) : nowDate,
+    ngaySuCoDate: suco?.ngaysuco ? formatDate(suco.ngaysuco) : nowDate,
     ngaySuCoTime: suco?.ngaysuco ? toTimeStr(suco.ngaysuco) : nowTime,
     maphongnoi: safeToString(suco?.maphongnoi),
     vitricuthe: suco?.vitricuthe ?? "",

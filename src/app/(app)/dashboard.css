@@ -290,6 +290,22 @@
 
 .ql-sidebar-control {
   flex: 1;
+  min-width: 0;
+}
+
+.ql-sidebar-control.flex {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.ql-sidebar-control.flex input {
+  flex: 1 1 0%;
+  min-width: 0;
+  width: auto;
+  font-size: 12px;
+  padding: 4px 8px;
 }
 
 .ql-sidebar-control select,
@@ -308,6 +324,7 @@
 
 .ql-sidebar-control .ql-timepicker {
   height: 34px !important;
+  flex-shrink: 0;
 }
 
 /* Date/time inputs directly inside sidebar rows */
@@ -369,6 +386,7 @@
 .ql-sidebar-list-table {
   width: 100%;
   border-collapse: collapse;
+  table-layout: fixed;
 }
 
 .ql-sidebar-list-table th {

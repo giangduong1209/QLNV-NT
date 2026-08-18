@@ -4,6 +4,7 @@ import { useState, useEffect, useMemo, useCallback } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { useRouter } from "next/navigation";
 import { TimePicker } from "../ui/TimePicker";
+import { DatePicker } from "../ui/DatePicker";
 import { useToast } from "../ui/ToastProvider";
 import {
   useEditMode,
@@ -67,7 +68,7 @@ export function IncidentAnalysisForm({
   const suco = initialData?.sucoykhoa;
   const phanTich = initialData?.phantichsuco;
 
-  const { control, register, reset, handleSubmit, getValues } =
+  const { control, register, reset, handleSubmit } =
     useForm<ConfirmForm>({
       defaultValues: buildDefaultValues(suco, phanTich),
     });
@@ -227,7 +228,7 @@ export function IncidentAnalysisForm({
         );
       }
     },
-    [suco, setIsEditing, router],
+    [suco, setIsEditing, router, toast],
   );
 
   const onError = useCallback(() => {
@@ -359,11 +360,18 @@ export function IncidentAnalysisForm({
               <div className="ql-field">
                 <span className="ql-field-label w-20">Ngày sự cố:</span>
                 <div className="ql-field-control ql-datetime-row">
-                  <input
-                    type="date"
-                    {...register("ngaySuCoDate")}
-                    readOnly
-                    suppressHydrationWarning
+                  <Controller
+                    name="ngaySuCoDate"
+                    control={control}
+                    render={({ field }) => (
+                      <DatePicker
+                        value={field.value}
+                        onChange={field.onChange}
+                        readOnly
+                        disabled
+                        className="flex-1"
+                      />
+                    )}
                   />
                   <Controller
                     name="ngaySuCoTime"
@@ -449,12 +457,19 @@ export function IncidentAnalysisForm({
                   <span className="text-red-500 font-bold ml-0.5">*</span>
                 </span>
                 <div className="ql-field-control ql-datetime-row">
-                  <input
-                    type="date"
-                    {...register("pt_ngayDate")}
-                    max={todayStr()}
-                    disabled={!canEditGeneral}
-                    suppressHydrationWarning
+                  <Controller
+                    name="pt_ngayDate"
+                    control={control}
+                    render={({ field }) => (
+                      <DatePicker
+                        value={field.value}
+                        onChange={field.onChange}
+                        max={todayStr()}
+                        disabled={!canEditGeneral}
+                        readOnly={!canEditGeneral}
+                        className="flex-1"
+                      />
+                    )}
                   />
                   <Controller
                     name="pt_ngayTime"

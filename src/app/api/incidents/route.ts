@@ -7,7 +7,7 @@ import {
   deleteIncidentFromDB,
 } from "@/app/services/incident/incident.service";
 import { handleError, parseMasucoFromRequest } from "@/utils";
-import { IncidentSavePayloadSchema } from "@/types";
+import { IncidentSavePayloadSchema, type AnalysisStatus } from "@/types";
 
 export const dynamic = "force-dynamic";
 
@@ -28,7 +28,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ success: true, data: detail });
     }
 
-    const trangThai = (searchParams.get("trangThai") as any) || undefined;
+    const trangThai = (searchParams.get("trangThai") as AnalysisStatus) || undefined;
     const tuNgay = searchParams.get("tuNgay") || undefined;
     const denNgay = searchParams.get("denNgay") || undefined;
     const maphongParam = searchParams.get("maphong");

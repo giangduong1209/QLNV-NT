@@ -5,7 +5,7 @@ import type {
   CauseSubItem,
   SelectOption,
 } from "@/types";
-import { toDateStr, toTimeStr } from "@/utils";
+import { formatDate, toTimeStr } from "@/utils";
 import type { CauseItem } from "@/constants";
 
 export interface ResolvedCauseItem {
@@ -27,12 +27,12 @@ export function buildDefaultValues(
     hoten: suco?.hoten ?? "",
     maphong: suco?.maphong?.toString() ?? "",
     vitricuthe: suco?.vitricuthe ?? "",
-    ngaySuCoDate: toDateStr(suco?.ngaysuco),
+    ngaySuCoDate: formatDate(suco?.ngaysuco),
     ngaySuCoTime: toTimeStr(suco?.ngaysuco),
     tensuco: suco?.tensuco ?? "",
 
     // Phân tích
-    pt_ngayDate: toDateStr(phanTich?.ngay),
+    pt_ngayDate: formatDate(phanTich?.ngay),
     pt_ngayTime: toTimeStr(phanTich?.ngay),
     pt_mota: phanTich?.mota ?? "",
     kythuat: phanTich?.kythuat ?? "",

@@ -11,6 +11,7 @@ import {
 import { useForm, Controller } from "react-hook-form";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { TimePicker } from "@/components/ui/TimePicker";
+import { DatePicker } from "@/components/ui/DatePicker";
 import { SearchableSelect } from "@/components/ui/SearchableSelect";
 import { getSuCoList, getSuCoDetail } from "@/actions/incidents";
 import { getLookupData } from "@/actions/lookup";
@@ -23,7 +24,7 @@ import type {
 import {
   formatDate,
   todayStr,
-  toDateStr,
+  toDate,
   buildDepartmentSelectOptions,
 } from "@/utils";
 import { FILTER_STORAGE_KEY } from "@/constants/app";
@@ -112,6 +113,12 @@ function SidebarContent() {
       if (saved) {
         const parsed = JSON.parse(saved);
         if (parsed && typeof parsed === "object") {
+          if (parsed.tuNgayDate) {
+            parsed.tuNgayDate = formatDate(parsed.tuNgayDate);
+          }
+          if (parsed.denNgayDate) {
+            parsed.denNgayDate = formatDate(parsed.denNgayDate);
+          }
           initialValues = { ...initialValues, ...parsed };
         }
       }
@@ -137,14 +144,13 @@ function SidebarContent() {
     };
   }, [fetchList, getValues, reset]);
 
-  // Tự động kiểm tra và đồng bộ bộ lọc khi activeMasuco trên URL chưa có trong danh sách Sidebar
+  // Tự động kiểm tra và đồng bộ bộ lọc khi người dùng truy cập trực tiếp URL có ?masuco
   useEffect(() => {
     if (!activeMasuco) return;
 
     const isAlreadyInList = suCoList.some(
       (item) => item.masuco === activeMasuco,
     );
-
     if (isAlreadyInList) return;
 
     let isMounted = true;
@@ -158,32 +164,29 @@ function SidebarContent() {
       let shouldUpdateFilter = false;
       const updatedValues = { ...currentValues };
 
-      // 1. Kiểm tra trạng thái phân tích: nếu sự cố mới chưa phân tích mà bộ lọc đang chọn DA_PHAN_TICH
+      // 1. Kiểm tra trạng thái phân tích: nếu sự cố chưa phân tích mà bộ lọc đang chọn DA_PHAN_TICH
       if (!phantich && currentValues.trangThai === "DA_PHAN_TICH") {
         updatedValues.trangThai = "TAT_CA";
         shouldUpdateFilter = true;
       }
 
-      // 2. Kiểm tra khoảng ngày: nếu ngaysuco nằm ngoài khoảng tuNgay - denNgay
+      // 2. Kiểm tra khoảng ngày bằng đối tượng Date chính xác
       if (incident.ngaysuco) {
-        const incidentDateStr = toDateStr(incident.ngaysuco);
-        if (
-          currentValues.tuNgayDate &&
-          incidentDateStr < currentValues.tuNgayDate
-        ) {
-          updatedValues.tuNgayDate = incidentDateStr;
+        const incidentDate = new Date(incident.ngaysuco);
+        const filterStart = toDate(currentValues.tuNgayDate, currentValues.tuNgayTime || "00:00");
+        const filterEnd = toDate(currentValues.denNgayDate, currentValues.denNgayTime || "23:59", true);
+
+        if (filterStart && incidentDate < filterStart) {
+          updatedValues.tuNgayDate = formatDate(incidentDate);
           shouldUpdateFilter = true;
         }
-        if (
-          currentValues.denNgayDate &&
-          incidentDateStr > currentValues.denNgayDate
-        ) {
-          updatedValues.denNgayDate = incidentDateStr;
+        if (filterEnd && incidentDate > filterEnd) {
+          updatedValues.denNgayDate = formatDate(incidentDate);
           shouldUpdateFilter = true;
         }
       }
 
-      // 3. Kiểm tra khoa/phòng: nếu đang lọc theo 1 khoa khác khoa của sự cố mới
+      // 3. Kiểm tra khoa/phòng
       if (
         currentValues.maphong &&
         incident.maphong &&
@@ -196,15 +199,13 @@ function SidebarContent() {
       if (shouldUpdateFilter) {
         reset(updatedValues);
         fetchList(updatedValues);
-      } else {
-        fetchList(currentValues);
       }
     });
 
     return () => {
       isMounted = false;
     };
-  }, [activeMasuco, suCoList, getValues, reset, fetchList]);
+  }, [activeMasuco]);
 
   const onSubmit = (values: SidebarFilterFormValues) => {
     fetchList(values);
@@ -231,11 +232,18 @@ function SidebarContent() {
         <div className="ql-sidebar-row">
           <div className="ql-sidebar-label">Từ ngày</div>
           <div className="ql-sidebar-control flex gap-2 items-center">
-            <input
-              type="date"
-              {...register("tuNgayDate")}
-              className="flex-1"
-              suppressHydrationWarning
+            <Controller
+              name="tuNgayDate"
+              control={control}
+              render={({ field }) => (
+                <DatePicker
+                  value={field.value}
+                  onChange={field.onChange}
+                  size="sm"
+                  placeholder="dd/mm/yyyy"
+                  className="flex-1"
+                />
+              )}
             />
             <TimePicker
               value={tuNgayTime}
@@ -248,11 +256,18 @@ function SidebarContent() {
         <div className="ql-sidebar-row">
           <div className="ql-sidebar-label">Đến ngày</div>
           <div className="ql-sidebar-control flex gap-2 items-center">
-            <input
-              type="date"
-              {...register("denNgayDate")}
-              className="flex-1"
-              suppressHydrationWarning
+            <Controller
+              name="denNgayDate"
+              control={control}
+              render={({ field }) => (
+                <DatePicker
+                  value={field.value}
+                  onChange={field.onChange}
+                  size="sm"
+                  placeholder="dd/mm/yyyy"
+                  className="flex-1"
+                />
+              )}
             />
             <TimePicker
               value={denNgayTime}
@@ -312,9 +327,9 @@ function SidebarContent() {
         <table className="ql-sidebar-list-table">
           <thead>
             <tr>
-              <th>Mã SC</th>
-              <th>Họ tên</th>
-              <th>Ngày SC</th>
+              <th className="w-[30%]">Mã SC</th>
+              <th className="w-[38%]">Họ tên</th>
+              <th className="w-[32%] text-center">Ngày SC</th>
             </tr>
           </thead>
           <tbody>
@@ -352,9 +367,9 @@ function SidebarContent() {
                   title={inc.daPhanTich ? "Đã phân tích" : "Chưa phân tích"}
                   style={{ cursor: "pointer" }}
                 >
-                  <td>{inc.sosuco ?? String(inc.masuco)}</td>
-                  <td>{inc.hoten ?? "—"}</td>
-                  <td>{formatDate(inc.ngaysuco)}</td>
+                  <td className="truncate">{inc.sosuco ?? String(inc.masuco)}</td>
+                  <td className="truncate">{inc.hoten ?? "—"}</td>
+                  <td className="text-center font-medium text-xs">{formatDate(inc.ngaysuco)}</td>
                 </tr>
               ))
             )}

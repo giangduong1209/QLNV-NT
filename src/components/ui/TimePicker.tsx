@@ -48,7 +48,7 @@ export function TimePicker({
 
   const padValue = (val: string, max: number) => {
     if (!val) return "00";
-    let clean = val.replace(/\D/g, "");
+    const clean = val.replace(/\D/g, "");
     let num = parseInt(clean, 10);
     if (isNaN(num)) return "00";
     if (num > max) num = max;

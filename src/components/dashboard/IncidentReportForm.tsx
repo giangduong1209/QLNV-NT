@@ -1,9 +1,10 @@
 "use client";
 
-import { useState, useEffect, useMemo, useCallback, useRef } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { useForm, Controller, useWatch } from "react-hook-form";
 import { useRouter } from "next/navigation";
 import { TimePicker } from "@/components/ui/TimePicker";
+import { DatePicker } from "@/components/ui/DatePicker";
 import { FormFieldControl } from "@/components/ui/FormFieldControl";
 import { SearchableSelect } from "@/components/ui/SearchableSelect";
 import { useToast } from "@/components/ui/ToastProvider";
@@ -160,9 +161,9 @@ export function IncidentReportForm({
   }, [registerSubmitHandler, handleSubmit, onSubmit, onError]);
 
   useEffect(() => {
-    const now = new Date();
+    const date = todayStr();
     const pad = (n: number) => String(n).padStart(2, "0");
-    const date = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
+    const now = new Date();
     const time = `${pad(now.getHours())}:${pad(now.getMinutes())}`;
 
     reset(buildDefaultValues(initialData, lookupData, date, time));
@@ -230,14 +231,19 @@ export function IncidentReportForm({
         <div className="ql-form-header-field col-span-5">
           <span className="ql-field-label">Ngày lập:</span>
           <div className="flex gap-1.5 items-center flex-1">
-            <input
-              type="date"
-              {...register("ngayLapDate")}
-              max={todayStr()}
-              readOnly={!canEdit}
-              disabled={!canEdit}
-              className={`w-full text-center bg-primary-light border border-[rgba(220,38,38,0.15)] ${isNew || canEdit ? "bg-white!" : ""}`}
-              suppressHydrationWarning
+            <Controller
+              name="ngayLapDate"
+              control={control}
+              render={({ field }) => (
+                <DatePicker
+                  value={field.value}
+                  onChange={field.onChange}
+                  max={todayStr()}
+                  readOnly={!canEdit}
+                  disabled={!canEdit}
+                  className={`w-full bg-primary-light border border-[rgba(220,38,38,0.15)] ${isNew || canEdit ? "bg-white!" : ""}`}
+                />
+              )}
             />
             <Controller
               name="ngayLapTime"
@@ -374,14 +380,23 @@ export function IncidentReportForm({
                 </span>
                 <div className="ql-field-control">
                   <FormFieldControl error={errors.ngaysinh}>
-                    <input
-                      type="date"
-                      {...register("ngaysinh", {
+                    <Controller
+                      name="ngaysinh"
+                      control={control}
+                      rules={{
                         required: "Vui lòng chọn ngày sinh",
-                      })}
-                      readOnly={!canEdit}
-                      disabled={!canEdit}
-                      className={errors.ngaysinh ? "ql-input-error" : ""}
+                      }}
+                      render={({ field }) => (
+                        <DatePicker
+                          value={field.value}
+                          onChange={field.onChange}
+                          readOnly={!canEdit}
+                          disabled={!canEdit}
+                          error={!!errors.ngaysinh}
+                          placeholder="dd/mm/yyyy"
+                          className="w-full"
+                        />
+                      )}
                     />
                   </FormFieldControl>
                 </div>
@@ -503,12 +518,19 @@ export function IncidentReportForm({
               <div className="ql-field">
                 <span className="ql-field-label">Ngày sự cố:</span>
                 <div className="ql-field-control ql-datetime-row">
-                  <input
-                    type="date"
-                    {...register("ngaySuCoDate")}
-                    max={todayStr()}
-                    readOnly={!canEdit}
-                    disabled={!canEdit}
+                  <Controller
+                    name="ngaySuCoDate"
+                    control={control}
+                    render={({ field }) => (
+                      <DatePicker
+                        value={field.value}
+                        onChange={field.onChange}
+                        max={todayStr()}
+                        readOnly={!canEdit}
+                        disabled={!canEdit}
+                        className="flex-1"
+                      />
+                    )}
                   />
                   <Controller
                     name="ngaySuCoTime"
