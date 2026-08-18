@@ -7,7 +7,7 @@ import type {
   AnalysisSavePayload,
 } from "@/types";
 
-function isFilterParams(arg: any): arg is FilterParams {
+function isFilterParams(arg: unknown): arg is FilterParams {
   if (!arg || typeof arg !== "object") return false;
   return (
     "trangThai" in arg ||
@@ -68,8 +68,8 @@ export async function getIncidentList(
   const { trangThai, tuNgay, tuNgayTime, denNgay, denNgayTime, maphong } =
     params;
 
-  const startDate = tuNgay ? toDate(tuNgay, tuNgayTime || "00:00") : null;
-  const endDate = denNgay ? toDate(denNgay, denNgayTime || "23:59") : null;
+  const startDate = tuNgay ? toDate(tuNgay, tuNgayTime || "00:00", false) : null;
+  const endDate = denNgay ? toDate(denNgay, denNgayTime || "23:59", true) : null;
 
   const conditions: Prisma.dangky_sucoykhoaWhereInput[] = [];
 
@@ -86,9 +86,15 @@ export async function getIncidentList(
   const analyzedMasucoList = Array.from(analyzedSet);
 
   if (trangThai === "DA_PHAN_TICH") {
-    conditions.push({ masuco: { in: analyzedMasucoList } });
+    if (analyzedMasucoList.length > 0) {
+      conditions.push({ masuco: { in: analyzedMasucoList } });
+    } else {
+      conditions.push({ masuco: { in: [-1] } });
+    }
   } else if (trangThai === "CHUA_PHAN_TICH") {
-    conditions.push({ masuco: { notIn: analyzedMasucoList } });
+    if (analyzedMasucoList.length > 0) {
+      conditions.push({ masuco: { notIn: analyzedMasucoList } });
+    }
   }
 
   if (maphong !== undefined && maphong !== null && !isNaN(maphong)) {
@@ -234,10 +240,10 @@ export async function saveIncidentToDB(
             },
           });
           return { success: true, masuco: candidateIncidentCode.masuco };
-        } catch (databaseInsertError: any) {
+        } catch (databaseInsertError: unknown) {
           console.warn(
             `[saveIncidentToDB] Xung đột DB/Race Condition tại lượt ${attempt + 1}:`,
-            databaseInsertError?.message,
+            (databaseInsertError as Error)?.message,
           );
           if (attempt === maximumRetryAttempts - 1) {
             throw databaseInsertError;

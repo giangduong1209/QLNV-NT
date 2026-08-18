@@ -1,6 +1,5 @@
 export {
   formatDate,
-  toDateStr,
   toTimeStr,
   toDate,
   todayStr,
@@ -25,4 +24,3 @@ export {
   buildPhongNoiSelectOptions as buildPhongNoiOptions,
   buildDepartmentSelectOptions,
 } from "./phong-helpers";
-
