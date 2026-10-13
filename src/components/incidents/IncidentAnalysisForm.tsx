@@ -341,17 +341,7 @@ export function IncidentAnalysisForm({
               <div className="ql-field">
                 <span className="ql-field-label w-25">Tên sự cố:</span>
                 <div className="ql-field-control">
-                  <div className="ql-field-control-wrapper">
-                    <input
-                      type="text"
-                      className="ql-input-with-addon"
-                      {...register("tensuco")}
-                      readOnly
-                    />
-                    <button type="button" className="ql-input-addon-btn">
-                      ▼
-                    </button>
-                  </div>
+                  <input type="text" {...register("tensuco")} readOnly />
                 </div>
               </div>
             </div>
