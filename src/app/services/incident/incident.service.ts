@@ -41,7 +41,6 @@ export async function getCandidateDepartmentIds(selectedId: number): Promise<{
 export async function getIncidentList(
   params?: FilterParams | Prisma.dangky_sucoykhoaWhereInput,
 ) {
-  // Lấy danh sách mã sự cố đã phân tích để check daPhanTich và lọc trangThai
   const getAnalyzedMasucoSet = async () => {
     const analyzedRows = await prisma.dangky_phantichsuco.findMany({
       select: { masuco: true },
@@ -68,8 +67,12 @@ export async function getIncidentList(
   const { trangThai, tuNgay, tuNgayTime, denNgay, denNgayTime, maphong } =
     params;
 
-  const startDate = tuNgay ? toDate(tuNgay, tuNgayTime || "00:00", false) : null;
-  const endDate = denNgay ? toDate(denNgay, denNgayTime || "23:59", true) : null;
+  const startDate = tuNgay
+    ? toDate(tuNgay, tuNgayTime || "00:00", false)
+    : null;
+  const endDate = denNgay
+    ? toDate(denNgay, denNgayTime || "23:59", true)
+    : null;
 
   const conditions: Prisma.dangky_sucoykhoaWhereInput[] = [];
 
