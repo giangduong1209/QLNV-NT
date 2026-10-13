@@ -12,7 +12,7 @@ export default async function AppLayout({
 
   return (
     <div className="ql-app-shell" suppressHydrationWarning>
-      <HeaderMenu />
+      <HeaderMenu userName={user?.hovaten} />
       <TabBar />
       <div className="ql-workspace">
         <Sidebar />
