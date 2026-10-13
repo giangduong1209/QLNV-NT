@@ -6,6 +6,7 @@ import {
   useCallback,
   useTransition,
   useMemo,
+  useRef,
   Suspense,
 } from "react";
 import { useForm, Controller } from "react-hook-form";
@@ -39,6 +40,8 @@ function SidebarContent() {
 
   const [isPending, startTransition] = useTransition();
   const [suCoList, setSuCoList] = useState<SuCoListItem[]>([]);
+  const suCoListRef = useRef(suCoList);
+  suCoListRef.current = suCoList;
   const [hasSearched, setHasSearched] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [departmentOptions, setDepartmentOptions] = useState<SelectOption[]>(
@@ -144,14 +147,13 @@ function SidebarContent() {
     };
   }, [fetchList, getValues, reset]);
 
-  // Tự động kiểm tra và đồng bộ bộ lọc khi người dùng truy cập trực tiếp URL có ?masuco
+  // Tự động kiểm tra và đồng bộ bộ lọc khi người dùng truy cập trực tiếp URL có ?masuco hoặc thêm mới sự cố
   useEffect(() => {
     if (!activeMasuco) return;
 
-    const isAlreadyInList = suCoList.some(
+    const isAlreadyInList = suCoListRef.current.some(
       (item) => item.masuco === activeMasuco,
     );
-    if (isAlreadyInList) return;
 
     let isMounted = true;
     getSuCoDetail(activeMasuco).then((res) => {
@@ -173,15 +175,24 @@ function SidebarContent() {
       // 2. Kiểm tra khoảng ngày bằng đối tượng Date chính xác
       if (incident.ngaysuco) {
         const incidentDate = new Date(incident.ngaysuco);
-        const filterStart = toDate(currentValues.tuNgayDate, currentValues.tuNgayTime || "00:00");
-        const filterEnd = toDate(currentValues.denNgayDate, currentValues.denNgayTime || "23:59", true);
+        const filterStart = toDate(
+          currentValues.tuNgayDate,
+          currentValues.tuNgayTime || "00:00",
+        );
+        const filterEnd = toDate(
+          currentValues.denNgayDate,
+          currentValues.denNgayTime || "23:59",
+          true,
+        );
 
         if (filterStart && incidentDate < filterStart) {
           updatedValues.tuNgayDate = formatDate(incidentDate);
+          updatedValues.tuNgayTime = "00:00";
           shouldUpdateFilter = true;
         }
         if (filterEnd && incidentDate > filterEnd) {
           updatedValues.denNgayDate = formatDate(incidentDate);
+          updatedValues.denNgayTime = "23:59";
           shouldUpdateFilter = true;
         }
       }
@@ -199,13 +210,15 @@ function SidebarContent() {
       if (shouldUpdateFilter) {
         reset(updatedValues);
         fetchList(updatedValues);
+      } else if (!isAlreadyInList) {
+        fetchList(currentValues);
       }
     });
 
     return () => {
       isMounted = false;
     };
-  }, [activeMasuco]);
+  }, [activeMasuco, fetchList, getValues, reset]);
 
   const onSubmit = (values: SidebarFilterFormValues) => {
     fetchList(values);
@@ -296,7 +309,11 @@ function SidebarContent() {
         </div>
 
         <div className="ql-sidebar-btn-row">
-          <button type="submit" className="ql-sidebar-btn flex items-center justify-center gap-1.5" disabled={isPending}>
+          <button
+            type="submit"
+            className="ql-sidebar-btn flex items-center justify-center gap-1.5"
+            disabled={isPending}
+          >
             {isPending && (
               <svg
                 className="w-3.5 h-3.5 animate-spin text-primary-dark"
@@ -367,9 +384,13 @@ function SidebarContent() {
                   title={inc.daPhanTich ? "Đã phân tích" : "Chưa phân tích"}
                   style={{ cursor: "pointer" }}
                 >
-                  <td className="truncate">{inc.sosuco ?? String(inc.masuco)}</td>
+                  <td className="truncate">
+                    {inc.sosuco ?? String(inc.masuco)}
+                  </td>
                   <td className="truncate">{inc.hoten ?? "—"}</td>
-                  <td className="text-center font-medium text-xs">{formatDate(inc.ngaysuco)}</td>
+                  <td className="text-center font-medium text-xs">
+                    {formatDate(inc.ngaysuco)}
+                  </td>
                 </tr>
               ))
             )}
