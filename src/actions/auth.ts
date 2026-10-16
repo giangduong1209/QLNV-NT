@@ -1,7 +1,7 @@
 "use server";
 
 import { redirect } from "next/navigation";
-// import bcrypt from "bcryptjs";
+import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
 import { createSession, deleteSession } from "@/lib/session";
 import { LoginFormSchema, type LoginFormState, type UserRole } from "@/types";
@@ -53,16 +53,21 @@ export async function login(
       };
     }
 
-    // 3. Verify password
+    // 3. Verify password (Dual-mode: hỗ trợ cả hash bcrypt và legacy plain-text)
+    const isBcryptHash =
+      typeof user.password === "string" &&
+      (user.password.startsWith("$2a$") ||
+        user.password.startsWith("$2b$") ||
+        user.password.startsWith("$2y$"));
 
-    // const passwordMatch = await bcrypt.compare(password, user.password);
+    let passwordMatch = false;
+    if (isBcryptHash) {
+      passwordMatch = await bcrypt.compare(password, user.password);
+    } else {
+      passwordMatch = password === user.password;
+    }
 
-    // if (!passwordMatch) {
-    //   return {
-    //     message: "Tên đăng nhập hoặc mật khẩu không đúng",
-    //   };
-    // }
-    if (password !== user.password) {
+    if (!passwordMatch) {
       return {
         message: "Tên đăng nhập hoặc mật khẩu không đúng",
       };

@@ -2,6 +2,8 @@
 
 import { revalidatePath } from "next/cache";
 import { getCurrentUser } from "@/lib/dal";
+import { verifySession } from "@/lib/session";
+import { checkIsAdmin } from "@/utils";
 import {
   getIncidentDetail,
   getIncidentList,
@@ -27,6 +29,14 @@ export async function getPreviewSoSuCo(): Promise<
   ActionResult<{ sosuco: string }>
 > {
   try {
+    const session = await verifySession();
+    if (!session?.userId) {
+      return {
+        success: false,
+        error: "Phiên làm việc đã hết hạn. Vui lòng đăng nhập lại.",
+      };
+    }
+
     const res = await getPreviewIncidentCode();
     return { success: true, data: { sosuco: res.sosuco } };
   } catch (error) {
@@ -45,6 +55,14 @@ export async function getSuCoList(
   params: FilterParams,
 ): Promise<ActionResult<SuCoListItem[]>> {
   try {
+    const session = await verifySession();
+    if (!session?.userId) {
+      return {
+        success: false,
+        error: "Phiên làm việc đã hết hạn. Vui lòng đăng nhập lại.",
+      };
+    }
+
     const rows = await getIncidentList(params);
     return { success: true, data: rows };
   } catch (error) {
@@ -63,6 +81,14 @@ export async function getSuCoDetail(
   masuco: number,
 ): Promise<ActionResult<SuCoDetail>> {
   try {
+    const session = await verifySession();
+    if (!session?.userId) {
+      return {
+        success: false,
+        error: "Phiên làm việc đã hết hạn. Vui lòng đăng nhập lại.",
+      };
+    }
+
     const row = await getIncidentDetail(masuco);
 
     if (!row) {
@@ -92,6 +118,14 @@ export async function saveIncident(
   payload: IncidentSavePayload,
 ): Promise<ActionResult<{ masuco?: number }>> {
   try {
+    const session = await verifySession();
+    if (!session?.userId) {
+      return {
+        success: false,
+        error: "Phiên làm việc đã hết hạn. Vui lòng đăng nhập lại.",
+      };
+    }
+
     const parseResult = IncidentSavePayloadSchema.safeParse(payload);
     if (!parseResult.success) {
       return { success: false, error: "Dữ liệu sự cố không hợp lệ." };
@@ -120,8 +154,16 @@ export async function deleteIncident(
   masuco: number,
 ): Promise<ActionResult<{ masuco: number }>> {
   try {
+    const session = await verifySession();
+    if (!session?.userId) {
+      return {
+        success: false,
+        error: "Phiên làm việc đã hết hạn. Vui lòng đăng nhập lại.",
+      };
+    }
+
     const user = await getCurrentUser();
-    const userRole = user?.quyen ?? "user";
+    const userRole = user?.quyen ?? session.role ?? "user";
 
     const res = await deleteIncidentFromDB(masuco, userRole);
     if (!res.success) {
@@ -148,12 +190,48 @@ export async function saveAnalysisIncident(
   isApprove?: boolean,
 ): Promise<ActionResult<{ masuco: number }>> {
   try {
+    const session = await verifySession();
+    if (!session?.userId) {
+      return {
+        success: false,
+        error: "Phiên làm việc đã hết hạn. Vui lòng đăng nhập lại.",
+      };
+    }
+
+    const userRole = session.role ?? "user";
+    const isAdmin = checkIsAdmin(userRole);
+
+    if (isApprove === true && !isAdmin) {
+      return {
+        success: false,
+        error: "Bạn không có quyền duyệt thông tin sự cố này.",
+      };
+    }
+
+    // Nếu không phải admin, loại bỏ các trường đánh giá chuyên gia để tránh can thiệp trái phép
+    if (!isAdmin) {
+      delete payload.chuyengiadanhgia;
+      delete payload.cgthaoluan;
+      delete payload.phuhop;
+      delete payload.khuyencao;
+      delete payload.tt_NC0;
+      delete payload.tt_NC1;
+      delete payload.tt_NC2;
+      delete payload.tt_NC3;
+      delete payload.tttochuc;
+    }
+
     const parseResult = AnalysisSavePayloadSchema.safeParse(payload);
     if (!parseResult.success) {
       return { success: false, error: "Dữ liệu phân tích không hợp lệ." };
     }
 
-    const res = await saveAnalysisToDB(masuco, parseResult.data, isApprove);
+    const res = await saveAnalysisToDB(
+      masuco,
+      parseResult.data,
+      isApprove,
+      userRole,
+    );
     if (!res.success) {
       return {
         success: false,

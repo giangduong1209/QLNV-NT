@@ -212,6 +212,19 @@ export async function saveIncidentToDB(
     }
 
     if (masuco) {
+      // Kiểm tra trạng thái duyệt của sự cố
+      const phanTichRecord = await prisma.dangky_phantichsuco.findUnique({
+        where: { masuco },
+        select: { duyet: true },
+      });
+
+      if (phanTichRecord?.duyet === true) {
+        return {
+          success: false,
+          error: "Sự cố đã được duyệt và không được phép chỉnh sửa.",
+        };
+      }
+
       await prisma.dangky_sucoykhoa.update({
         where: { masuco },
         data: payload,
@@ -325,8 +338,33 @@ export async function saveAnalysisToDB(
   masuco: number,
   payload: AnalysisSavePayload,
   isApprove?: boolean,
+  userRole?: string,
 ): Promise<{ success: boolean; error?: string }> {
   try {
+    const isAdmin = checkIsAdmin(userRole);
+
+    // 1. Kiểm tra quyền duyệt
+    if (isApprove === true && !isAdmin) {
+      return {
+        success: false,
+        error: "Bạn không có quyền duyệt thông tin sự cố này.",
+      };
+    }
+
+    // 2. Kiểm tra nếu sự cố đã được duyệt từ trước
+    const existingPhanTich = await prisma.dangky_phantichsuco.findUnique({
+      where: { masuco },
+      select: { duyet: true },
+    });
+
+    if (existingPhanTich?.duyet === true && !isAdmin) {
+      return {
+        success: false,
+        error:
+          "Sự cố đã được duyệt, không được phép chỉnh sửa kết quả phân tích.",
+      };
+    }
+
     const dataToSave = {
       ...payload,
       ...(isApprove !== undefined ? { duyet: isApprove } : {}),

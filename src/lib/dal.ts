@@ -32,21 +32,16 @@ export const getCurrentUser = cache(async () => {
     if (user && user.active) {
       return user as typeof user & { role: UserRole };
     }
-  } catch (error) {
-    console.log("Failed to fetch user from DB:", error);
-  }
 
-  // Fallback nếu có session JWT nhưng DB chưa tìm thấy/lỗi connection
-  return {
-    id: session.userId,
-    hovaten: "User",
-    sdt: "",
-    email: "",
-    khoahoacphong: "",
-    username: "",
-    password: "",
-    quyen: session.role || "user",
-    role: session.role || ("user" as UserRole),
-    active: true,
-  };
+    // Nếu user không tồn tại hoặc đã bị khóa tài khoản (active = false)
+    console.warn(`User ${session.userId} không tồn tại hoặc đã bị khóa.`);
+    redirect("/login");
+  } catch (error) {
+    // Nếu là ngoại lệ redirect của Next.js (NEXT_REDIRECT), rethrow để thực hiện redirect
+    if ((error as { digest?: string })?.digest?.startsWith("NEXT_REDIRECT")) {
+      throw error;
+    }
+    console.error("Failed to fetch user from DB:", error);
+    redirect("/login");
+  }
 });
