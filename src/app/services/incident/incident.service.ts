@@ -1,10 +1,19 @@
 import { prisma, type Prisma } from "@/lib/prisma";
 
-import { toDate, generateRandomIncidentCodeParts, checkIsAdmin } from "@/utils";
+import {
+  toDate,
+  formatDate,
+  toTimeStr,
+  generateRandomIncidentCodeParts,
+  checkIsAdmin,
+} from "@/utils";
+import { getLookupDataFromDB } from "@/app/services/lookup/lookup.service";
+import { CAUSES_LEFT_DEFAULT, CAUSES_RIGHT_DEFAULT } from "@/constants";
 import type {
   FilterParams,
   IncidentSavePayload,
   AnalysisSavePayload,
+  CauseSubItem,
 } from "@/types";
 
 function isFilterParams(arg: unknown): arg is FilterParams {
@@ -349,4 +358,248 @@ export async function saveAnalysisToDB(
       error: "Không thể lưu kết quả phân tích sự cố. Vui lòng thử lại.",
     };
   }
+}
+
+// ============================================================
+// Xuất danh sách sự cố y khoa sang định dạng Excel
+// ============================================================
+export interface IncidentExportRow {
+  stt: number;
+  masuco: number;
+  sosuco: string;
+  hoten: string;
+  thoidiemXayRa: string;
+  thoigianBaoCao: string;
+  diadiem: string;
+  vitricuthe: string;
+  tinhchat: string;
+  nhomSuCo: string;
+  nhomNguyenNhan: string;
+  mucdoTonThuong: string;
+  mota: string;
+  giaiphapBandau: string;
+  giaiphapTranhLaplai: string;
+  trangthai: string;
+}
+
+function formatExportDateTime(dt: Date | string | null | undefined): string {
+  if (!dt) return "—";
+  const d = formatDate(dt);
+  const t = toTimeStr(dt);
+  return t ? `${t} ${d}` : d || "—";
+}
+
+function formatCausesText(
+  phanTich: Record<string, unknown> | null | undefined,
+  causeSubItemsMap?: Record<string, CauseSubItem[]>,
+): string {
+  if (!phanTich) return "Chưa phân tích";
+
+  const allCauseDefinitions: { key: string; label: string }[] = [
+    ...CAUSES_LEFT_DEFAULT.map((c) => ({
+      key: c.causeKey,
+      label: c.causeLabel,
+    })),
+    ...CAUSES_RIGHT_DEFAULT.map((c) => ({
+      key: c.causeKey,
+      label: c.causeLabel,
+    })),
+  ];
+
+  const matchedCauses: string[] = [];
+
+  for (const def of allCauseDefinitions) {
+    const rawVal = phanTich[def.key];
+    if (rawVal && typeof rawVal === "string" && rawVal.trim() !== "") {
+      const selectedIds = rawVal
+        .split(",")
+        .map((s: string) => s.trim())
+        .filter(Boolean);
+      const subItems = causeSubItemsMap?.[def.key] ?? [];
+      const subItemMap = new Map(
+        subItems.map((item) => [String(item.id), item.name]),
+      );
+
+      const itemNames = selectedIds.map(
+        (id: string) => subItemMap.get(id) ?? `Mục ${id}`,
+      );
+
+      if (itemNames.length > 0) {
+        matchedCauses.push(`• ${def.label}: ${itemNames.join(", ")}`);
+      }
+    }
+  }
+
+  if (
+    phanTich.ptkhac &&
+    typeof phanTich.ptkhac === "string" &&
+    phanTich.ptkhac.trim() !== ""
+  ) {
+    matchedCauses.push(`• Khác: ${phanTich.ptkhac.trim()}`);
+  }
+  if (
+    phanTich.nnnkhac &&
+    typeof phanTich.nnnkhac === "string" &&
+    phanTich.nnnkhac.trim() !== ""
+  ) {
+    matchedCauses.push(`• Nguyên nhân khác: ${phanTich.nnnkhac.trim()}`);
+  }
+
+  return matchedCauses.length > 0
+    ? matchedCauses.join("\n")
+    : "Không ghi nhận nguyên nhân cụ thể";
+}
+
+function formatInjuryText(
+  sucoykhoa: {
+    danhgiabandau?: number | null;
+    phanloaibandau?: number | null;
+  },
+  phanTich: Record<string, unknown> | null | undefined,
+  danhGiaMap: Map<number, string>,
+  phanLoaiMap: Map<number, string>,
+): string {
+  if (phanTich) {
+    const injuries: string[] = [];
+    if (phanTich.tt_NC0 === true) {
+      injuries.push("NC0 - Không có tổn thương");
+    }
+    if (
+      phanTich.tt_NC1 &&
+      typeof phanTich.tt_NC1 === "string" &&
+      phanTich.tt_NC1.trim() !== ""
+    ) {
+      injuries.push(`NC1 (Nhẹ): ${phanTich.tt_NC1.trim()}`);
+    }
+    if (
+      phanTich.tt_NC2 &&
+      typeof phanTich.tt_NC2 === "string" &&
+      phanTich.tt_NC2.trim() !== ""
+    ) {
+      injuries.push(`NC2 (Trung bình): ${phanTich.tt_NC2.trim()}`);
+    }
+    if (
+      phanTich.tt_NC3 &&
+      typeof phanTich.tt_NC3 === "string" &&
+      phanTich.tt_NC3.trim() !== ""
+    ) {
+      injuries.push(`NC3 (Nặng): ${phanTich.tt_NC3.trim()}`);
+    }
+    if (
+      phanTich.tttochuc &&
+      typeof phanTich.tttochuc === "string" &&
+      phanTich.tttochuc.trim() !== ""
+    ) {
+      injuries.push(`Tổn thương tổ chức: ${phanTich.tttochuc.trim()}`);
+    }
+    if (injuries.length > 0) {
+      return injuries.join("\n");
+    }
+  }
+
+  // Fallback đánh giá ban đầu
+  if (sucoykhoa.danhgiabandau && danhGiaMap.has(sucoykhoa.danhgiabandau)) {
+    return danhGiaMap.get(sucoykhoa.danhgiabandau)!;
+  }
+  if (sucoykhoa.phanloaibandau && phanLoaiMap.has(sucoykhoa.phanloaibandau)) {
+    return phanLoaiMap.get(sucoykhoa.phanloaibandau)!;
+  }
+
+  return "Chưa xác định";
+}
+
+export async function getIncidentExportData(
+  params?: FilterParams,
+): Promise<IncidentExportRow[]> {
+  const list = await getIncidentList(params);
+  if (!list || list.length === 0) {
+    return [];
+  }
+
+  const masucoList = list.map((item) => item.masuco);
+  const [phanTichList, lookup] = await Promise.all([
+    prisma.dangky_phantichsuco.findMany({
+      where: { masuco: { in: masucoList } },
+    }),
+    getLookupDataFromDB(),
+  ]);
+
+  const phanTichMap = new Map(phanTichList.map((p) => [p.masuco, p]));
+
+  const phongMap = new Map(lookup.phong.map((p) => [p.maphong, p.tenphong]));
+  const phongNoiMap = new Map(
+    lookup.phongNoi.map((pn) => [pn.maphongnoi, pn.tenphongnoi]),
+  );
+  const hinhThucMap = new Map(
+    lookup.hinhThuc.map((h) => [h.mahinhthuc, h.tenhinhthuc]),
+  );
+  const loaiSuCoMap = new Map(
+    lookup.loaiSuCo.map((l) => [l.maloaiscyk, l.tenloaiscyk]),
+  );
+  const danhGiaMap = new Map(
+    lookup.danhGiaBanDau.map((d) => [d.madanhgia, d.tendanhgia]),
+  );
+  const phanLoaiMap = new Map(
+    lookup.phanLoaiBanDau.map((p) => [p.maphanloai, p.tenphanloai]),
+  );
+
+  return list.map((item, index) => {
+    const pt = phanTichMap.get(item.masuco) as
+      | Record<string, unknown>
+      | undefined;
+
+    const tenPhong = item.maphong ? (phongMap.get(item.maphong) ?? "") : "";
+    const tenPhongNoi = item.maphongnoi
+      ? (phongNoiMap.get(item.maphongnoi) ?? "")
+      : "";
+    let diadiem = "";
+    if (tenPhong && tenPhongNoi) {
+      diadiem = `${tenPhong} - ${tenPhongNoi}`;
+    } else {
+      diadiem = tenPhong || tenPhongNoi || "—";
+    }
+
+    const tinhchat = item.mahinhthuc
+      ? (hinhThucMap.get(item.mahinhthuc) ?? "—")
+      : "—";
+
+    const nhomSuCo =
+      (item.maloaiscyk ? loaiSuCoMap.get(item.maloaiscyk) : null) ||
+      item.tensuco ||
+      "—";
+
+    const nhomNguyenNhan = formatCausesText(pt, lookup.causeSubItemsMap);
+    const mucdoTonThuong = formatInjuryText(item, pt, danhGiaMap, phanLoaiMap);
+
+    const giaiphapTranhLaplai =
+      item.giaiphaptranhlaplai ||
+      (typeof pt?.dexuat === "string" ? pt.dexuat : null) ||
+      (typeof pt?.khacphucsuco === "string" ? pt.khacphucsuco : null) ||
+      item.giaiphapdexuat ||
+      "—";
+
+    let trangthai = "Chưa phân tích";
+    if (pt) {
+      trangthai = pt.duyet === true ? "Đã duyệt" : "Đã phân tích (Chưa duyệt)";
+    }
+
+    return {
+      stt: index + 1,
+      masuco: item.masuco,
+      sosuco: item.sosuco ?? String(item.masuco),
+      hoten: item.hoten || "—",
+      thoidiemXayRa: formatExportDateTime(item.ngaysuco),
+      thoigianBaoCao: formatExportDateTime(item.ngay),
+      diadiem,
+      vitricuthe: item.vitricuthe || "—",
+      tinhchat,
+      nhomSuCo,
+      nhomNguyenNhan,
+      mucdoTonThuong,
+      mota: item.mota || "—",
+      giaiphapBandau: item.xulybandau || "—",
+      giaiphapTranhLaplai,
+      trangthai,
+    };
+  });
 }

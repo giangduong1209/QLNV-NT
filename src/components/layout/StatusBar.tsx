@@ -6,7 +6,8 @@ import { useEditMode } from "@/store/use-edit-mode-store";
 import { useToast } from "@/components/ui/ToastProvider";
 import { ConfirmModal } from "@/components/ui/ConfirmModal";
 import { deleteIncident } from "@/actions/incidents";
-import { checkIsAdmin } from "@/utils";
+import { checkIsAdmin, todayStr } from "@/utils";
+import { FILTER_STORAGE_KEY } from "@/constants/app";
 
 interface StatusBarProps {
   userRole?: string;
@@ -27,13 +28,78 @@ function StatusBarContent({ userRole }: StatusBarProps) {
     isSubmitting,
     submitAction,
     triggerSubmit,
+    currentFilter,
   } = useEditMode();
 
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
 
   const masucoParam = searchParams.get("masuco");
   const activeMasuco = masucoParam ? parseInt(masucoParam, 10) : null;
+
+  const handleExportExcel = async () => {
+    try {
+      setIsExporting(true);
+
+      // Lấy filter từ store hoặc fallback từ sessionStorage
+      let filterValues = currentFilter;
+      if (!filterValues && typeof window !== "undefined") {
+        try {
+          const saved = sessionStorage.getItem(FILTER_STORAGE_KEY);
+          if (saved) {
+            filterValues = JSON.parse(saved);
+          }
+        } catch (e) {
+          console.error("Lỗi đọc filter từ sessionStorage:", e);
+        }
+      }
+
+      const params = new URLSearchParams();
+
+      if (filterValues?.trangThai)
+        params.set("trangThai", filterValues.trangThai);
+      if (filterValues?.tuNgayDate)
+        params.set("tuNgay", filterValues.tuNgayDate);
+      if (filterValues?.tuNgayTime)
+        params.set("tuNgayTime", filterValues.tuNgayTime);
+      if (filterValues?.denNgayDate)
+        params.set("denNgay", filterValues.denNgayDate);
+      if (filterValues?.denNgayTime)
+        params.set("denNgayTime", filterValues.denNgayTime);
+      if (filterValues?.maphong) params.set("maphong", filterValues.maphong);
+
+      const response = await fetch(
+        `/api/incidents/export?${params.toString()}`,
+      );
+      if (!response.ok) {
+        throw new Error("Xuất dữ liệu không thành công");
+      }
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      const disposition = response.headers.get("Content-Disposition");
+      let filename = `Danh_sach_su_co_y_khoa_${todayStr().replace(/\//g, "-")}.xlsx`;
+      if (disposition && disposition.includes("filename=")) {
+        const match = disposition.match(/filename="?([^"]+)"?/);
+        if (match?.[1]) filename = match[1];
+      }
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      a.remove();
+
+      toast.success("Xuất file Excel thành công!");
+    } catch (err) {
+      console.error("Lỗi xuất Excel:", err);
+      toast.error("Không thể xuất file Excel. Vui lòng thử lại!");
+    } finally {
+      setIsExporting(false);
+    }
+  };
 
   // Trigger form submit via React context
   const handleSave = () => {
@@ -262,11 +328,34 @@ function StatusBarContent({ userRole }: StatusBarProps) {
             {isDeleting ? "Đang xóa..." : "Xóa"}
           </button>
 
-          {/* In phiếu — chưa implement */}
-          {/* <button className="ql-btn-action" disabled={!activeMasuco || isSubmitting || isDeleting}>
-            <span className="ql-btn-icon-blue">&#128427;</span> In phiếu{" "}
-            <small>▼</small>
-          </button> */}
+          {/* Xuất Excel */}
+          <button
+            className="ql-btn-action"
+            onClick={handleExportExcel}
+            disabled={isExporting || isSubmitting || isDeleting}
+            title="Xuất danh sách sự cố y khoa theo bộ lọc ra file Excel"
+          >
+            {isExporting ? (
+              <svg
+                className="w-3.5 h-3.5 animate-spin text-emerald-600 inline-block"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  d="M12 4v1m0 14v1m8-8h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707"
+                />
+              </svg>
+            ) : (
+              <span className="ql-btn-icon-green" style={{ color: "#166534" }}>
+                📊
+              </span>
+            )}
+            {isExporting ? "Đang xuất..." : "Xuất báo cáo"}
+          </button>
 
           {/* Thoát: tắt edit mode */}
           <button
