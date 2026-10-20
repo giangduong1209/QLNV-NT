@@ -29,11 +29,13 @@ import {
   buildDepartmentSelectOptions,
 } from "@/utils";
 import { FILTER_STORAGE_KEY } from "@/constants/app";
+import { useEditMode } from "@/store/use-edit-mode-store";
 
 function SidebarContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const pathname = usePathname();
+  const { setCurrentFilter } = useEditMode();
 
   const masucoParam = searchParams.get("masuco");
   const activeMasuco = masucoParam ? parseInt(masucoParam, 10) : null;
@@ -68,15 +70,17 @@ function SidebarContent() {
     [departmentOptions],
   );
 
-  const fetchList = useCallback((values: SidebarFilterFormValues) => {
-    setErrorMsg(null);
+  const fetchList = useCallback(
+    (values: SidebarFilterFormValues) => {
+      setErrorMsg(null);
+      setCurrentFilter(values);
 
-    // Lưu bộ lọc hiện tại vào sessionStorage để duy trì khi refresh trang (F5)
-    try {
-      sessionStorage.setItem(FILTER_STORAGE_KEY, JSON.stringify(values));
-    } catch (e) {
-      console.error("Lỗi khi ghi sessionStorage:", e);
-    }
+      // Lưu bộ lọc hiện tại vào sessionStorage để duy trì khi refresh trang (F5)
+      try {
+        sessionStorage.setItem(FILTER_STORAGE_KEY, JSON.stringify(values));
+      } catch (e) {
+        console.error("Lỗi khi ghi sessionStorage:", e);
+      }
 
     startTransition(async () => {
       const result = await getSuCoList({
@@ -98,7 +102,7 @@ function SidebarContent() {
         setSuCoList(list);
       }
     });
-  }, []);
+  }, [setCurrentFilter]);
 
   // Nạp danh mục Khoa & Phòng động và khôi phục bộ lọc từ sessionStorage khi mount
   useEffect(() => {

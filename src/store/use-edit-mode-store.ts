@@ -2,6 +2,8 @@
 
 import { create } from "zustand";
 
+import type { SidebarFilterFormValues } from "@/types";
+
 export type FormSubmitAction = "save" | "approve";
 export type SubmitHandler = (
   actionType?: FormSubmitAction,
@@ -16,6 +18,7 @@ export interface EditModeState {
   isSubmitting: boolean;
   submitAction: FormSubmitAction | null;
   submitHandler: SubmitHandler | null;
+  currentFilter: SidebarFilterFormValues | null;
   setIsEditing: (v: boolean) => void;
   setDisableEditButton: (v: boolean) => void;
   setDisableApproveButton: (v: boolean) => void;
@@ -26,6 +29,7 @@ export interface EditModeState {
   }) => void;
   registerSubmitHandler: (handler: SubmitHandler | null) => void;
   triggerSubmit: (actionType?: FormSubmitAction) => void;
+  setCurrentFilter: (filter: SidebarFilterFormValues | null) => void;
   resetState: () => void;
 }
 
@@ -38,6 +42,7 @@ export const useEditModeStore = create<EditModeState>((set, get) => ({
   isSubmitting: false,
   submitAction: null,
   submitHandler: null,
+  currentFilter: null,
 
   setIsEditing: (isEditing) => set({ isEditing }),
   setDisableEditButton: (disableEditButton) => set({ disableEditButton }),
@@ -49,6 +54,7 @@ export const useEditModeStore = create<EditModeState>((set, get) => ({
     set({ daPhanTich: status.daPhanTich, daDuyet: status.daDuyet }),
 
   registerSubmitHandler: (handler) => set({ submitHandler: handler }),
+  setCurrentFilter: (currentFilter) => set({ currentFilter }),
 
   resetState: () =>
     set({
@@ -60,6 +66,7 @@ export const useEditModeStore = create<EditModeState>((set, get) => ({
       isSubmitting: false,
       submitAction: null,
       submitHandler: null,
+      currentFilter: null,
     }),
 
   triggerSubmit: (actionType) => {
@@ -101,6 +108,8 @@ export function useEditMode() {
     (state) => state.registerSubmitHandler,
   );
   const triggerSubmit = useEditModeStore((state) => state.triggerSubmit);
+  const currentFilter = useEditModeStore((state) => state.currentFilter);
+  const setCurrentFilter = useEditModeStore((state) => state.setCurrentFilter);
   const resetState = useEditModeStore((state) => state.resetState);
 
   return {
@@ -118,6 +127,8 @@ export function useEditMode() {
     setIncidentStatus,
     registerSubmitHandler,
     triggerSubmit,
+    currentFilter,
+    setCurrentFilter,
     resetState,
   };
 }
