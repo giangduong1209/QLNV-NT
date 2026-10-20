@@ -6,6 +6,7 @@ import {
   toTimeStr,
   generateRandomIncidentCodeParts,
   checkIsAdmin,
+  getAnalysisLabel,
 } from "@/utils";
 import { getLookupDataFromDB } from "@/app/services/lookup/lookup.service";
 import { CAUSES_LEFT_DEFAULT, CAUSES_RIGHT_DEFAULT } from "@/constants";
@@ -458,42 +459,30 @@ function formatInjuryText(
   phanTich: Record<string, unknown> | null | undefined,
   danhGiaMap: Map<number, string>,
   phanLoaiMap: Map<number, string>,
+  tonThuongNguoiBenhMap: Map<string, string>,
 ): string {
   if (phanTich) {
     const injuries: string[] = [];
     if (phanTich.tt_NC0 === true) {
-      injuries.push("NC0 - Không có tổn thương");
+      injuries.push("Không có tổn thương (NC0)");
     }
-    if (
-      phanTich.tt_NC1 &&
-      typeof phanTich.tt_NC1 === "string" &&
-      phanTich.tt_NC1.trim() !== ""
-    ) {
-      injuries.push(`NC1 (Nhẹ): ${phanTich.tt_NC1.trim()}`);
-    }
-    if (
-      phanTich.tt_NC2 &&
-      typeof phanTich.tt_NC2 === "string" &&
-      phanTich.tt_NC2.trim() !== ""
-    ) {
-      injuries.push(`NC2 (Trung bình): ${phanTich.tt_NC2.trim()}`);
-    }
-    if (
-      phanTich.tt_NC3 &&
-      typeof phanTich.tt_NC3 === "string" &&
-      phanTich.tt_NC3.trim() !== ""
-    ) {
-      injuries.push(`NC3 (Nặng): ${phanTich.tt_NC3.trim()}`);
-    }
-    if (
-      phanTich.tttochuc &&
-      typeof phanTich.tttochuc === "string" &&
-      phanTich.tttochuc.trim() !== ""
-    ) {
-      injuries.push(`Tổn thương tổ chức: ${phanTich.tttochuc.trim()}`);
-    }
+
+    const appendInjuryLevel = (val?: unknown) => {
+      if (val != null) {
+        const raw = String(val).trim();
+        if (raw !== "" && raw !== "0") {
+          const label = tonThuongNguoiBenhMap.get(raw) || raw;
+          injuries.push(label);
+        }
+      }
+    };
+
+    appendInjuryLevel(phanTich.tt_NC1);
+    appendInjuryLevel(phanTich.tt_NC2);
+    appendInjuryLevel(phanTich.tt_NC3);
+
     if (injuries.length > 0) {
-      return injuries.join("\n");
+      return Array.from(new Set(injuries)).join("\n");
     }
   }
 
@@ -505,15 +494,98 @@ function formatInjuryText(
     return phanLoaiMap.get(sucoykhoa.phanloaibandau)!;
   }
 
-  return "Chưa xác định";
+  return "—";
 }
 
 export async function getIncidentExportData(
   params?: FilterParams,
 ): Promise<IncidentExportRow[]> {
+  const data = await getComprehensiveIncidentExportData(params);
+  return data.notificationRows.map((item, index) => {
+    const analysisRow = data.analysisRows[index];
+    return {
+      stt: index + 1,
+      masuco: parseInt(item.masuco.replace(/\D/g, ""), 10) || index + 1,
+      sosuco: item.masuco,
+      hoten: item.thongTinNguoiBenh,
+      thoidiemXayRa: item.ngayGioXayRa,
+      thoigianBaoCao: item.ngayBaoCao,
+      diadiem: item.khoaPhongBaoCao,
+      vitricuthe: item.viTri,
+      tinhchat: item.loaiBaoCao,
+      nhomSuCo: item.phanLoaiSuCo,
+      nhomNguyenNhan: analysisRow?.nhomNguyenNhan ?? "—",
+      mucdoTonThuong: analysisRow?.mucDoTonThuongNguoiBenh ?? "—",
+      mota: item.moTa,
+      giaiphapBandau: item.dieuTriBanDau,
+      giaiphapTranhLaplai: item.deXuatBanDau,
+      trangthai: item.trangThai,
+    };
+  });
+}
+
+// ============================================================
+// Định dạng xuất theo đúng 19 trường Form Thông Báo Sự Cố
+// ============================================================
+export interface IncidentNotificationExportRow {
+  stt: number;
+  masuco: string;
+  khoaPhongBaoCao: string;
+  loaiBaoCao: string;
+  phanLoaiSuCo: string;
+  ngayGioXayRa: string;
+  doiTuong: string;
+  thongTinNguoiBenh: string;
+  viTri: string;
+  moTa: string;
+  dieuTriBanDau: string;
+  ghiNhanHSBA: string;
+  thongBaoBacSy: string;
+  thongBaoNguoiNha: string;
+  thongBaoNguoiBenh: string;
+  deXuatBanDau: string;
+  nguoiChungKien: string;
+  nguoiBaoCao: string;
+  ngayBaoCao: string;
+  trangThai: string;
+}
+
+// ============================================================
+// Định dạng xuất theo đúng 20 trường Form Phân Tích Sự Cố
+// ============================================================
+export interface IncidentAnalysisExportRow {
+  stt: number;
+  masuco: string;
+  khoaPhongBaoCao: string;
+  loaiBaoCao: string;
+  phanLoaiSuCo: string;
+  ngayGioXayRa: string;
+  doiTuong: string;
+  thongTinNguoiBenh: string;
+  viTri: string;
+  moTa: string;
+  nhomSuCo: string;
+  moTaDieuTriYLenh: string;
+  nhomNguyenNhan: string;
+  hanhDongXuLy: string;
+  deXuatKhuyenCao: string;
+  ketQuaPhatHien: string;
+  daThaoLuan: string;
+  phuHopKhuyenCao: string;
+  mucDoTonThuongNguoiBenh: string;
+  mucDoAnhHuongToChuc: string;
+  trangThaiPt: string;
+}
+
+export async function getComprehensiveIncidentExportData(
+  params?: FilterParams,
+): Promise<{
+  notificationRows: IncidentNotificationExportRow[];
+  analysisRows: IncidentAnalysisExportRow[];
+}> {
   const list = await getIncidentList(params);
   if (!list || list.length === 0) {
-    return [];
+    return { notificationRows: [], analysisRows: [] };
   }
 
   const masucoList = list.map((item) => item.masuco);
@@ -542,64 +614,226 @@ export async function getIncidentExportData(
   const phanLoaiMap = new Map(
     lookup.phanLoaiBanDau.map((p) => [p.maphanloai, p.tenphanloai]),
   );
+  const doiTuongMap = new Map(
+    lookup.doiTuong.map((d) => [d.madoituongsc, d.doituongsc]),
+  );
+  const phaiMap = new Map([
+    [0, "Nam"],
+    [1, "Nữ"],
+  ]);
+  const tonThuongToChucMap = new Map(
+    lookup.tonThuongToChuc?.map((t) => [
+      String(t.matonthuong),
+      t.tentonthuong,
+    ]) ?? [],
+  );
+  const tonThuongNguoiBenhMap = new Map<string, string>();
+  lookup.tonThuongNguoiBenh?.forEach((item) => {
+    const capDo = item.capdotonthuong?.trim() ?? "";
+    if (capDo) {
+      tonThuongNguoiBenhMap.set(String(item.maphanloai), capDo);
+      if (item.macapdotonthuong) {
+        tonThuongNguoiBenhMap.set(item.macapdotonthuong.trim(), capDo);
+      }
+    }
+  });
 
-  return list.map((item, index) => {
+  const notificationRows: IncidentNotificationExportRow[] = [];
+  const analysisRows: IncidentAnalysisExportRow[] = [];
+
+  list.forEach((item, index) => {
     const pt = phanTichMap.get(item.masuco) as
       | Record<string, unknown>
       | undefined;
 
     const tenPhong = item.maphong ? (phongMap.get(item.maphong) ?? "") : "";
+    const tenKkBaoCao = item.makkbaocao
+      ? (phongMap.get(item.makkbaocao) ?? "")
+      : "";
     const tenPhongNoi = item.maphongnoi
       ? (phongNoiMap.get(item.maphongnoi) ?? "")
       : "";
-    let diadiem = "";
-    if (tenPhong && tenPhongNoi) {
-      diadiem = `${tenPhong} - ${tenPhongNoi}`;
-    } else {
-      diadiem = tenPhong || tenPhongNoi || "—";
-    }
 
-    const tinhchat = item.mahinhthuc
-      ? (hinhThucMap.get(item.mahinhthuc) ?? "—")
+    // 1. Khoa phòng báo cáo
+    const khoaPhongBaoCao = tenKkBaoCao || tenPhong || "—";
+
+    // 2. Loại báo cáo (Tự nguyện / Bắt buộc)
+    const loaiBaoCao = item.mahinhthuc
+      ? (hinhThucMap.get(item.mahinhthuc) ??
+        (item.mahinhthuc === 1 ? "Tự nguyện" : "Bắt buộc"))
       : "—";
 
+    // 3. Phân loại sự cố
+    const phanLoaiSuCo = item.phanloaibandau
+      ? (phanLoaiMap.get(item.phanloaibandau) ?? "")
+      : item.danhgiabandau
+        ? (danhGiaMap.get(item.danhgiabandau) ?? "")
+        : "—";
+
+    // 4. Ngày giờ xảy ra
+    const ngayGioXayRa = formatExportDateTime(item.ngaysuco);
+
+    // 5. Đối tượng xảy ra sự cố
+    const doiTuong = item.madoituongsc
+      ? (doiTuongMap.get(item.madoituongsc) ?? "—")
+      : "—";
+
+    // 6. Thông tin người bệnh (Họ tên, ngày sinh, giới tính, số bệnh án, khoa/phòng)
+    const hotenStr = item.hoten || "Không rõ họ tên";
+    const ngaysinhStr = item.ngaysinh ? formatDate(item.ngaysinh) : "";
+    const phaiStr =
+      item.maphai != null
+        ? (phaiMap.get(item.maphai) ?? (item.maphai === 1 ? "Nữ" : "Nam"))
+        : "";
+    const sobenhanStr = item.sobenhan ? `Số BA: ${item.sobenhan}` : "";
+    const phongDieuTriStr = tenPhong ? `Khoa/Phòng: ${tenPhong}` : "";
+
+    const thongTinNguoiBenhParts = [
+      hotenStr,
+      ngaysinhStr ? `Sinh: ${ngaysinhStr}` : "",
+      phaiStr ? `Giới tính: ${phaiStr}` : "",
+      sobenhanStr,
+      phongDieuTriStr,
+    ].filter(Boolean);
+    const thongTinNguoiBenh = thongTinNguoiBenhParts.join(" | ");
+
+    // 7. Vị trí xảy ra sự cố
+    let viTri = "";
+    if (tenPhong && tenPhongNoi) {
+      viTri = `${tenPhong} - ${tenPhongNoi}`;
+    } else {
+      viTri = tenPhong || tenPhongNoi || "—";
+    }
+    if (item.vitricuthe) {
+      viTri += ` (${item.vitricuthe})`;
+    }
+
+    // 8. Mô tả sự cố
+    const moTa = item.mota || (pt?.mota as string) || "—";
+
+    // Trạng thái tổng quát
+    let trangThai = "Chưa phân tích";
+    if (pt) {
+      trangThai = pt.duyet === true ? "Đã duyệt" : "Đã phân tích (Chưa duyệt)";
+    }
+
+    // A. Thêm vào mảng Notification Rows (19 trường)
+    notificationRows.push({
+      stt: index + 1,
+      masuco: item.sosuco ?? String(item.masuco),
+      khoaPhongBaoCao,
+      loaiBaoCao,
+      phanLoaiSuCo,
+      ngayGioXayRa,
+      doiTuong,
+      thongTinNguoiBenh,
+      viTri,
+      moTa,
+      dieuTriBanDau: item.xulybandau || "—",
+      ghiNhanHSBA:
+        item.ghinhan === true ? "Có" : item.ghinhan === false ? "Không" : "—",
+      thongBaoBacSy:
+        item.thongbaobacsy === true
+          ? "Có"
+          : item.thongbaobacsy === false
+            ? "Không"
+            : "—",
+      thongBaoNguoiNha:
+        item.thongbaonguoinha === true
+          ? "Có"
+          : item.thongbaonguoinha === false
+            ? "Không"
+            : "—",
+      thongBaoNguoiBenh:
+        item.thongbaonguoibenh === true
+          ? "Có"
+          : item.thongbaonguoibenh === false
+            ? "Không"
+            : "—",
+      deXuatBanDau: item.giaiphapdexuat || "—",
+      nguoiChungKien:
+        [item.chungkien1, item.chungkien2].filter(Boolean).join(", ") || "—",
+      nguoiBaoCao:
+        [
+          item.hotennguoibaocao,
+          item.dienthoainguoibaocao ? `SĐT: ${item.dienthoainguoibaocao}` : "",
+          item.emailnguoibaocao ? `Email: ${item.emailnguoibaocao}` : "",
+        ]
+          .filter(Boolean)
+          .join(" - ") || "—",
+      ngayBaoCao: formatExportDateTime(item.ngay),
+      trangThai,
+    });
+
+    // B. Thêm vào mảng Analysis Rows (20 trường)
     const nhomSuCo =
       (item.maloaiscyk ? loaiSuCoMap.get(item.maloaiscyk) : null) ||
       item.tensuco ||
       "—";
 
+    const moTaDieuTriYLenh = (pt?.ylenh as string) || "—";
     const nhomNguyenNhan = formatCausesText(pt, lookup.causeSubItemsMap);
-    const mucdoTonThuong = formatInjuryText(item, pt, danhGiaMap, phanLoaiMap);
+    const hanhDongXuLy = (pt?.khacphucsuco as string) || "—";
+    const deXuatKhuyenCao =
+      (pt?.dexuat as string) || item.giaiphaptranhlaplai || "—";
+    const ketQuaPhatHien = (pt?.chuyengiadanhgia as string) || "—";
 
-    const giaiphapTranhLaplai =
-      item.giaiphaptranhlaplai ||
-      (typeof pt?.dexuat === "string" ? pt.dexuat : null) ||
-      (typeof pt?.khacphucsuco === "string" ? pt.khacphucsuco : null) ||
-      item.giaiphapdexuat ||
-      "—";
+    // 16. Đã thảo luận đưa ra khuyến cáo (Dùng getAnalysisLabel)
+    const daThaoLuan = getAnalysisLabel("cgthaoluan", pt?.cgthaoluan as string);
 
-    let trangthai = "Chưa phân tích";
+    // 17. Phù hợp với các khuyến cáo (Dùng getAnalysisLabel)
+    const phuHopText = getAnalysisLabel("cgthaoluan", pt?.phuhop as string, "");
+    const phuHopKhuyenCao =
+      [
+        phuHopText ? `Phù hợp: ${phuHopText}` : "",
+        pt?.khuyencao ? `Khuyến cáo: ${pt.khuyencao}` : "",
+      ]
+        .filter(Boolean)
+        .join("\n") || "—";
+
+    const mucDoTonThuongNguoiBenh = formatInjuryText(
+      item,
+      pt,
+      danhGiaMap,
+      phanLoaiMap,
+      tonThuongNguoiBenhMap,
+    );
+
+    // 18. Mức độ ảnh hưởng trên tổ chức (Lấy thuần túy từ DB bảng dmtonthuongtrentochuc_scyk)
+    const ttToChucRaw = pt?.tttochuc ? String(pt.tttochuc).trim() : "";
+    const mucDoAnhHuongToChuc = ttToChucRaw
+      ? tonThuongToChucMap.get(ttToChucRaw) || ttToChucRaw
+      : "—";
+
+    let trangThaiPt = "Chưa phân tích";
     if (pt) {
-      trangthai = pt.duyet === true ? "Đã duyệt" : "Đã phân tích (Chưa duyệt)";
+      trangThaiPt = pt.duyet === true ? "Đã duyệt" : "Chưa duyệt";
     }
 
-    return {
+    analysisRows.push({
       stt: index + 1,
-      masuco: item.masuco,
-      sosuco: item.sosuco ?? String(item.masuco),
-      hoten: item.hoten || "—",
-      thoidiemXayRa: formatExportDateTime(item.ngaysuco),
-      thoigianBaoCao: formatExportDateTime(item.ngay),
-      diadiem,
-      vitricuthe: item.vitricuthe || "—",
-      tinhchat,
+      masuco: item.sosuco ?? String(item.masuco),
+      khoaPhongBaoCao,
+      loaiBaoCao,
+      phanLoaiSuCo,
+      ngayGioXayRa,
+      doiTuong,
+      thongTinNguoiBenh,
+      viTri,
+      moTa,
       nhomSuCo,
+      moTaDieuTriYLenh,
       nhomNguyenNhan,
-      mucdoTonThuong,
-      mota: item.mota || "—",
-      giaiphapBandau: item.xulybandau || "—",
-      giaiphapTranhLaplai,
-      trangthai,
-    };
+      hanhDongXuLy,
+      deXuatKhuyenCao,
+      ketQuaPhatHien,
+      daThaoLuan,
+      phuHopKhuyenCao,
+      mucDoTonThuongNguoiBenh,
+      mucDoAnhHuongToChuc,
+      trangThaiPt,
+    });
   });
+
+  return { notificationRows, analysisRows };
 }

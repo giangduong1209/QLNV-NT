@@ -8,11 +8,23 @@ export interface CauseItem {
   defaultMaxOptions: number;
 }
 
-export const CGTHAOLUAN_OPTIONS: SelectOption[] = [
-  { value: "0", label: "Không" },
-  { value: "1", label: "Có" },
-  { value: "2", label: "Không ghi nhận" },
-];
+// Bảng từ điển ánh xạ chuẩn hóa cho phân tích sự cố (Single Source of Truth)
+export const ANALYSIS_FIELD_LABELS = {
+  cgthaoluan: {
+    "0": "Không",
+    "1": "Có",
+    "2": "Không ghi nhận",
+  },
+} as const;
+
+// Tự động sinh danh sách Options cho các thẻ <select> trên Form
+export const CGTHAOLUAN_OPTIONS: SelectOption[] = Object.entries(
+  ANALYSIS_FIELD_LABELS.cgthaoluan,
+).map(([value, label]) => ({ value, label }));
+
+// Map tra cứu nhanh (tái sử dụng từ điển, tương thích ngược)
+export const CGTHAOLUAN_MAP: Record<string, string> =
+  ANALYSIS_FIELD_LABELS.cgthaoluan;
 
 export const CAUSES_LEFT_DEFAULT: CauseItem[] = [
   {

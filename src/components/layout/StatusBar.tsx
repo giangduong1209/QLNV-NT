@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, Suspense } from "react";
+import { useState, useEffect, useCallback, useRef, Suspense } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEditMode } from "@/store/use-edit-mode-store";
 import { useToast } from "@/components/ui/ToastProvider";
@@ -34,13 +34,36 @@ function StatusBarContent({ userRole }: StatusBarProps) {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
+  const [showExportMenu, setShowExportMenu] = useState(false);
+  const exportMenuRef = useRef<HTMLDivElement>(null);
 
   const masucoParam = searchParams.get("masuco");
   const activeMasuco = masucoParam ? parseInt(masucoParam, 10) : null;
 
-  const handleExportExcel = async () => {
+  // Đóng menu khi click ra ngoài
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        exportMenuRef.current &&
+        !exportMenuRef.current.contains(event.target as Node)
+      ) {
+        setShowExportMenu(false);
+      }
+    };
+    if (showExportMenu) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [showExportMenu]);
+
+  const handleExportExcel = async (
+    mode: "notification" | "analysis" | "full" = "full",
+  ) => {
     try {
       setIsExporting(true);
+      setShowExportMenu(false);
 
       // Lấy filter từ store hoặc fallback từ sessionStorage
       let filterValues = currentFilter;
@@ -56,6 +79,7 @@ function StatusBarContent({ userRole }: StatusBarProps) {
       }
 
       const params = new URLSearchParams();
+      params.set("mode", mode);
 
       if (filterValues?.trangThai)
         params.set("trangThai", filterValues.trangThai);
@@ -81,7 +105,7 @@ function StatusBarContent({ userRole }: StatusBarProps) {
       const a = document.createElement("a");
       a.href = url;
       const disposition = response.headers.get("Content-Disposition");
-      let filename = `Danh_sach_su_co_y_khoa_${todayStr().replace(/\//g, "-")}.xlsx`;
+      let filename = `Bao_cao_SCYK_${todayStr().replace(/\//g, "-")}.xlsx`;
       if (disposition && disposition.includes("filename=")) {
         const match = disposition.match(/filename="?([^"]+)"?/);
         if (match?.[1]) filename = match[1];
@@ -328,34 +352,101 @@ function StatusBarContent({ userRole }: StatusBarProps) {
             {isDeleting ? "Đang xóa..." : "Xóa"}
           </button>
 
-          {/* Xuất Excel */}
-          <button
-            className="ql-btn-action"
-            onClick={handleExportExcel}
-            disabled={isExporting || isSubmitting || isDeleting}
-            title="Xuất danh sách sự cố y khoa theo bộ lọc ra file Excel"
-          >
-            {isExporting ? (
-              <svg
-                className="w-3.5 h-3.5 animate-spin text-emerald-600 inline-block"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
+          {/* Xuất Excel với Popover Menu */}
+          <div className="relative inline-block" ref={exportMenuRef}>
+            <button
+              className="ql-btn-action"
+              onClick={() => setShowExportMenu((prev) => !prev)}
+              disabled={isExporting || isSubmitting || isDeleting}
+              title="Xuất báo cáo sự cố y khoa theo Thông tư 43"
+            >
+              {isExporting ? (
+                <svg
+                  className="w-3.5 h-3.5 animate-spin text-emerald-600 inline-block"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    d="M12 4v1m0 14v1m8-8h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707"
+                  />
+                </svg>
+              ) : (
+                <span
+                  className="ql-btn-icon-green"
+                  style={{ color: "#166534" }}
+                >
+                  📊
+                </span>
+              )}
+              {isExporting ? "Đang xuất..." : "Xuất báo cáo ▾"}
+            </button>
+
+            {showExportMenu && (
+              <div
+                className="absolute bottom-full mb-1.5 left-0 w-80 bg-white rounded-lg shadow-2xl border border-slate-200 z-50 py-1.5 text-xs text-slate-700 animate-in fade-in"
+                style={{ filter: "drop-shadow(0 10px 15px rgba(0,0,0,0.15))" }}
               >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  d="M12 4v1m0 14v1m8-8h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707"
-                />
-              </svg>
-            ) : (
-              <span className="ql-btn-icon-green" style={{ color: "#166534" }}>
-                📊
-              </span>
+                <div className="px-3 py-1.5 font-semibold text-slate-800 border-b border-slate-100 flex items-center justify-between bg-slate-50 rounded-t-lg">
+                  <span className="flex items-center gap-1.5">
+                    <span>📄</span>
+                    <span>Xuất báo cáo theo Thông tư 43</span>
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setShowExportMenu(false)}
+                    className="text-slate-400 hover:text-slate-600 text-sm font-bold px-1"
+                  >
+                    ×
+                  </button>
+                </div>
+
+                <div className="py-1">
+                  <button
+                    type="button"
+                    onClick={() => handleExportExcel("notification")}
+                    className="w-full text-left px-3 py-2 hover:bg-blue-50 flex items-start gap-2.5 transition-colors group cursor-pointer"
+                  >
+                    <span className="text-base leading-none mt-0.5">📋</span>
+                    <div>
+                      <div className="font-semibold text-slate-800 group-hover:text-blue-700">
+                        1. Báo cáo Sự cố y khoa
+                      </div>
+                    </div>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => handleExportExcel("analysis")}
+                    className="w-full text-left px-3 py-2 hover:bg-purple-50 flex items-start gap-2.5 transition-colors group border-t border-slate-50 cursor-pointer"
+                  >
+                    <span className="text-base leading-none mt-0.5">🔬</span>
+                    <div>
+                      <div className="font-semibold text-slate-800 group-hover:text-purple-700">
+                        2. Báo cáo Phân tích sự cố
+                      </div>
+                    </div>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => handleExportExcel("full")}
+                    className="w-full text-left px-3 py-2 hover:bg-emerald-50 flex items-start gap-2.5 transition-colors group border-t border-slate-100 cursor-pointer"
+                  >
+                    <span className="text-base leading-none mt-0.5">📁</span>
+                    <div>
+                      <div className="font-semibold text-slate-800 group-hover:text-emerald-900 flex items-center gap-1.5">
+                        <span>3. Xuất toàn bộ báo cáo</span>
+                      </div>
+                    </div>
+                  </button>
+                </div>
+              </div>
             )}
-            {isExporting ? "Đang xuất..." : "Xuất báo cáo"}
-          </button>
+          </div>
 
           {/* Thoát: tắt edit mode */}
           <button

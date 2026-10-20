@@ -1,9 +1,4 @@
-export {
-  formatDate,
-  toTimeStr,
-  toDate,
-  todayStr,
-} from "./format-date";
+export { formatDate, toTimeStr, toDate, todayStr } from "./format-date";
 
 export { handleError, parseMasucoFromRequest } from "./api-helpers";
 
@@ -15,6 +10,7 @@ export {
   parseBooleanOption,
   checkIsAdmin,
   generateRandomIncidentCodeParts,
+  getAnalysisLabel,
 } from "./helpers";
 
 export {

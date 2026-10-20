@@ -1,3 +1,5 @@
+import { ANALYSIS_FIELD_LABELS } from "@/constants";
+
 /**
  * Chuyển đổi giá trị sang string (null/undefined -> "")
  */
@@ -66,7 +68,9 @@ export function checkIsAdmin(role: string | null | undefined): boolean {
 /**
  * Sinh ngẫu nhiên Mã sự cố theo format SC + YYMMDD + 3 số ngẫu nhiên
  */
-export function generateRandomIncidentCodeParts(targetDate: Date = new Date()): {
+export function generateRandomIncidentCodeParts(
+  targetDate: Date = new Date(),
+): {
   sosuco: string;
   masuco: number;
 } {
@@ -85,3 +89,13 @@ export function generateRandomIncidentCodeParts(targetDate: Date = new Date()): 
   return { sosuco, masuco };
 }
 
+// Hàm tiện ích tra cứu nhãn dùng chung
+export function getAnalysisLabel(
+  field: keyof typeof ANALYSIS_FIELD_LABELS,
+  value?: string | null,
+  fallback = "—",
+): string {
+  if (!value) return fallback;
+  const key = String(value).trim();
+  return (ANALYSIS_FIELD_LABELS[field] as Record<string, string>)[key] ?? key;
+}
